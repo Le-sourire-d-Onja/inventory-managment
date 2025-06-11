@@ -1,36 +1,36 @@
-truc pour configurer : REFERENCE 
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-quand on rencoit un don on doit rentrer le poids kg et le volume m3 pour la référence 
-avec un id (random sérialiser ex: 500 -> 501 (ou numero par réference))
-avec la date (pourquoi pas mettre le donnateur (default NON RENSEIGNÉ))
+## Getting Started
 
-pour une réference il faut une categorie
+First, run the development server:
 
-par exemple pour un fauteuil roulant (orthopédique) numero = O0500
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-une table categorie 
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-une table avec toutes les associations 
-une table avec les demandes des associations => champ ou il y a le mail en entier
-quand on écrit un mail => assigner un don à une demande d'association 
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-pourquoi pas avoir un truc qui permet de voir ce qui manque (dashboard avec tout ce qui manque)
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-dans la table de données quand on voit tout reference reference nom long + nom court (unique)
+## Learn More
 
-une table des don avec reference + categorie + volume + poids + donnateur + date (possibilité de la modifier)
+To learn more about Next.js, take a look at the following resources:
 
-une fois qu'on arrive sur notre table on ouvre une popup pour imprimer une étiquette
-- date de création de l'etiquette
-- reference 
-- categorie
-- volume
-- poids
-- qr code qui redirige vers la page du don 
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-une fois qu'on arrive à la livraison :
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Deploy on Vercel
 
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-
-
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
