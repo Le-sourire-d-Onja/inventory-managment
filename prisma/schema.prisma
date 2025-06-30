@@ -14,7 +14,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Donnation {
+model Donation {
   id          String   @id @default(cuid())
   name        String
   description String
@@ -23,27 +23,31 @@ model Donnation {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  articles DonnationArticle[]
+  articles DonationArticle[]
+
+  @@map("Donation")
 }
 
-model DonnationArticle {
-  id          String      @id @default(cuid())
-  value       Float
-  number      Int
-  donnation   Donnation   @relation(fields: [donnationID], references: [id])
-  donnationID String
-  type        ArticleType @relation(fields: [typeID], references: [id])
-  typeID      String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+model DonationArticle {
+  id         String      @id @default(cuid())
+  value      Float
+  quantity   Int         @default(0)
+  donation   Donation    @relation(fields: [donationID], references: [id], onDelete: Cascade)
+  donationID String
+  type       ArticleType @relation(fields: [typeID], references: [id], onDelete: SetDefault)
+  typeID     String      @default("")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("DonationArticle")
 }
 
 model ContainerContent {
   id          String      @id @default(cuid())
-  number      Int
-  type        ArticleType @relation(fields: [typeID], references: [id])
-  typeID      String
-  container   Container   @relation(fields: [containerID], references: [id])
+  quantity    Int
+  type        ArticleType @relation(fields: [typeID], references: [id], onDelete: SetDefault)
+  typeID      String      @default("")
+  container   Container   @relation(fields: [containerID], references: [id], onDelete: Cascade)
   containerID String
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -54,7 +58,7 @@ model Container {
   weight    Float
   volume    Float
   contents  ContainerContent[]
-  demand    AssociationDemand  @relation(fields: [demandID], references: [id])
+  demand    AssociationDemand  @relation(fields: [demandID], references: [id], onDelete: Cascade)
   demandID  String
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
@@ -66,7 +70,7 @@ model AssociationDemand {
   containers    Container[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
-  Association   Association? @relation(fields: [associationId], references: [id])
+  Association   Association? @relation(fields: [associationId], references: [id], onDelete: Cascade)
   associationId String?
 }
 
@@ -84,8 +88,8 @@ model Association {
 
 model ArticleType {
   id        String             @id @default(cuid())
-  type      String             @unique
-  articles  DonnationArticle[]
+  name      String             @unique
+  articles  DonationArticle[]
   contents  ContainerContent[]
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
