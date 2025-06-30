@@ -8,9 +8,14 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Gift } from "lucide-react"
+import { Gift, LayoutDashboard } from "lucide-react"
 
 const items = [
+    {
+        title: "Tableau de bord",
+        url: "/dashboard",
+        icon: LayoutDashboard,
+    },
     {
         title: "Donnations",
         url: "/donations",
