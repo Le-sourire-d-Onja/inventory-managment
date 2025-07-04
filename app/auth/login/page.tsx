@@ -48,7 +48,7 @@ export default function Page() {
   }
 
   return (
-    <main className="flex w-screen h-screen justify-center items-center">
+    <div className="flex w-screen h-screen justify-center items-center">
       <Card className="p-8 h-fit">
         <CardTitle> Entrer le mot de passe </CardTitle>
         <CardContent>
@@ -79,6 +79,6 @@ export default function Page() {
           </Form>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }
