@@ -1,9 +1,44 @@
+"use client";
+
+import { DataTable } from "@/components/data-table";
+import { useEffect, useState } from "react";
+import { DonationDto } from "../api/donations/dto/donation.dto";
+import { columns } from "./columns";
+
 export default function Page() {
+  const [data, setData] = useState<DonationDto[]>([]);
+  const [isLoading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/donations")
+      .then((res) => res.json())
+      .then((donations) =>
+        donations.map((donation: any) => DonationDto.parse(donation))
+      )
+      .then((res) => {
+        setData(res);
+        setLoading(false);
+      });
+  }, []);
+
+  async function onEdit(id: string) {
+    console.log("Edit");
+  }
+
+  async function onRemove(id: string) {
+    console.log("Remove");
+  }
+
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
         Donations
       </h1>
+      <DataTable
+        data={data}
+        columns={columns(onEdit, onRemove)}
+        isLoading={isLoading}
+      />
     </div>
   );
 }
