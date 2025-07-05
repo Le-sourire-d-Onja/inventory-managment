@@ -22,7 +22,7 @@ export class DonationEntity {
     this.updatedAt = updatedAt;
   }
 
-  static parse(obj: any) {
+  static parse(obj: DonationEntity) {
     return new DonationEntity(obj.id, obj.name, obj.articles, new Date(obj.createdAt), new Date(obj.updatedAt), obj.description, obj.email, obj.phone);
   }
 }

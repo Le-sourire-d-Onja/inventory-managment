@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
 import { DonationEntity } from "../api/donations/entity/donation.entity";
+import { localeDateOptions } from "@/lib/utils";
 
 export const columns = (
   onView: (id: string) => void,
@@ -17,7 +18,8 @@ export const columns = (
         <div className="flex flex-col">
           <p> {row.name} </p>
           <p className="text-muted-foreground text-xs">
-            crée le: {row.createdAt.toLocaleDateString()}
+            Créée le:{" "}
+            {row.createdAt.toLocaleDateString("fr-FR", localeDateOptions)}
           </p>
         </div>
       );
@@ -43,8 +45,8 @@ export const columns = (
       const row = props.row.original;
       return (
         <>
-          {row.description && row.description.length > 20
-            ? `${row.description.substring(0, 20)}...`
+          {row.description && row.description.length > 30
+            ? `${row.description.substring(0, 30)}...`
             : row.description}{" "}
         </>
       );
@@ -79,14 +81,14 @@ export const columns = (
       const row = props.row.original;
       return (
         <div className="flex justify-end gap-1">
-          <Button variant="secondary" onClick={() => onView(row.id)}>
+          <Button variant="ghost" onClick={() => onView(row.id)}>
             <Eye />
           </Button>
-          <Button variant="secondary" onClick={() => onEdit(row.id)}>
+          <Button variant="ghost" onClick={() => onEdit(row.id)}>
             <Pen />
           </Button>
-          <Button variant="secondary" onClick={() => onRemove(row.id)}>
-            <Trash />
+          <Button variant="ghost" onClick={() => onRemove(row.id)}>
+            <Trash className="text-destructive" />
           </Button>
         </div>
       );

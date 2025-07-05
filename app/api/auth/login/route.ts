@@ -11,9 +11,6 @@ import jwt from 'jsonwebtoken'
 export async function POST(request: NextRequest) {
   const { password } = await request.json();
 
-  console.log('MASTER_PASSWORD:', process.env.MASTER_PASSWORD)
-  console.log('JWT_SECRET:', process.env.JWT_SECRET)
-
   if (!process.env.MASTER_PASSWORD || !process.env.JWT_SECRET) {
     const body = { message: "No master password or jwt secret set" };
     return new NextResponse(JSON.stringify(body), {
