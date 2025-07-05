@@ -1,15 +1,27 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { DonationDto } from "../api/donations/dto/donation.dto";
 import { Button } from "@/components/ui/button";
-import { Pen, Trash } from "lucide-react";
+import { Eye, Pen, Trash } from "lucide-react";
+import { DonationEntity } from "../api/donations/entity/donation.entity";
 
 export const columns = (
+  onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void
-): ColumnDef<DonationDto>[] => [
+): ColumnDef<DonationEntity>[] => [
   {
     accessorKey: "name",
     header: "Nom",
+    cell: (props) => {
+      const row = props.row.original;
+      return (
+        <div className="flex flex-col">
+          <p> {row.name} </p>
+          <p className="text-muted-foreground text-xs">
+            crée le: {row.createdAt.toLocaleDateString()}
+          </p>
+        </div>
+      );
+    },
   },
   {
     accessorFn: (row) => `${row.email} ${row.phone}`,
@@ -25,11 +37,40 @@ export const columns = (
     },
   },
   {
-    accessorKey: "createdAt",
-    header: "Date de création",
+    accessorKey: "description",
+    header: "Description",
     cell: (props) => {
       const row = props.row.original;
-      return <> {row.createdAt?.toLocaleDateString()} </>;
+      return (
+        <>
+          {row.description && row.description.length > 20
+            ? `${row.description.substring(0, 20)}...`
+            : row.description}{" "}
+        </>
+      );
+    },
+  },
+  {
+    id: "total_value",
+    accessorFn: (row) =>
+      row.articles.reduce((prev, curr) => prev + curr.value, 0),
+    header: "Valeur totale",
+    cell: (props) => {
+      return <> {props.getValue()}€ </>;
+    },
+  },
+  {
+    id: "total_quantity",
+    accessorFn: (row) =>
+      row.articles.reduce((prev, curr) => prev + curr.quantity, 0),
+    header: "Quantité totale",
+    cell: (props) => {
+      const quantity = props.getValue() as number;
+      return (
+        <>
+          {quantity} article{quantity > 1 ? "s" : ""}{" "}
+        </>
+      );
     },
   },
   {
@@ -38,6 +79,9 @@ export const columns = (
       const row = props.row.original;
       return (
         <div className="flex justify-end gap-1">
+          <Button variant="secondary" onClick={() => onView(row.id)}>
+            <Eye />
+          </Button>
           <Button variant="secondary" onClick={() => onEdit(row.id)}>
             <Pen />
           </Button>

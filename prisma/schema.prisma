@@ -15,11 +15,26 @@ datasource db {
 }
 
 model Donation {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
   description String?
   email       String?
   phone       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  articles    Article[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Article {
+  id         String      @id @default(uuid())
+  type       ArticleType
+  value      Float
+  quantity   Int
+  donation   Donation    @relation(fields: [donationID], references: [id])
+  donationID String
+}
+
+enum ArticleType {
+  DIAPERS
+  HOSPITAL_BED
 }

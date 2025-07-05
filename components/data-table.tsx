@@ -18,17 +18,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface DataTableProps<TData, TValue> {
+interface DataTableProps<TData, TValue, TSubValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   isLoading: boolean;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData, TValue, TSubValue>({
   columns,
   data,
   isLoading,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData, TValue, TSubValue>) {
   const table = useReactTable({
     data,
     columns,
@@ -86,8 +86,8 @@ export function DataTable<TData, TValue>({
             )
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="flex relative p-8">
-                <MoonLoader className="absolute left-[100%]" size={40} />
+              <TableCell colSpan={columns.length} className="p-8">
+                <MoonLoader size={40} />
               </TableCell>
             </TableRow>
           )}
