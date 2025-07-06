@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { DonationEntity } from "../api/donations/entity/donation.entity";
+import { AssociationEntity } from "../api/associations/entity/association.entity";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import {
   Form,
@@ -20,41 +20,49 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArticleSelector } from "@/components/article-selector";
-import { updateDonationSchema } from "../api/donations/entity/update-donation.entity";
+import { updateAssociationSchema } from "../api/associations/entity/update-association.entity";
 import { useEffect } from "react";
 import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
+import { AssociationType } from "@/lib/generated/prisma";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export enum Permission {
   READ,
   WRITE,
 }
 
-type DonationModalProps = {
-  data: DonationEntity | null;
+type AssociationModalProps = {
+  data: AssociationEntity | null;
   permission: Permission;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export default function DonationModal(props: DonationModalProps) {
+export default function AssociationModal(props: AssociationModalProps) {
   const { data, open, onOpenChange, permission } = props;
 
-  const form = useForm<z.infer<typeof updateDonationSchema>>({
-    resolver: zodResolver(updateDonationSchema),
+  const form = useForm<z.infer<typeof updateAssociationSchema>>({
+    resolver: zodResolver(updateAssociationSchema),
   });
 
   function resetForm() {
     form.reset({
       id: data?.id ?? undefined,
       name: data?.name ?? "",
-      description: data?.description ?? "",
+      type: data?.type ?? AssociationType.ASSOCIATION,
+      person_in_charge: data?.person_in_charge ?? "",
+      address: data?.address ?? "",
       email: data?.email ?? "",
       phone: data?.phone ?? "",
-      articles: data?.articles ?? [],
-      articlesIDToRemove: [],
+      description: data?.description ?? "",
     });
   }
 
@@ -62,8 +70,8 @@ export default function DonationModal(props: DonationModalProps) {
     resetForm();
   }, [data]);
 
-  async function onSubmit(values: z.infer<typeof updateDonationSchema>) {
-    const response = await fetch(`/api/donations`, {
+  async function onSubmit(values: z.infer<typeof updateAssociationSchema>) {
+    const response = await fetch(`/api/associations`, {
       method: data ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(values),
@@ -83,7 +91,7 @@ export default function DonationModal(props: DonationModalProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {!data ? "Nouvelle Donation" : `Donation de ${data.name}`}{" "}
+            {!data ? "Nouvelle Association" : `Association de ${data.name}`}{" "}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
             Créée le{" "}
@@ -97,18 +105,132 @@ export default function DonationModal(props: DonationModalProps) {
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col gap-4"
           >
+            <div className="flex gap-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>
+                      Nom <span className="text-red-700"> * </span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        readOnly={permission !== Permission.WRITE}
+                        placeholder="Le Sourire d'Onja"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Type d'association
+                      <span className="text-red-700"> * </span>
+                    </FormLabel>
+                    {permission !== Permission.WRITE ? (
+                      <Input readOnly {...field} />
+                    ) : (
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Type d'association" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.values(AssociationType).map((type, i) => (
+                            <SelectItem key={i} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
-              name="name"
+              name="person_in_charge"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Nom <span className="text-red-700"> * </span>
+                    Responsable <span className="text-red-700"> * </span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       readOnly={permission !== Permission.WRITE}
                       placeholder="John Doe"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Email <span className="text-red-700"> * </span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      readOnly={permission !== Permission.WRITE}
+                      placeholder="john.doe@email.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Téléphone <span className="text-red-700"> * </span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      readOnly={permission !== Permission.WRITE}
+                      placeholder="+33695243465"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Adresse <span className="text-red-700"> * </span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      readOnly={permission !== Permission.WRITE}
+                      placeholder="21 rue du testeur, 16000 Angoulême"
                       {...field}
                     />
                   </FormControl>
@@ -133,42 +255,6 @@ export default function DonationModal(props: DonationModalProps) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel> Email </FormLabel>
-                  <FormControl>
-                    <Input
-                      readOnly={permission !== Permission.WRITE}
-                      placeholder="john.doe@email.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel> Téléphone </FormLabel>
-                  <FormControl>
-                    <Input
-                      readOnly={permission !== Permission.WRITE}
-                      placeholder="+33695243465"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <ArticleSelector form={form} permission={permission} />
 
             <Separator />
             {permission === Permission.WRITE && (

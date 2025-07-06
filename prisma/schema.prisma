@@ -34,7 +34,26 @@ model Article {
   donationID String
 }
 
+model Association {
+  id               String          @id @default(uuid())
+  name             String          @unique
+  type             AssociationType
+  person_in_charge String
+  address          String
+  email            String
+  phone            String
+  description      String
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
 
+enum AssociationType {
+  ASSOCIATION
+  INSTITUTIONNEL_MINSAN
+  CONGREGATION_RELIGIEUSE
+  INDIVIDUEL
+  ETABLISSEMENT
+}
 
 enum ArticleType {
   DIAPERS
