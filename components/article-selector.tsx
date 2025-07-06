@@ -59,7 +59,7 @@ export function ArticleSelector(props: ArticleSelectorProps) {
       </div>
 
       {fields.map((field, index) => (
-        <div key={field.id} className="flex gap-2 items-center">
+        <div key={index} className="flex gap-2 items-center">
           <FormField
             control={control}
             name={`articles.${index}.type`}

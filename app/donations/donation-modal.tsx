@@ -25,6 +25,7 @@ import { updateDonationSchema } from "../api/donations/entity/update-donation.en
 import { useEffect } from "react";
 import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
 
 export enum Permission {
   READ,
@@ -34,11 +35,12 @@ export enum Permission {
 type DonationModalProps = {
   data: DonationEntity | null;
   permission: Permission;
+  open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
 export default function DonationModal(props: DonationModalProps) {
-  const { data, onOpenChange, permission } = props;
+  const { data, open, onOpenChange, permission } = props;
 
   const form = useForm<z.infer<typeof updateDonationSchema>>({
     resolver: zodResolver(updateDonationSchema),
@@ -48,9 +50,9 @@ export default function DonationModal(props: DonationModalProps) {
     form.reset({
       id: data?.id ?? undefined,
       name: data?.name ?? "",
-      description: data?.description ?? undefined,
-      email: data?.email ?? undefined,
-      phone: data?.phone ?? undefined,
+      description: data?.description ?? "",
+      email: data?.email ?? "",
+      phone: data?.phone ?? "",
       articles: data?.articles ?? [],
       articlesIDToRemove: [],
     });
@@ -73,7 +75,7 @@ export default function DonationModal(props: DonationModalProps) {
   }
 
   return (
-    <Dialog open={data !== null} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -164,18 +166,28 @@ export default function DonationModal(props: DonationModalProps) {
 
             <ArticleSelector form={form} permission={permission} />
 
+            <Separator />
             {permission === Permission.WRITE && (
-              <div className="flex gap-4 justify-end">
+              <div className="flex justify-between">
                 <Button
-                  variant="secondary"
-                  type="button"
-                  onClick={() => onOpenChange(false)}
+                  size="sm"
+                  variant="link"
+                  className="text-xs text-destructive"
                 >
-                  Annuler
+                  Réinitialiser
                 </Button>
-                <Button variant="default" type="submit">
-                  Sauvegarder
-                </Button>
+                <div className="flex gap-4 justify-end">
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button variant="default" type="submit">
+                    Sauvegarder
+                  </Button>
+                </div>
               </div>
             )}
           </form>

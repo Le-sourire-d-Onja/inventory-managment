@@ -75,4 +75,15 @@ export default class DonationsService {
     });
     return DonationEntity.parse(donation);
   }
+
+  static async delete(id: string): Promise<DonationEntity> {
+    const donation = await prisma.donation.delete({
+      where: { id: id },
+      include: {
+        articles: true
+      }
+    });
+    return DonationEntity.parse(donation);
+
+  }
 }

@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 import { columns } from "./columns";
 import { DonationEntity } from "../api/donations/entity/donation.entity";
 import DonationModal, { Permission } from "./donation-modal";
+import { Button } from "@/components/ui/button";
 
 export default function Page() {
   const [data, setData] = useState<DonationEntity[]>([]);
   const [isLoading, setLoading] = useState(true);
+  const [opennedModal, setOpennedModal] = useState<boolean>(false);
   const [selectedData, setSelectedData] = useState<DonationEntity | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
     Permission.READ
@@ -26,45 +28,63 @@ export default function Page() {
       });
   }
 
+  async function deleteDonation(id: string) {
+    fetch(`/api/donations?id=${id}`, {
+      method: "DELETE",
+    }).then(() => {
+      setData((prev) => prev.filter((donation) => donation.id !== id));
+    });
+  }
+
   useEffect(() => {
     retrieveDonations();
   }, []);
 
-  async function openModal(id: string) {
-    const foundSelected = data.find((donation) => donation.id === id);
-    if (!foundSelected) return;
+  function openModal(id?: string) {
+    const foundSelected = data.find((donation) => donation.id === id) ?? null;
     setSelectedData(foundSelected);
+    setOpennedModal(true);
   }
 
-  async function closeModal(open: boolean) {
+  function closeModal(open: boolean) {
     if (open) return;
     if (modalPermission === Permission.WRITE) retrieveDonations();
     setModalPermission(Permission.READ);
+    setOpennedModal(false);
     setSelectedData(null);
   }
 
-  async function onView(id: string) {
+  function onView(id: string) {
     setModalPermission(Permission.READ);
     openModal(id);
   }
 
-  async function onEdit(id: string) {
+  function onEdit(id: string) {
     setModalPermission(Permission.WRITE);
     openModal(id);
   }
 
-  async function onRemove(id: string) {
-    console.log("Remove");
+  function onCreate() {
+    setModalPermission(Permission.WRITE);
+    openModal();
+  }
+
+  function onRemove(id: string) {
+    deleteDonation(id);
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
-        Donations
-      </h1>
+      <div className="flex justify-between">
+        <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
+          Donations
+        </h1>
+        <Button onClick={() => onCreate()}>Créer une donation</Button>
+      </div>
 
       <DonationModal
         data={selectedData}
+        open={opennedModal}
         onOpenChange={closeModal}
         permission={modalPermission}
       />

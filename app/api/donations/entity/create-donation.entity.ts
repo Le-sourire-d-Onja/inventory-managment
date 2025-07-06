@@ -10,8 +10,8 @@ export const createArticleSchema = z.object({
 export const createDonationSchema = z.object({
   name: z.string().nonempty(),
   description: z.string(),
-  email: z.string().email().optional(),
-  phone: z.string(),
+  email: z.string().email(),
+  phone: z.string().regex(new RegExp(/\+\d+/g), "Invalid phone number"),
   articles: z.array(createArticleSchema),
 });
 

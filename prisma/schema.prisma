@@ -17,7 +17,7 @@ datasource db {
 model Donation {
   id          String    @id @default(uuid())
   name        String
-  description String?
+  description String
   email       String
   phone       String
   articles    Article[]
@@ -30,7 +30,7 @@ model Article {
   type       ArticleType
   value      Float
   quantity   Int
-  donation   Donation    @relation(fields: [donationID], references: [id])
+  donation   Donation    @relation(fields: [donationID], references: [id], onDelete: Cascade)
   donationID String
 }
 

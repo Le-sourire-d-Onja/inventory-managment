@@ -32,8 +32,20 @@ export const columns = (
       const row = props.row.original;
       return (
         <div className="flex flex-col">
-          {row.email ? <p> Email: {row.email} </p> : <></>}
-          {row.phone ? <p> Téléphone: {row.phone} </p> : <></>}
+          {row.email ? (
+            <p className="flex">
+              <span className="min-w-[90px]"> Email: </span> {row.email}
+            </p>
+          ) : (
+            <></>
+          )}
+          {row.phone ? (
+            <p className="flex">
+              <span className="min-w-[90px]">Téléphone: </span> {row.phone}
+            </p>
+          ) : (
+            <></>
+          )}
         </div>
       );
     },

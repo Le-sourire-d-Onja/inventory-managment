@@ -39,7 +39,7 @@ export default function RootLayout({
         >
           <SidebarProvider>
             <AppSidebar />
-            <main className="w-full p-4">{children}</main>
+            <main className="w-full p-8">{children}</main>
           </SidebarProvider>
           <Toaster />
         </ThemeProvider>

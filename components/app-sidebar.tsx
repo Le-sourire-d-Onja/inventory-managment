@@ -16,13 +16,13 @@ export default function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader>
+      <SidebarHeader className="p-4">
         <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
           Le Sourire d'Onja
         </h1>
         <p className="text-muted-foreground text-sm"> Gestion logistique </p>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="p-4">
         <SidebarGroup className="gap-1.5">
           <Button
             className="justify-start"
