@@ -132,6 +132,8 @@ export function ArticleSelector(props: ArticleSelectorProps) {
                       readOnly={permission !== Permission.WRITE}
                       type="number"
                       placeholder="10"
+                      min={0}
+                      step={0.01}
                       {...field}
                       onChange={(e) =>
                         field.onChange(parseFloat(e.target.value) || 1)

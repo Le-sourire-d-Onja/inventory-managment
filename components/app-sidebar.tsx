@@ -1,6 +1,12 @@
 "use client";
 
-import { Building, ChevronDown, Gift, LayoutDashboard } from "lucide-react";
+import {
+  Building,
+  ChevronDown,
+  Gift,
+  Inbox,
+  LayoutDashboard,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -46,6 +52,13 @@ export default function AppSidebar() {
               variant={pathname.includes("donations") ? "default" : "ghost"}
             >
               <Gift /> Donations
+            </Button>
+            <Button
+              className="justify-start"
+              onClick={() => router.push("/demands")}
+              variant={pathname.includes("demands") ? "default" : "ghost"}
+            >
+              <Inbox /> Demandes
             </Button>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -34,6 +34,34 @@ model Article {
   donationID String
 }
 
+model Content {
+  id          String      @id @default(uuid())
+  type        ArticleType
+  quantity    Int
+  container   Container   @relation(fields: [containerID], references: [id], onDelete: Cascade)
+  containerID String
+}
+
+model Container {
+  id        String        @id @default(uuid())
+  weight    Float
+  volume    Float
+  packaging PackagingType
+  demand    Demand        @relation(fields: [demandID], references: [id], onDelete: Cascade)
+  demandID  String
+  contents  Content[]
+}
+
+model Demand {
+  id            String       @id @default(uuid())
+  status        DemandStatus
+  containers    Container[]
+  association   Association  @relation(fields: [associationID], references: [id], onDelete: Cascade)
+  associationID String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
 model Association {
   id               String          @id @default(uuid())
   name             String          @unique
@@ -43,8 +71,21 @@ model Association {
   email            String
   phone            String
   description      String
+  demands          Demand[]
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
+}
+
+enum PackagingType {
+  CARDBOARD
+  FILM
+  TIED_STRING
+  NONE
+}
+
+enum DemandStatus {
+  IN_PROGRESS
+  DONE
 }
 
 enum AssociationType {

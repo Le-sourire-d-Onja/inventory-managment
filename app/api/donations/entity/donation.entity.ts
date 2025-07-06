@@ -17,12 +17,12 @@ export class DonationEntity {
     this.description = description;
     this.email = email;
     this.phone = phone;
-    this.articles = articles.map((article) => new ArticleEntity(article.id, article.type, article.value, article.quantity));
+    this.articles = articles;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
 
   static parse(obj: DonationEntity) {
-    return new DonationEntity(obj.id, obj.name, obj.articles, new Date(obj.createdAt), new Date(obj.updatedAt), obj.description, obj.email, obj.phone);
+    return new DonationEntity(obj.id, obj.name, obj.articles.map((article) => ArticleEntity.parse(article)), new Date(obj.createdAt), new Date(obj.updatedAt), obj.description, obj.email, obj.phone);
   }
 }

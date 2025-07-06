@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { DonationEntity } from "../api/donations/entity/donation.entity";
+import { DemandEntity } from "../api/demands/entity/demand.entity";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import {
   Form,
@@ -21,40 +21,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArticleSelector } from "@/app/donations/article-selector";
-import { updateDonationSchema } from "../api/donations/entity/update-donation.entity";
+import { updateDemandSchema } from "../api/demands/entity/update-demand.entity";
 import { useEffect } from "react";
 import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
+import { AssociationType, DemandStatus } from "@/lib/generated/prisma";
+import { AssociationEntity } from "../api/associations/entity/association.entity";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ContainerSelector } from "./container-selector";
 
 export enum Permission {
   READ,
   WRITE,
 }
 
-type DonationModalProps = {
-  data: DonationEntity | null;
+type DemandModalProps = {
+  data: DemandEntity | null;
+  associations: AssociationEntity[];
   permission: Permission;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export default function DonationModal(props: DonationModalProps) {
-  const { data, open, onOpenChange, permission } = props;
+export default function DemandModal(props: DemandModalProps) {
+  const { data, associations, open, onOpenChange, permission } = props;
 
-  const form = useForm<z.infer<typeof updateDonationSchema>>({
-    resolver: zodResolver(updateDonationSchema),
+  const form = useForm<z.infer<typeof updateDemandSchema>>({
+    resolver: zodResolver(updateDemandSchema),
   });
 
   function resetForm() {
     form.reset({
       id: data?.id ?? undefined,
-      name: data?.name ?? "",
-      description: data?.description ?? "",
-      email: data?.email ?? "",
-      phone: data?.phone ?? "",
-      articles: data?.articles ?? [],
-      articlesIDToRemove: [],
+      status: data?.status ?? DemandStatus.IN_PROGRESS,
+      associationID: data?.association.id ?? undefined,
+      containers: data?.containers ?? [],
     });
   }
 
@@ -62,8 +70,8 @@ export default function DonationModal(props: DonationModalProps) {
     resetForm();
   }, [data]);
 
-  async function onSubmit(values: z.infer<typeof updateDonationSchema>) {
-    const response = await fetch(`/api/donations`, {
+  async function onSubmit(values: z.infer<typeof updateDemandSchema>) {
+    const response = await fetch(`/api/demands`, {
       method: data ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(values),
@@ -83,7 +91,9 @@ export default function DonationModal(props: DonationModalProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {!data ? "Nouvelle Donation" : `Donation de ${data.name}`}{" "}
+            {!data
+              ? "Nouvelle demande"
+              : `Demande pour ${data.association.name}`}{" "}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
             Créée le{" "}
@@ -99,76 +109,49 @@ export default function DonationModal(props: DonationModalProps) {
           >
             <FormField
               control={form.control}
-              name="name"
+              name="associationID"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Nom <span className="text-red-700"> * </span>
+                    Association
+                    <span className="text-red-700"> * </span>
                   </FormLabel>
-                  <FormControl>
+                  {permission !== Permission.WRITE ? (
                     <Input
-                      readOnly={permission !== Permission.WRITE}
-                      placeholder="John Doe"
-                      {...field}
+                      readOnly
+                      value={
+                        associations.find((a) => a.id === field.value)?.name ??
+                        ""
+                      }
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel> Description </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      readOnly={permission !== Permission.WRITE}
-                      placeholder="Ceci est une description..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel> Email </FormLabel>
-                  <FormControl>
-                    <Input
-                      readOnly={permission !== Permission.WRITE}
-                      placeholder="john.doe@email.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel> Téléphone </FormLabel>
-                  <FormControl>
-                    <Input
-                      readOnly={permission !== Permission.WRITE}
-                      placeholder="+33695243465"
-                      {...field}
-                    />
-                  </FormControl>
+                  ) : (
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Association" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {associations.map((association) => (
+                          <SelectItem
+                            key={association.id}
+                            value={association.id}
+                          >
+                            {association.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <ArticleSelector form={form} permission={permission} />
+            <ContainerSelector form={form} permission={permission} />
 
             <Separator />
             {permission === Permission.WRITE && (

@@ -24,18 +24,22 @@ export default class DonationsService {
   /**
    * This function is used to create a donation in the database
    * 
-   * @param createDonation The entity to create the donation
+   * @param data The entity to create the donation
    * @returns The created donation
    */
-  static async create(createDonation: CreateDonationEntity): Promise<DonationEntity> {
-    const { articles, ...data } = createDonation;
+  static async create(data: CreateDonationEntity): Promise<DonationEntity> {
     const donation = await prisma.donation.create({
       data: {
-        ...data,
+        name: data.name,
+        description: data.description,
+        email: data.email,
+        phone: data.phone,
         articles: {
-          createMany: {
-            data: articles
-          }
+          create: data.articles.map((article) => ({
+            type: article.type,
+            value: article.value,
+            quantity: article.quantity
+          }))
         }
       },
       include: {
@@ -52,20 +56,20 @@ export default class DonationsService {
  * the donation is included in the object
  * @returns The updated donation
  */
-  static async update(updateDonation: UpdateDonationEntity): Promise<DonationEntity> {
-    const { articles, articlesIDToRemove, ...data } = updateDonation;
+  static async update(data: UpdateDonationEntity): Promise<DonationEntity> {
     const donation = await prisma.donation.update({
-      where: { id: updateDonation.id },
+      where: { id: data.id },
       data: {
-        ...data,
+        name: data.name,
+        description: data.description,
+        email: data.email,
+        phone: data.phone,
         articles: {
-          deleteMany: articlesIDToRemove.map((articleIDToRemove) => ({ id: articleIDToRemove })),
-          createMany: {
-            data: articles.filter((article) => !("id" in article))
-          },
-          updateMany: articles.filter((article) => "id" in article).map((article) => ({
-            where: { id: article.id },
-            data: article
+          deleteMany: {},
+          create: data.articles.map((article) => ({
+            type: article.type,
+            value: article.value,
+            quantity: article.quantity,
           })),
         }
       },

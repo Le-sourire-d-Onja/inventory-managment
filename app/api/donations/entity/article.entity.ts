@@ -12,4 +12,8 @@ export class ArticleEntity {
     this.value = value;
     this.quantity = quantity;
   }
+
+  static parse(obj: ArticleEntity) {
+    return new ArticleEntity(obj.id, obj.type, obj.value, obj.quantity);
+  }
 }
