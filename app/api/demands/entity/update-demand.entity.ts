@@ -1,5 +1,6 @@
 import z from "zod";
 import { createContainerSchema, createContentSchema, createDemandSchema } from "./create-demand.entity";
+import { DemandStatus } from "@/lib/generated/prisma";
 
 export const updateContentSchema = createContentSchema.extend({
   id: z.string().uuid().optional(),

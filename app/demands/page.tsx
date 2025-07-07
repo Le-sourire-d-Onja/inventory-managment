@@ -7,12 +7,23 @@ import { DemandEntity } from "../api/demands/entity/demand.entity";
 import DemandModal, { Permission } from "./demand-modal";
 import { Button } from "@/components/ui/button";
 import { AssociationEntity } from "../api/associations/entity/association.entity";
+import { DemandStatus } from "@/lib/generated/prisma";
+import { toast } from "sonner";
+import { CreateDemandEntity } from "../api/demands/entity/create-demand.entity";
+import ConfirmModal from "@/components/confirm-modal";
+
+enum Modals {
+  DEMAND,
+  REMOVE,
+  VALIDATE,
+  NONE,
+}
 
 export default function Page() {
   const [data, setData] = useState<DemandEntity[]>([]);
   const [associations, setAssociations] = useState<AssociationEntity[]>([]);
   const [isLoading, setLoading] = useState(true);
-  const [opennedModal, setOpennedModal] = useState<boolean>(false);
+  const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedData, setSelectedData] = useState<DemandEntity | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
     Permission.READ
@@ -49,42 +60,68 @@ export default function Page() {
     });
   }
 
+  async function validateDemand(id: string) {
+    const { association, ...demand } = data.find((demand) => demand.id === id);
+    const body = {
+      ...demand,
+      status: DemandStatus.DONE,
+      associationID: association.id,
+    } as CreateDemandEntity;
+    const response = await fetch(`/api/demands`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (response.ok) {
+      retrieveDemands();
+    } else {
+      toast("Une erreur à s'est produite.", {
+        description: response.status,
+      });
+    }
+  }
+
   useEffect(() => {
     retrieveDemands();
     retrieveAssociations();
   }, []);
 
-  function openModal(id?: string) {
+  function openModal(modal: Modals, id?: string) {
     const foundSelected = data.find((demand) => demand.id === id) ?? null;
     setSelectedData(foundSelected);
-    setOpennedModal(true);
+    setOpennedModal(modal);
   }
 
   function closeModal(open: boolean) {
     if (open) return;
     if (modalPermission === Permission.WRITE) retrieveDemands();
     setModalPermission(Permission.READ);
-    setOpennedModal(false);
+    setOpennedModal(Modals.NONE);
     setSelectedData(null);
   }
 
   function onView(id: string) {
     setModalPermission(Permission.READ);
-    openModal(id);
+    openModal(Modals.DEMAND, id);
   }
 
   function onEdit(id: string) {
     setModalPermission(Permission.WRITE);
-    openModal(id);
+    openModal(Modals.DEMAND, id);
   }
 
   function onCreate() {
     setModalPermission(Permission.WRITE);
-    openModal();
+    openModal(Modals.DEMAND);
+  }
+
+  function onValidate(id: string) {
+    openModal(Modals.VALIDATE, id);
   }
 
   function onRemove(id: string) {
-    deleteDemand(id);
+    openModal(Modals.REMOVE, id);
   }
 
   return (
@@ -99,14 +136,36 @@ export default function Page() {
       <DemandModal
         data={selectedData}
         associations={associations}
-        open={opennedModal}
+        open={opennedModal === Modals.DEMAND}
         onOpenChange={closeModal}
         permission={modalPermission}
       />
 
+      <ConfirmModal
+        open={opennedModal === Modals.REMOVE}
+        onOpenChange={closeModal}
+        onConfirm={() => deleteDemand(selectedData.id)}
+        onCancel={() => closeModal(false)}
+      >
+        Vous êtes sur le point de supprimer la demande pour l'association{" "}
+        {selectedData?.association.name ?? "Inconnue"}. Êtes-vous sûr de vouloir
+        continuer ?
+      </ConfirmModal>
+
+      <ConfirmModal
+        open={opennedModal === Modals.VALIDATE}
+        onOpenChange={closeModal}
+        onConfirm={() => validateDemand(selectedData.id)}
+        onCancel={() => closeModal(false)}
+      >
+        Vous êtes sur le point de valider la demande pour l'association{" "}
+        {selectedData?.association.name ?? "Inconnue"}. Êtes-vous sûr de vouloir
+        continuer ?
+      </ConfirmModal>
+
       <DataTable
         data={data}
-        columns={columns(onView, onEdit, onRemove)}
+        columns={columns(onView, onEdit, onRemove, onValidate)}
         isLoading={isLoading}
       />
     </div>

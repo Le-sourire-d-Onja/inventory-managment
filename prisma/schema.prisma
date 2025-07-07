@@ -58,6 +58,7 @@ model Demand {
   containers    Container[]
   association   Association  @relation(fields: [associationID], references: [id], onDelete: Cascade)
   associationID String
+  validatedAt   DateTime?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 }

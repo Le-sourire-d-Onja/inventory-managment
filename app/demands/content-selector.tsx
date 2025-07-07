@@ -96,6 +96,14 @@ export default function ContentSelector(props: ContentSelectorProps) {
     <div className="flex flex-col gap-4">
       {fields.map((field, index) => {
         const stock = stocks?.find((stock) => stock.type === field.type);
+        const selectedTypes = form
+          .getValues(`containers.${prevIndex}.contents`)
+          ?.map<ArticleType>((c, i) => (i !== index ? c.type : null));
+
+        const availableTypes = Object.values(ArticleType).filter(
+          (type) => !selectedTypes.includes(type) || type === field.type
+        );
+
         return (
           <div key={field.fieldID} className="flex gap-8 ml-4">
             <CornerDownRight className="m-0" />
@@ -119,15 +127,13 @@ export default function ContentSelector(props: ContentSelectorProps) {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {[...new Set([...filteredTypes, field.value])].map(
-                            (type, i) => {
-                              return (
-                                <SelectItem key={i} value={type}>
-                                  {type}
-                                </SelectItem>
-                              );
-                            }
-                          )}
+                          {availableTypes.map((type, i) => {
+                            return (
+                              <SelectItem key={i} value={type}>
+                                {type}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     )}

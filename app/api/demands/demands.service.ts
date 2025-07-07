@@ -1,3 +1,4 @@
+import { DemandStatus } from "@/lib/generated/prisma";
 import { prisma } from "../prisma";
 import { CreateDemandEntity } from "./entity/create-demand.entity";
 import { DemandEntity } from "./entity/demand.entity";
@@ -71,10 +72,12 @@ export default class DemandsService {
  * @returns The updated demand
  */
   static async update(data: UpdateDemandEntity): Promise<DemandEntity> {
+    const validatedAt = data.status === DemandStatus.DONE ? new Date() : undefined;
     const demand = await prisma.demand.update({
       where: { id: data.id },
       data: {
         status: data.status,
+        validatedAt: validatedAt,
         associationID: data.associationID,
         containers: {
           deleteMany: {}, // on les supprime tous pour repartir proprement (autre stratégie possible ci-dessous)

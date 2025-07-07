@@ -8,14 +8,16 @@ export class DemandEntity {
   status: DemandStatus;
   containers: ContainerEntity[];
   association: Association;
+  validatedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 
-  constructor(id: string, status: DemandStatus, containers: ContainerEntity[], association: Association, createdAt: Date, updatedAt: Date) {
+  constructor(id: string, status: DemandStatus, containers: ContainerEntity[], association: Association, validatedAt: Date, createdAt: Date, updatedAt: Date) {
     this.id = id;
     this.status = status;
     this.containers = containers;
     this.association = association;
+    this.validatedAt = validatedAt;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
@@ -32,6 +34,6 @@ export class DemandEntity {
   }
 
   static parse(obj: DemandEntity) {
-    return new DemandEntity(obj.id, obj.status, obj.containers.map((container) => ContainerEntity.parse(container)), obj.association, new Date(obj.createdAt), new Date(obj.updatedAt));
+    return new DemandEntity(obj.id, obj.status, obj.containers.map((container) => ContainerEntity.parse(container)), obj.association, obj.validatedAt ? new Date(obj.validatedAt) : null, new Date(obj.createdAt), new Date(obj.updatedAt));
   }
 }

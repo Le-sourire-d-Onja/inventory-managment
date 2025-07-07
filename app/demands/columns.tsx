@@ -9,7 +9,8 @@ import { localeDateOptions } from "@/lib/utils";
 export const columns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
-  onRemove: (id: string) => void
+  onRemove: (id: string) => void,
+  onValidate: (id: string) => void
 ): ColumnDef<DemandEntity>[] => [
   {
     accessorKey: "name",
@@ -62,6 +63,23 @@ export const columns = (
       const row = props.row.original;
       return (
         <> {row.createdAt.toLocaleDateString("fr-FR", localeDateOptions)} </>
+      );
+    },
+  },
+  {
+    accessorKey: "validatedAt",
+    header: "Date de validation",
+    cell: (props) => {
+      const row = props.row.original;
+      if (!row.validatedAt) {
+        return (
+          <Button variant="secondary" onClick={() => onValidate(row.id)}>
+            Valider la demande
+          </Button>
+        );
+      }
+      return (
+        <> {row.validatedAt.toLocaleDateString("fr-FR", localeDateOptions)} </>
       );
     },
   },
