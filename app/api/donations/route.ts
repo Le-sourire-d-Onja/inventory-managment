@@ -11,7 +11,7 @@ export async function GET(_: NextRequest) {
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const createDonation = createDonationSchema.safeParse(body);
-  if (!createDonation.data) {
+  if (!createDonation.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
   const donation = await DonationsService.create(createDonation.data);
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
   const updateDonation = updateDonationSchema.safeParse(body);
-  if (!updateDonation.data) {
+  if (!updateDonation.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
   const donation = await DonationsService.update(updateDonation.data);

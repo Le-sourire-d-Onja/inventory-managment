@@ -98,7 +98,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
         const stock = stocks?.find((stock) => stock.type === field.type);
         const selectedTypes = form
           .getValues(`containers.${prevIndex}.contents`)
-          ?.map<ArticleType>((c, i) => (i !== index ? c.type : null));
+          ?.map<ArticleType | null>((c, i) => (i !== index ? c.type : null));
 
         const availableTypes = Object.values(ArticleType).filter(
           (type) => !selectedTypes.includes(type) || type === field.type

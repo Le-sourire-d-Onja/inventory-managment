@@ -104,7 +104,7 @@ export default function Page() {
       <ConfirmModal
         open={opennedModal === Modals.REMOVE}
         onOpenChange={closeModal}
-        onConfirm={() => deleteAssociation(selectedData.id)}
+        onConfirm={() => selectedData && deleteAssociation(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
         Vous êtes sur le point de supprimer l'association{" "}

@@ -11,7 +11,7 @@ export async function GET(_: NextRequest) {
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const createDemand = createDemandSchema.safeParse(body);
-  if (!createDemand.data) {
+  if (!createDemand.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
   const demand = await DemandsService.create(createDemand.data);
@@ -22,7 +22,7 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json();
   const updateDemand = updateDemandSchema.safeParse(body);
   console.log(updateDemand.error);
-  if (!updateDemand.data) {
+  if (!updateDemand.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
   const demand = await DemandsService.update(updateDemand.data);

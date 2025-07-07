@@ -38,7 +38,7 @@ export default function ConfirmModal(props: ConfirmModalProps) {
             variant="destructive"
             onClick={() => {
               onConfirm();
-              dialogProps.onOpenChange(false);
+              dialogProps.onOpenChange?.(false);
             }}
           >
             Confirmer

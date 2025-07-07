@@ -51,7 +51,6 @@ type DemandModalProps = {
 
 export default function DemandModal(props: DemandModalProps) {
   const { data, associations, open, onOpenChange, permission } = props;
-
   const statusTxt = DemandEntity.statusTxt(data?.status);
   const form = useForm<z.infer<typeof updateDemandSchema>>({
     resolver: zodResolver(updateDemandSchema),

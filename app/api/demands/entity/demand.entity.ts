@@ -12,7 +12,7 @@ export class DemandEntity {
   createdAt: Date;
   updatedAt: Date;
 
-  constructor(id: string, status: DemandStatus, containers: ContainerEntity[], association: Association, validatedAt: Date, createdAt: Date, updatedAt: Date) {
+  constructor(id: string, status: DemandStatus, containers: ContainerEntity[], association: Association, validatedAt: Date | null, createdAt: Date, updatedAt: Date) {
     this.id = id;
     this.status = status;
     this.containers = containers;
@@ -22,7 +22,7 @@ export class DemandEntity {
     this.updatedAt = updatedAt;
   }
 
-  static statusTxt(status: DemandStatus) {
+  static statusTxt(status?: DemandStatus) {
     switch (status) {
       case DemandStatus.IN_PROGRESS:
         return { color: "bg-orange-300", text: "En attente" };
@@ -34,6 +34,6 @@ export class DemandEntity {
   }
 
   static parse(obj: DemandEntity) {
-    return new DemandEntity(obj.id, obj.status, obj.containers.map((container) => ContainerEntity.parse(container)), obj.association, obj.validatedAt ? new Date(obj.validatedAt) : null, new Date(obj.createdAt), new Date(obj.updatedAt));
+    return new DemandEntity(obj.id, obj.status, obj.containers.map((container) => ContainerEntity.parse(container)), obj.association, obj.validatedAt !== null ? new Date(obj.validatedAt) : null, new Date(obj.createdAt), new Date(obj.updatedAt));
   }
 }

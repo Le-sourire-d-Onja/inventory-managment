@@ -37,9 +37,9 @@ export default class StocksService {
       const content = contents.find((content) => content.type === article.type);
       if (!content)
         return article;
-      return { ...article, _sum: { quantity: article._sum.quantity - content._sum.quantity } }
+      return { ...article, _sum: { quantity: (article._sum.quantity ?? 0) - (content._sum.quantity ?? 0) } }
     })
-    return stocks.map((stock) => new StockEntity(stock.type, stock._sum.quantity));
+    return stocks.map((stock) => new StockEntity(stock.type, stock._sum.quantity ?? 0));
   }
 
 }

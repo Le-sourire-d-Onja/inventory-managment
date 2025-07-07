@@ -99,7 +99,7 @@ export default function Page() {
       <ConfirmModal
         open={opennedModal === Modals.REMOVE}
         onOpenChange={closeModal}
-        onConfirm={() => deleteDonation(selectedData.id)}
+        onConfirm={() => selectedData && deleteDonation(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
         Vous êtes sur le point de supprimer la demande de{" "}

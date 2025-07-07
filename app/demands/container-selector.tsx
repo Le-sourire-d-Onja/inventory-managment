@@ -43,6 +43,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
       volume: 0,
       weight: 0,
       packaging: PackagingType.CARDBOARD,
+      contents: [],
     });
   };
 

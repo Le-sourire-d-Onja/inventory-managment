@@ -61,7 +61,11 @@ export default function Page() {
   }
 
   async function validateDemand(id: string) {
-    const { association, ...demand } = data.find((demand) => demand.id === id);
+    const foundSelected = data.find((demand) => demand.id === id);
+    if (!foundSelected) {
+      return;
+    }
+    const { association, ...demand } = foundSelected;
     const body = {
       ...demand,
       status: DemandStatus.DONE,
@@ -144,7 +148,7 @@ export default function Page() {
       <ConfirmModal
         open={opennedModal === Modals.REMOVE}
         onOpenChange={closeModal}
-        onConfirm={() => deleteDemand(selectedData.id)}
+        onConfirm={() => selectedData && deleteDemand(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
         Vous êtes sur le point de supprimer la demande pour l'association{" "}
@@ -155,7 +159,7 @@ export default function Page() {
       <ConfirmModal
         open={opennedModal === Modals.VALIDATE}
         onOpenChange={closeModal}
-        onConfirm={() => validateDemand(selectedData.id)}
+        onConfirm={() => selectedData && validateDemand(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
         Vous êtes sur le point de valider la demande pour l'association{" "}
