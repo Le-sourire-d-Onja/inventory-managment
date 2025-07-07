@@ -95,50 +95,46 @@ export default function ContentSelector(props: ContentSelectorProps) {
   return (
     <div className="flex flex-col gap-4">
       {fields.map((field, index) => {
-        const type = form.getValues(
-          `containers.${prevIndex}.contents.${index}.type`
-        );
-        const stock = stocks?.find((stock) => stock.type === type);
+        const stock = stocks?.find((stock) => stock.type === field.type);
         return (
-          <div key={index} className="flex gap-8 ml-4">
+          <div key={field.fieldID} className="flex gap-8 ml-4">
             <CornerDownRight className="m-0" />
             <FormField
               control={control}
               name={`containers.${prevIndex}.contents.${index}.type`}
-              render={({ field }) => (
-                <FormItem>
-                  {permission !== Permission.WRITE ? (
-                    <Input readOnly {...field} />
-                  ) : (
-                    <Select
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        retrieveTypes();
-                        retrieveFilteredTypes();
-                      }}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="min-w-[150px]">
-                          <SelectValue placeholder="Type d'article" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {[...new Set([...filteredTypes, field.value])].map(
-                          (type, i) => {
-                            return (
-                              <SelectItem key={i} value={type}>
-                                {type}
-                              </SelectItem>
-                            );
-                          }
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                console.log(field.value);
+                return (
+                  <FormItem>
+                    {permission !== Permission.WRITE ? (
+                      <Input readOnly {...field} />
+                    ) : (
+                      <Select
+                        onValueChange={(value) => field.onChange(value)}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="min-w-[150px]">
+                            <SelectValue placeholder="Type d'article" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {[...new Set([...filteredTypes, field.value])].map(
+                            (type, i) => {
+                              return (
+                                <SelectItem key={i} value={type}>
+                                  {type}
+                                </SelectItem>
+                              );
+                            }
+                          )}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             <FormField
