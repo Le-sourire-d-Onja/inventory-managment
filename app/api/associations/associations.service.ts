@@ -1,7 +1,7 @@
 import { prisma } from "../prisma";
-import { CreateAssociationEntity, createAssociationSchema } from "./entity/create-association.entity";
+import { CreateAssociationEntity } from "./entity/create-association.entity";
 import { AssociationEntity } from "./entity/association.entity";
-import { UpdateAssociationEntity, updateAssociationSchema } from "./entity/update-association.entity";
+import { UpdateAssociationEntity } from "./entity/update-association.entity";
 
 export default class AssociationsService {
 

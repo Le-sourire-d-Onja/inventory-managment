@@ -3,7 +3,7 @@ import z from "zod";
 
 export const createContentSchema = z.object({
   type: z.nativeEnum(ArticleType),
-  quantity: z.number().min(1)
+  quantity: z.number().min(0)
 })
 
 export const createContainerSchema = z.object({

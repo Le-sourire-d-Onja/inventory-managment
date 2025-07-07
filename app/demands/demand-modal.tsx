@@ -19,14 +19,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { ArticleSelector } from "@/app/donations/article-selector";
 import { updateDemandSchema } from "../api/demands/entity/update-demand.entity";
 import { useEffect } from "react";
 import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import { AssociationType, DemandStatus } from "@/lib/generated/prisma";
+import { DemandStatus } from "@/lib/generated/prisma";
 import { AssociationEntity } from "../api/associations/entity/association.entity";
 import {
   Select,
@@ -35,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ContainerSelector } from "./container-selector";
+import ContainerSelector from "./container-selector";
 
 export enum Permission {
   READ,

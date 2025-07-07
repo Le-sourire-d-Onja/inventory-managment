@@ -19,7 +19,7 @@ export default class DemandsService {
             contents: true,
           }
         }
-      }
+      },
     });
     return demands.map((demand) => DemandEntity.parse(
       demand

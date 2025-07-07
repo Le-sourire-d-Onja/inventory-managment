@@ -1,3 +1,5 @@
+"use client";
+
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,14 +21,14 @@ import { Permission } from "@/app/demands/demand-modal";
 import z from "zod";
 import { updateDemandSchema } from "@/app/api/demands/entity/update-demand.entity";
 import { PackagingType } from "@/lib/generated/prisma";
-import { ContentSelector } from "./content-selector";
+import ContentSelector from "./content-selector";
 
 interface ContainerSelectorProps {
   form: UseFormReturn<z.infer<typeof updateDemandSchema>>;
   permission: Permission;
 }
 
-export function ContainerSelector(props: ContainerSelectorProps) {
+export default function ContainerSelector(props: ContainerSelectorProps) {
   const { form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
@@ -88,7 +90,6 @@ export function ContainerSelector(props: ContainerSelectorProps) {
                       </SelectContent>
                     </Select>
                   )}
-
                   <FormMessage />
                 </FormItem>
               )}
