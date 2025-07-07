@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import ContainerSelector from "./container-selector";
+import { Badge } from "@/components/ui/badge";
 
 export enum Permission {
   READ,
@@ -51,6 +52,7 @@ type DemandModalProps = {
 export default function DemandModal(props: DemandModalProps) {
   const { data, associations, open, onOpenChange, permission } = props;
 
+  const statusTxt = DemandEntity.statusTxt(data?.status);
   const form = useForm<z.infer<typeof updateDemandSchema>>({
     resolver: zodResolver(updateDemandSchema),
   });
@@ -88,10 +90,13 @@ export default function DemandModal(props: DemandModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
             {!data
               ? "Nouvelle demande"
-              : `Demande pour ${data.association.name}`}{" "}
+              : `Demande pour ${data.association.name}`}
+            {data?.status === DemandStatus.DONE && (
+              <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
+            )}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
             Créée le{" "}

@@ -87,7 +87,7 @@ export function DataTable<TData, TValue, TSubValue>({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="p-8">
-                <MoonLoader size={40} />
+                <MoonLoader size={40} color="var(--color-foreground)" />
               </TableCell>
             </TableRow>
           )}

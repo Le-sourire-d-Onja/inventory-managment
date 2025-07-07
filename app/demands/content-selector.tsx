@@ -24,6 +24,8 @@ import { updateDemandSchema } from "@/app/api/demands/entity/update-demand.entit
 import { ArticleType } from "@/lib/generated/prisma";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { DotLoader, MoonLoader } from "react-spinners";
 
 interface ContentSelectorProps {
   prevIndex: number;
@@ -33,6 +35,9 @@ interface ContentSelectorProps {
 
 export default function ContentSelector(props: ContentSelectorProps) {
   const [stocks, setStocks] = useState<StockEntity[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [types, setTypes] = useState<ArticleType[]>([]);
+  const [filteredTypes, setFilteredTypes] = useState<ArticleType[]>([]);
   const { prevIndex, form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
@@ -41,25 +46,48 @@ export default function ContentSelector(props: ContentSelectorProps) {
     keyName: "fieldID",
   });
 
-  function retrieveStocks() {
-    const contents = form.getValues(`containers.${prevIndex}.contents`);
-    const types = JSON.stringify(
-      Array.from(new Set(contents.map((c) => c.type)))
-    );
-    fetch(`/api/stocks?types=${types}`)
-      .then((res) => res.json())
+  async function retrieveStocks() {
+    setIsLoading(true);
+    fetch(`/api/stocks?types=${JSON.stringify(types)}`)
+      .then((res) => {
+        if (res.status === 200) return res.json();
+        throw res;
+      })
       .then((res) => {
         setStocks(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
+  }
+
+  function retrieveTypes() {
+    const contents = form.getValues(`containers.${prevIndex}.contents`);
+    setTypes(Array.from(new Set(contents?.map((c) => c.type))));
+  }
+
+  function retrieveFilteredTypes() {
+    const test = Object.values(ArticleType).filter(
+      (type) => !types.includes(type)
+    );
+    setFilteredTypes(test);
   }
 
   useEffect(() => {
     retrieveStocks();
-  }, []);
+    retrieveFilteredTypes();
+  }, [types]);
+
+  useEffect(() => {
+    retrieveTypes();
+  }, [form.getValues(`containers.${prevIndex}.contents`)]);
 
   const addContent = () => {
     append({
-      type: ArticleType.DIAPERS,
+      type: filteredTypes[0],
       quantity: 0,
     });
   };
@@ -70,8 +98,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
         const type = form.getValues(
           `containers.${prevIndex}.contents.${index}.type`
         );
-        const stock = stocks.find((stock) => stock.type === type);
-        const inStock = stock ? stock.quantity > 0 : false;
+        const stock = stocks?.find((stock) => stock.type === type);
         return (
           <div key={index} className="flex gap-8 ml-4">
             <CornerDownRight className="m-0" />
@@ -84,7 +111,11 @@ export default function ContentSelector(props: ContentSelectorProps) {
                     <Input readOnly {...field} />
                   ) : (
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        retrieveTypes();
+                        retrieveFilteredTypes();
+                      }}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -93,11 +124,15 @@ export default function ContentSelector(props: ContentSelectorProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.values(ArticleType).map((type, i) => (
-                          <SelectItem key={i} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
+                        {[...new Set([...filteredTypes, field.value])].map(
+                          (type, i) => {
+                            return (
+                              <SelectItem key={i} value={type}>
+                                {type}
+                              </SelectItem>
+                            );
+                          }
+                        )}
                       </SelectContent>
                     </Select>
                   )}
@@ -110,36 +145,37 @@ export default function ContentSelector(props: ContentSelectorProps) {
               control={control}
               name={`containers.${prevIndex}.contents.${index}.quantity`}
               render={({ field }) => (
-                <FormItem className="relative ">
-                  <div key={index}>
-                    <div className={!inStock ? "opacity-15" : ""}>
-                      <Input
-                        readOnly={permission !== Permission.WRITE || !inStock}
-                        type="number"
-                        placeholder="Quantité"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value) || 0)
-                        }
-                      />
-                    </div>
-                    <span
-                      className={`${
-                        !inStock ? "opacity-15" : ""
-                      } absolute top-[18px] right-1.5
-                                     translate-[-50%]`}
-                    >
-                      #
-                    </span>
-                    {!inStock && (
-                      <span className="text-destructive absolute top-[50%] left-[50%] translate-[-50%]">
-                        Indisponible
+                <FormItem className="relative">
+                  {!isLoading ? (
+                    <div key={index}>
+                      <div>
+                        <Input
+                          readOnly={permission !== Permission.WRITE}
+                          type="number"
+                          placeholder="Quantité"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value) || 0)
+                          }
+                        />
+                      </div>
+                      <span
+                        className="absolute top-[18px] right-1.5
+                                     translate-[-50%]"
+                      >
+                        #
                       </span>
-                    )}
-                  </div>
-                  {inStock && (
+                    </div>
+                  ) : (
+                    <div className="flex w-full items-center">
+                      <MoonLoader size={20} color="var(--color-foreground)" />
+                    </div>
+                  )}
+
+                  {!isLoading && permission === Permission.WRITE && (
                     <FormDescription>
-                      {stock.quantity} disponible
+                      {stock && stock.quantity > 0 ? stock.quantity : 0}{" "}
+                      disponible
                     </FormDescription>
                   )}
                   <FormMessage />
@@ -162,7 +198,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
           </div>
         );
       })}
-      {permission === Permission.WRITE && (
+      {permission === Permission.WRITE && filteredTypes.length !== 0 && (
         <Button
           type="button"
           size="icon"

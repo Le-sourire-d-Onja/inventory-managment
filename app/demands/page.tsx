@@ -91,7 +91,7 @@ export default function Page() {
     <div className="flex flex-col gap-4">
       <div className="flex justify-between">
         <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
-          Demands
+          Demandes
         </h1>
         <Button onClick={() => onCreate()}>Créer une demande</Button>
       </div>
