@@ -6,11 +6,18 @@ import { columns } from "./columns";
 import { AssociationEntity } from "../api/associations/entity/association.entity";
 import AssociationModal, { Permission } from "./association-modal";
 import { Button } from "@/components/ui/button";
+import ConfirmModal from "@/components/confirm-modal";
+
+enum Modals {
+  ASSOCIATION,
+  REMOVE,
+  NONE,
+}
 
 export default function Page() {
   const [data, setData] = useState<AssociationEntity[]>([]);
   const [isLoading, setLoading] = useState(true);
-  const [opennedModal, setOpennedModal] = useState<boolean>(false);
+  const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedData, setSelectedData] = useState<AssociationEntity | null>(
     null
   );
@@ -44,38 +51,38 @@ export default function Page() {
     retrieveAssociations();
   }, []);
 
-  function openModal(id?: string) {
+  function openModal(modal: Modals, id?: string) {
     const foundSelected =
       data.find((association) => association.id === id) ?? null;
     setSelectedData(foundSelected);
-    setOpennedModal(true);
+    setOpennedModal(modal);
   }
 
   function closeModal(open: boolean) {
     if (open) return;
     if (modalPermission === Permission.WRITE) retrieveAssociations();
     setModalPermission(Permission.READ);
-    setOpennedModal(false);
+    setOpennedModal(Modals.NONE);
     setSelectedData(null);
   }
 
   function onView(id: string) {
     setModalPermission(Permission.READ);
-    openModal(id);
+    openModal(Modals.ASSOCIATION, id);
   }
 
   function onEdit(id: string) {
     setModalPermission(Permission.WRITE);
-    openModal(id);
+    openModal(Modals.ASSOCIATION, id);
   }
 
   function onCreate() {
     setModalPermission(Permission.WRITE);
-    openModal();
+    openModal(Modals.ASSOCIATION);
   }
 
   function onRemove(id: string) {
-    deleteAssociation(id);
+    openModal(Modals.REMOVE, id);
   }
 
   return (
@@ -89,10 +96,20 @@ export default function Page() {
 
       <AssociationModal
         data={selectedData}
-        open={opennedModal}
+        open={opennedModal === Modals.ASSOCIATION}
         onOpenChange={closeModal}
         permission={modalPermission}
       />
+
+      <ConfirmModal
+        open={opennedModal === Modals.REMOVE}
+        onOpenChange={closeModal}
+        onConfirm={() => deleteAssociation(selectedData.id)}
+        onCancel={() => closeModal(false)}
+      >
+        Vous êtes sur le point de supprimer l'association{" "}
+        {selectedData?.name ?? "Inconnue"}. Êtes-vous sûr de vouloir continuer ?
+      </ConfirmModal>
 
       <DataTable
         data={data}

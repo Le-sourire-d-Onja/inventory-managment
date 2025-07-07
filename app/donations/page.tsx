@@ -6,11 +6,18 @@ import { columns } from "./columns";
 import { DonationEntity } from "../api/donations/entity/donation.entity";
 import DonationModal, { Permission } from "./donation-modal";
 import { Button } from "@/components/ui/button";
+import ConfirmModal from "@/components/confirm-modal";
+
+enum Modals {
+  DONATION,
+  REMOVE,
+  NONE,
+}
 
 export default function Page() {
   const [data, setData] = useState<DonationEntity[]>([]);
   const [isLoading, setLoading] = useState(true);
-  const [opennedModal, setOpennedModal] = useState<boolean>(false);
+  const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedData, setSelectedData] = useState<DonationEntity | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
     Permission.READ
@@ -40,37 +47,37 @@ export default function Page() {
     retrieveDonations();
   }, []);
 
-  function openModal(id?: string) {
+  function openModal(modal: Modals, id?: string) {
     const foundSelected = data.find((donation) => donation.id === id) ?? null;
     setSelectedData(foundSelected);
-    setOpennedModal(true);
+    setOpennedModal(modal);
   }
 
   function closeModal(open: boolean) {
     if (open) return;
     if (modalPermission === Permission.WRITE) retrieveDonations();
     setModalPermission(Permission.READ);
-    setOpennedModal(false);
+    setOpennedModal(Modals.NONE);
     setSelectedData(null);
   }
 
   function onView(id: string) {
     setModalPermission(Permission.READ);
-    openModal(id);
+    openModal(Modals.DONATION, id);
   }
 
   function onEdit(id: string) {
     setModalPermission(Permission.WRITE);
-    openModal(id);
+    openModal(Modals.DONATION, id);
   }
 
   function onCreate() {
     setModalPermission(Permission.WRITE);
-    openModal();
+    openModal(Modals.DONATION);
   }
 
   function onRemove(id: string) {
-    deleteDonation(id);
+    openModal(Modals.REMOVE, id);
   }
 
   return (
@@ -84,10 +91,20 @@ export default function Page() {
 
       <DonationModal
         data={selectedData}
-        open={opennedModal}
+        open={opennedModal === Modals.DONATION}
         onOpenChange={closeModal}
         permission={modalPermission}
       />
+
+      <ConfirmModal
+        open={opennedModal === Modals.REMOVE}
+        onOpenChange={closeModal}
+        onConfirm={() => deleteDonation(selectedData.id)}
+        onCancel={() => closeModal(false)}
+      >
+        Vous êtes sur le point de supprimer la demande de{" "}
+        {selectedData?.name ?? "Inconnu"}. Êtes-vous sûr de vouloir continuer ?
+      </ConfirmModal>
 
       <DataTable
         data={data}
