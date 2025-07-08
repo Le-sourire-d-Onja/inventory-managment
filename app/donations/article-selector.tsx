@@ -19,6 +19,8 @@ import { ArticleType } from "@/lib/generated/prisma";
 import { Permission } from "@/app/donations/donation-modal";
 import z from "zod";
 import { updateDonationSchema } from "@/app/api/donations/entity/update-donation.entity";
+import { useEffect, useState } from "react";
+import { MoonLoader } from "react-spinners";
 
 interface ArticleSelectorProps {
   form: UseFormReturn<z.infer<typeof updateDonationSchema>>;
@@ -26,6 +28,8 @@ interface ArticleSelectorProps {
 }
 
 export function ArticleSelector(props: ArticleSelectorProps) {
+  const [articleTypes, setArticleTypes] = useState<ArticleType[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
@@ -34,9 +38,25 @@ export function ArticleSelector(props: ArticleSelectorProps) {
     keyName: "fieldID",
   });
 
+  async function retrieveArticleTypes() {
+    setIsLoading(true);
+    fetch("/api/article-types")
+      .then((res) => {
+        if (res.status === 200) return res.json();
+        throw res;
+      })
+      .then((res) => setArticleTypes(res))
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
+  }
+
+  useEffect(() => {
+    retrieveArticleTypes();
+  }, []);
+
   const addArticle = () => {
     append({
-      type: ArticleType.DIAPERS,
+      typeID: articleTypes[0].id,
       quantity: 1,
       value: 1,
     });
@@ -48,6 +68,7 @@ export function ArticleSelector(props: ArticleSelectorProps) {
         <h3 className="text-sm font-medium">Articles</h3>
         {permission === Permission.WRITE && (
           <Button
+            disabled={articleTypes.length <= 0}
             type="button"
             size="sm"
             variant="outline"
@@ -58,11 +79,17 @@ export function ArticleSelector(props: ArticleSelectorProps) {
         )}
       </div>
 
+      {articleTypes.length <= 0 && (
+        <p className="self-center text-destructive text-sm">
+          Veuillez ajouter au moins un type d'article
+        </p>
+      )}
+
       {fields.map((field, index) => (
         <div key={index} className="flex gap-2 items-center">
           <FormField
             control={control}
-            name={`articles.${index}.type`}
+            name={`articles.${index}.typeID`}
             render={({ field }) => (
               <FormItem>
                 {permission !== Permission.WRITE ? (
@@ -78,11 +105,15 @@ export function ArticleSelector(props: ArticleSelectorProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values(ArticleType).map((type, i) => (
-                        <SelectItem key={i} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
+                      {!isLoading ? (
+                        articleTypes.map((type, i) => (
+                          <SelectItem key={type.id} value={type.id}>
+                            {type.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <MoonLoader size={20} color="var(--color-foreground)" />
+                      )}
                     </SelectContent>
                   </Select>
                 )}

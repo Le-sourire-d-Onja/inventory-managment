@@ -93,7 +93,7 @@ export default function DemandModal(props: DemandModalProps) {
             {!data
               ? "Nouvelle demande"
               : `Demande pour ${data.association.name}`}
-            {data?.status === DemandStatus.DONE && (
+            {data?.status === DemandStatus.VALIDATED && (
               <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
             )}
           </DialogTitle>

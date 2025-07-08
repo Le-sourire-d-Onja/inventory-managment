@@ -13,7 +13,11 @@ export default class DonationsService {
   static async findAll(): Promise<DonationEntity[]> {
     const donations = await prisma.donation.findMany({
       include: {
-        articles: true
+        articles: {
+          include: {
+            type: true,
+          }
+        },
       }
     });
     return donations.map((donation) => DonationEntity.parse(
@@ -36,14 +40,20 @@ export default class DonationsService {
         phone: data.phone,
         articles: {
           create: data.articles.map((article) => ({
-            type: article.type,
+            type: {
+              connect: { id: article.typeID },
+            },
             value: article.value,
             quantity: article.quantity
           }))
         }
       },
       include: {
-        articles: true,
+        articles: {
+          include: {
+            type: true,
+          }
+        },
       }
     });
     return DonationEntity.parse(donation);
@@ -67,27 +77,42 @@ export default class DonationsService {
         articles: {
           deleteMany: {},
           create: data.articles.map((article) => ({
-            type: article.type,
+            type: {
+              connect: { id: article.typeID },
+            },
             value: article.value,
             quantity: article.quantity,
           })),
         }
       },
       include: {
-        articles: true,
+        articles: {
+          include: {
+            type: true,
+          }
+        },
       }
     });
     return DonationEntity.parse(donation);
   }
 
+  /**
+   * This function is used to delete a donation in the database
+   * 
+   * @param id The donation id to be deleted
+   * @returns The deleted donation  
+   */
   static async delete(id: string): Promise<DonationEntity> {
     const donation = await prisma.donation.delete({
       where: { id: id },
       include: {
-        articles: true
+        articles: {
+          include: {
+            type: true,
+          }
+        },
       }
     });
     return DonationEntity.parse(donation);
-
   }
 }

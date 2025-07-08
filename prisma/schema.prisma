@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgres"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -27,7 +27,8 @@ model Donation {
 
 model Article {
   id         String      @id @default(uuid())
-  type       ArticleType
+  type       ArticleType @relation(fields: [typeID], references: [id])
+  typeID     String
   value      Float
   quantity   Int
   donation   Donation    @relation(fields: [donationID], references: [id], onDelete: Cascade)
@@ -36,7 +37,8 @@ model Article {
 
 model Content {
   id          String      @id @default(uuid())
-  type        ArticleType
+  type        ArticleType @relation(fields: [typeID], references: [id])
+  typeID      String
   quantity    Int
   container   Container   @relation(fields: [containerID], references: [id], onDelete: Cascade)
   containerID String
@@ -77,6 +79,14 @@ model Association {
   updatedAt        DateTime        @updatedAt
 }
 
+model ArticleType {
+  id   String @id @default(uuid())
+  name String @unique
+
+  articles Article[]
+  contents Content[]
+}
+
 enum PackagingType {
   CARDBOARD
   FILM
@@ -86,7 +96,9 @@ enum PackagingType {
 
 enum DemandStatus {
   IN_PROGRESS
-  DONE
+  VALIDATED
+  CONTAINERIZED
+  DISTRIBUTED
 }
 
 enum AssociationType {
@@ -95,9 +107,4 @@ enum AssociationType {
   CONGREGATION_RELIGIEUSE
   INDIVIDUEL
   ETABLISSEMENT
-}
-
-enum ArticleType {
-  DIAPERS
-  HOSPITAL_BED
 }

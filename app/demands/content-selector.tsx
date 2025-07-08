@@ -36,7 +36,8 @@ interface ContentSelectorProps {
 export default function ContentSelector(props: ContentSelectorProps) {
   const [stocks, setStocks] = useState<StockEntity[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [types, setTypes] = useState<ArticleType[]>([]);
+  const [articleTypes, setArticleTypes] = useState<ArticleType[]>([]);
+  const [currArticleTypes, setCurrArticleTypes] = useState<ArticleType[]>([]);
   const [filteredTypes, setFilteredTypes] = useState<ArticleType[]>([]);
   const { prevIndex, form, permission } = props;
   const control = form.control;
@@ -46,9 +47,21 @@ export default function ContentSelector(props: ContentSelectorProps) {
     keyName: "fieldID",
   });
 
+  async function retrieveArticleTypes() {
+    setIsLoading(true);
+    fetch("/api/article-types")
+      .then((res) => {
+        if (res.status === 200) return res.json();
+        throw res;
+      })
+      .then((res) => setArticleTypes(res))
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
+  }
+
   async function retrieveStocks() {
     setIsLoading(true);
-    fetch(`/api/stocks?types=${JSON.stringify(types)}`)
+    fetch(`/api/stocks?types=${JSON.stringify(currArticleTypes)}`)
       .then((res) => {
         if (res.status === 200) return res.json();
         throw res;
@@ -64,30 +77,30 @@ export default function ContentSelector(props: ContentSelectorProps) {
       });
   }
 
-  function retrieveTypes() {
+  function retrieveCurrentArticleTypes() {
     const contents = form.getValues(`containers.${prevIndex}.contents`);
-    setTypes(Array.from(new Set(contents?.map((c) => c.type))));
+    setCurrArticleTypes(Array.from(new Set(contents?.map((c) => c.typeID))));
   }
 
   function retrieveFilteredTypes() {
-    const test = Object.values(ArticleType).filter(
-      (type) => !types.includes(type)
+    setFilteredTypes(
+      articleTypes.filter((type) => !currArticleTypes.includes(type))
     );
-    setFilteredTypes(test);
   }
 
   useEffect(() => {
     retrieveStocks();
     retrieveFilteredTypes();
-  }, [types]);
+  }, [currArticleTypes, articleTypes]);
 
   useEffect(() => {
-    retrieveTypes();
+    retrieveCurrentArticleTypes();
+    retrieveArticleTypes();
   }, [form.getValues(`containers.${prevIndex}.contents`)]);
 
   const addContent = () => {
     append({
-      type: filteredTypes[0],
+      typeID: filteredTypes[0].id,
       quantity: 0,
     });
   };
@@ -98,12 +111,11 @@ export default function ContentSelector(props: ContentSelectorProps) {
         const stock = stocks?.find((stock) => stock.type === field.type);
         const selectedTypes = form
           .getValues(`containers.${prevIndex}.contents`)
-          ?.map<ArticleType | null>((c, i) => (i !== index ? c.type : null));
+          ?.map<string | null>((c, i) => (i !== index ? c.typeID : null));
 
-        const availableTypes = Object.values(ArticleType).filter(
-          (type) => !selectedTypes.includes(type) || type === field.type
+        const availableTypes = articleTypes.filter(
+          (type) => !selectedTypes.includes(type.id) || type.id === field.typeID
         );
-
         return (
           <div key={field.fieldID} className="flex gap-8 ml-4">
             <CornerDownRight className="m-0" />
@@ -129,8 +141,8 @@ export default function ContentSelector(props: ContentSelectorProps) {
                         <SelectContent>
                           {availableTypes.map((type, i) => {
                             return (
-                              <SelectItem key={i} value={type}>
-                                {type}
+                              <SelectItem key={type.id} value={type.id}>
+                                {type.name}
                               </SelectItem>
                             );
                           })}
@@ -200,7 +212,8 @@ export default function ContentSelector(props: ContentSelectorProps) {
           </div>
         );
       })}
-      {permission === Permission.WRITE && filteredTypes.length !== 0 && (
+
+      {permission === Permission.WRITE && filteredTypes.length > 0 && (
         <Button
           type="button"
           size="icon"
@@ -210,6 +223,12 @@ export default function ContentSelector(props: ContentSelectorProps) {
         >
           <Plus />
         </Button>
+      )}
+
+      {articleTypes.length <= 0 && (
+        <p className="self-center text-destructive text-sm">
+          Veuillez ajouter au moins un type d'article
+        </p>
       )}
     </div>
   );

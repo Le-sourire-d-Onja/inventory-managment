@@ -71,7 +71,7 @@ export default function AppSidebar() {
               </CollapsibleTrigger>
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <CollapsibleContent>
+              <CollapsibleContent className="flex flex-col gap-2">
                 <Button
                   className="justify-start"
                   onClick={() => router.push("/associations")}
@@ -80,6 +80,15 @@ export default function AppSidebar() {
                   }
                 >
                   <Building /> Associations
+                </Button>
+                <Button
+                  className="justify-start"
+                  onClick={() => router.push("/article-types")}
+                  variant={
+                    pathname.includes("article-types") ? "default" : "ghost"
+                  }
+                >
+                  <Building /> Type d'article
                 </Button>
               </CollapsibleContent>
             </SidebarGroupContent>

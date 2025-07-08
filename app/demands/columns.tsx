@@ -92,11 +92,9 @@ export const columns = (
           <Button variant="ghost" onClick={() => onView(row.id)}>
             <Eye />
           </Button>
-          {row.status === DemandStatus.IN_PROGRESS && (
-            <Button variant="ghost" onClick={() => onEdit(row.id)}>
-              <Pen />
-            </Button>
-          )}
+          <Button variant="ghost" onClick={() => onEdit(row.id)}>
+            <Pen />
+          </Button>
           <Button variant="ghost" onClick={() => onRemove(row.id)}>
             <Trash className="text-destructive" />
           </Button>

@@ -1,8 +1,7 @@
-import { ArticleType } from "@/lib/generated/prisma";
 import z from "zod";
 
 export const createArticleSchema = z.object({
-  type: z.nativeEnum(ArticleType),
+  typeID: z.string().uuid(),
   value: z.number().min(0),
   quantity: z.number().min(1),
 });
