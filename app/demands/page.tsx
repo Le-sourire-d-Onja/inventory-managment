@@ -68,7 +68,7 @@ export default function Page() {
     const { association, ...demand } = foundSelected;
     const body = {
       ...demand,
-      status: DemandStatus.DONE,
+      status: DemandStatus.VALIDATED,
       associationID: association.id,
     } as CreateDemandEntity;
     const response = await fetch(`/api/demands`, {

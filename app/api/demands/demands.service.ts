@@ -17,7 +17,11 @@ export default class DemandsService {
         association: true,
         containers: {
           include: {
-            contents: true,
+            contents: {
+              include: {
+                type: true,
+              }
+            },
           }
         }
       },
@@ -45,7 +49,9 @@ export default class DemandsService {
             packaging: container.packaging,
             contents: {
               create: container.contents.map(content => ({
-                type: content.type,
+                type: {
+                  connect: { id: content.typeID },
+                },
                 quantity: content.quantity,
               }))
             }
@@ -56,7 +62,11 @@ export default class DemandsService {
         association: true,
         containers: {
           include: {
-            contents: true,
+            contents: {
+              include: {
+                type: true,
+              }
+            },
           }
         }
       }
@@ -72,7 +82,7 @@ export default class DemandsService {
  * @returns The updated demand
  */
   static async update(data: UpdateDemandEntity): Promise<DemandEntity> {
-    const validatedAt = data.status === DemandStatus.DONE ? new Date() : undefined;
+    const validatedAt = data.status === DemandStatus.VALIDATED ? new Date() : undefined;
     const demand = await prisma.demand.update({
       where: { id: data.id },
       data: {
@@ -87,7 +97,9 @@ export default class DemandsService {
             packaging: container.packaging,
             contents: {
               create: container.contents.map(content => ({
-                type: content.type,
+                type: {
+                  connect: { id: content.typeID },
+                },
                 quantity: content.quantity,
               }))
             }
@@ -98,7 +110,11 @@ export default class DemandsService {
         association: true,
         containers: {
           include: {
-            contents: true,
+            contents: {
+              include: {
+                type: true,
+              }
+            },
           }
         }
       }
@@ -113,7 +129,11 @@ export default class DemandsService {
         association: true,
         containers: {
           include: {
-            contents: true
+            contents: {
+              include: {
+                type: true,
+              }
+            }
           }
         }
       }

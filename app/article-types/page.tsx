@@ -27,7 +27,7 @@ export default function Page() {
     setIsLoading(true);
     fetch("/api/article-types")
       .then((res) => {
-        if (res.status === 200) return res.json();
+        if (res.ok) return res.json();
         throw res;
       })
       .then((res) => {

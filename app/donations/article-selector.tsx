@@ -43,7 +43,7 @@ export function ArticleSelector(props: ArticleSelectorProps) {
     setIsLoading(true);
     fetch("/api/article-types")
       .then((res) => {
-        if (res.status === 200) return res.json();
+        if (res.ok) return res.json();
         throw res;
       })
       .then((res) => setArticleTypes(res))
@@ -69,7 +69,10 @@ export function ArticleSelector(props: ArticleSelectorProps) {
         <h3 className="text-sm font-medium">Articles</h3>
         {permission === Permission.WRITE && (
           <Button
-            disabled={articleTypes.length <= 0}
+            disabled={
+              articleTypes.length <= 0 ||
+              form.getValues("articles").length >= articleTypes.length
+            }
             type="button"
             size="sm"
             variant="outline"
@@ -89,127 +92,138 @@ export function ArticleSelector(props: ArticleSelectorProps) {
       <div
         className={`overflow-y-scroll max-h-[300px] space-y-8 pr-2 ${scrollBar}`}
       >
-        {fields.map((field, index) => (
-          <div key={index} className="flex gap-2 items-center">
-            <FormField
-              control={control}
-              name={`articles.${index}.typeID`}
-              render={({ field }) => (
-                <FormItem>
-                  {permission !== Permission.WRITE ? (
-                    <Input readOnly {...field} />
-                  ) : (
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="min-w-[150px]">
-                          <SelectValue placeholder="Type d'article" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {!isLoading ? (
-                          articleTypes.map((type, i) => (
-                            <SelectItem key={type.id} value={type.id}>
-                              {type.name}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <MoonLoader
-                            size={20}
-                            color="var(--color-foreground)"
-                          />
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
+        {fields.map((field, index) => {
+          const selectedTypes = form
+            .getValues("articles")
+            ?.filter((_, i) => i !== index)
+            .map((a) => a.typeID);
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={control}
-              name={`articles.${index}.quantity`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl className="relative min-w-[30px]">
-                    <div key={index}>
-                      <Input
-                        readOnly={permission !== Permission.WRITE}
-                        type="number"
-                        placeholder="Quantité"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value) || 1)
-                        }
-                      />
-                      <span
-                        className="absolute top-[50%] right-1.5
-                     translate-[-50%]"
+          const availableTypes = articleTypes.filter(
+            (type) =>
+              !selectedTypes.includes(type.id) || type.id === field.typeID
+          );
+          return (
+            <div key={index} className="flex gap-2 items-center">
+              <FormField
+                control={control}
+                name={`articles.${index}.typeID`}
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    {permission !== Permission.WRITE ? (
+                      <Input readOnly {...field} />
+                    ) : (
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
                       >
-                        #
-                      </span>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                        <FormControl>
+                          <SelectTrigger className="min-w-[225px]">
+                            <SelectValue placeholder="Type d'article" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {!isLoading ? (
+                            availableTypes.map((type) => (
+                              <SelectItem key={type.id} value={type.id}>
+                                {type.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <MoonLoader
+                              size={20}
+                              color="var(--color-foreground)"
+                            />
+                          )}
+                        </SelectContent>
+                      </Select>
+                    )}
 
-            <FormField
-              control={control}
-              name={`articles.${index}.value`}
-              render={({ field }) => (
-                <FormItem className="relative min-w-[50px]">
-                  <FormControl>
-                    <div key={index}>
-                      <Input
-                        readOnly={permission !== Permission.WRITE}
-                        type="number"
-                        placeholder="10"
-                        min={0}
-                        step={0.01}
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value) || 1)
-                        }
-                      />
-                      <span
-                        className="absolute top-[50%] right-1.5
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={control}
+                name={`articles.${index}.quantity`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl className="relative min-w-[30px]">
+                      <div key={index}>
+                        <Input
+                          readOnly={permission !== Permission.WRITE}
+                          type="number"
+                          placeholder="Quantité"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value) || 1)
+                          }
+                        />
+                        <span
+                          className="absolute top-[50%] right-1.5
                      translate-[-50%]"
-                      >
-                        €
-                      </span>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                        >
+                          #
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {permission === Permission.WRITE && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  if (field.id) {
-                    form.setValue("articlesIDToRemove", [
-                      ...form.getValues("articlesIDToRemove"),
-                      field.id,
-                    ]);
-                  }
-                  remove(index);
-                }}
-              >
-                <Trash className="h-4 w-4 text-destructive" />
-              </Button>
-            )}
-          </div>
-        ))}
+              <FormField
+                control={control}
+                name={`articles.${index}.value`}
+                render={({ field }) => (
+                  <FormItem className="relative min-w-[50px]">
+                    <FormControl>
+                      <div key={index}>
+                        <Input
+                          readOnly={permission !== Permission.WRITE}
+                          type="number"
+                          placeholder="10"
+                          min={0}
+                          step={0.01}
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 1)
+                          }
+                        />
+                        <span
+                          className="absolute top-[50%] right-1.5
+                     translate-[-50%]"
+                        >
+                          €
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {permission === Permission.WRITE && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    if (field.id) {
+                      form.setValue("articlesIDToRemove", [
+                        ...form.getValues("articlesIDToRemove"),
+                        field.id,
+                      ]);
+                    }
+                    remove(index);
+                  }}
+                >
+                  <Trash className="h-4 w-4 text-destructive" />
+                </Button>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

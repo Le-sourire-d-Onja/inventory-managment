@@ -1,8 +1,8 @@
-import { ArticleType, DemandStatus, PackagingType } from "@/lib/generated/prisma";
+import { DemandStatus, PackagingType } from "@/lib/generated/prisma";
 import z from "zod";
 
 export const createContentSchema = z.object({
-  type: z.nativeEnum(ArticleType),
+  typeID: z.string().uuid(),
   quantity: z.number().min(0)
 })
 

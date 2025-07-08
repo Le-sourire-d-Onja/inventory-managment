@@ -24,8 +24,7 @@ import { updateDemandSchema } from "@/app/api/demands/entity/update-demand.entit
 import { ArticleType } from "@/lib/generated/prisma";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { DotLoader, MoonLoader } from "react-spinners";
+import { PulseLoader } from "react-spinners";
 
 interface ContentSelectorProps {
   prevIndex: number;
@@ -37,7 +36,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
   const [stocks, setStocks] = useState<StockEntity[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [articleTypes, setArticleTypes] = useState<ArticleType[]>([]);
-  const [currArticleTypes, setCurrArticleTypes] = useState<ArticleType[]>([]);
+  const [currArticleTypeIDs, setCurrArticleTypeIDs] = useState<string[]>([]);
   const [filteredTypes, setFilteredTypes] = useState<ArticleType[]>([]);
   const { prevIndex, form, permission } = props;
   const control = form.control;
@@ -46,12 +45,13 @@ export default function ContentSelector(props: ContentSelectorProps) {
     name: `containers.${prevIndex}.contents`,
     keyName: "fieldID",
   });
+  const watchedContents = form.watch(`containers.${prevIndex}.contents`);
 
   async function retrieveArticleTypes() {
     setIsLoading(true);
     fetch("/api/article-types")
       .then((res) => {
-        if (res.status === 200) return res.json();
+        if (res.ok) return res.json();
         throw res;
       })
       .then((res) => setArticleTypes(res))
@@ -61,9 +61,9 @@ export default function ContentSelector(props: ContentSelectorProps) {
 
   async function retrieveStocks() {
     setIsLoading(true);
-    fetch(`/api/stocks?types=${JSON.stringify(currArticleTypes)}`)
+    fetch(`/api/stocks?types=${JSON.stringify(currArticleTypeIDs)}`)
       .then((res) => {
-        if (res.status === 200) return res.json();
+        if (res.ok) return res.json();
         throw res;
       })
       .then((res) => {
@@ -78,25 +78,29 @@ export default function ContentSelector(props: ContentSelectorProps) {
   }
 
   function retrieveCurrentArticleTypes() {
-    const contents = form.getValues(`containers.${prevIndex}.contents`);
-    setCurrArticleTypes(Array.from(new Set(contents?.map((c) => c.typeID))));
+    setCurrArticleTypeIDs(
+      Array.from(new Set(watchedContents.map((c) => c.typeID)))
+    );
   }
 
   function retrieveFilteredTypes() {
     setFilteredTypes(
-      articleTypes.filter((type) => !currArticleTypes.includes(type))
+      articleTypes.filter((type) => !currArticleTypeIDs.includes(type.id))
     );
   }
 
   useEffect(() => {
     retrieveStocks();
     retrieveFilteredTypes();
-  }, [currArticleTypes, articleTypes]);
+  }, [currArticleTypeIDs, articleTypes]);
+
+  useEffect(() => {
+    retrieveArticleTypes();
+  }, []);
 
   useEffect(() => {
     retrieveCurrentArticleTypes();
-    retrieveArticleTypes();
-  }, [form.getValues(`containers.${prevIndex}.contents`)]);
+  }, [watchedContents]);
 
   const addContent = () => {
     append({
@@ -108,51 +112,52 @@ export default function ContentSelector(props: ContentSelectorProps) {
   return (
     <div className="flex flex-col gap-4">
       {fields.map((field, index) => {
-        const stock = stocks?.find((stock) => stock.type === field.type);
+        const stock = stocks?.find((stock) => stock.type.id === field.typeID);
         const selectedTypes = form
           .getValues(`containers.${prevIndex}.contents`)
-          ?.map<string | null>((c, i) => (i !== index ? c.typeID : null));
+          ?.filter((_, i) => i !== index)
+          .map<string>((c) => c.typeID);
 
         const availableTypes = articleTypes.filter(
           (type) => !selectedTypes.includes(type.id) || type.id === field.typeID
         );
         return (
-          <div key={field.fieldID} className="flex gap-8 ml-4">
-            <CornerDownRight className="m-0" />
+          <div key={field.fieldID} className="flex gap-2 ml-4">
+            <CornerDownRight size={40} className="mr-4" />
             <FormField
               control={control}
-              name={`containers.${prevIndex}.contents.${index}.type`}
-              render={({ field }) => {
-                console.log(field.value);
-                return (
-                  <FormItem>
-                    {permission !== Permission.WRITE ? (
-                      <Input readOnly {...field} />
-                    ) : (
-                      <Select
-                        onValueChange={(value) => field.onChange(value)}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="min-w-[150px]">
-                            <SelectValue placeholder="Type d'article" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {availableTypes.map((type, i) => {
-                            return (
-                              <SelectItem key={type.id} value={type.id}>
-                                {type.name}
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              name={`containers.${prevIndex}.contents.${index}.typeID`}
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  {permission !== Permission.WRITE ? (
+                    <Input readOnly {...field} />
+                  ) : (
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        retrieveCurrentArticleTypes();
+                      }}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="min-w-[225px]">
+                          <SelectValue placeholder="Type d'article" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableTypes.map((type, i) => {
+                          return (
+                            <SelectItem key={i} value={type.id}>
+                              {type.name}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
             <FormField
@@ -160,38 +165,37 @@ export default function ContentSelector(props: ContentSelectorProps) {
               name={`containers.${prevIndex}.contents.${index}.quantity`}
               render={({ field }) => (
                 <FormItem className="relative">
-                  {!isLoading ? (
-                    <div key={index}>
-                      <div>
-                        <Input
-                          readOnly={permission !== Permission.WRITE}
-                          type="number"
-                          placeholder="Quantité"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value) || 0)
-                          }
-                        />
-                      </div>
-                      <span
-                        className="absolute top-[18px] right-1.5
+                  <div key={index}>
+                    <div>
+                      <Input
+                        readOnly={permission !== Permission.WRITE}
+                        type="number"
+                        placeholder="Quantité"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value) || 0)
+                        }
+                      />
+                    </div>
+                    <span
+                      className="absolute top-[18px] right-1.5
                                      translate-[-50%]"
-                      >
-                        #
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex w-full items-center">
-                      <MoonLoader size={20} color="var(--color-foreground)" />
-                    </div>
-                  )}
+                    >
+                      #
+                    </span>
+                  </div>
 
-                  {!isLoading && permission === Permission.WRITE && (
-                    <FormDescription>
-                      {stock && stock.quantity > 0 ? stock.quantity : 0}{" "}
-                      disponible
-                    </FormDescription>
-                  )}
+                  {permission === Permission.WRITE &&
+                    (!isLoading ? (
+                      <FormDescription className="whitespace-nowrap">
+                        {stock && stock.quantity > 0 ? stock.quantity : 0}{" "}
+                        disponible
+                      </FormDescription>
+                    ) : (
+                      <div className="flex ml-2">
+                        <PulseLoader size={5} color="var(--color-foreground)" />
+                      </div>
+                    ))}
                   <FormMessage />
                 </FormItem>
               )}

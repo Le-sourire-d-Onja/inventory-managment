@@ -53,7 +53,11 @@ export default function DonationModal(props: DonationModalProps) {
       description: data?.description ?? "",
       email: data?.email ?? "",
       phone: data?.phone ?? "",
-      articles: data?.articles ?? [],
+      articles:
+        data?.articles.map((article) => ({
+          ...article,
+          typeID: article.type.id,
+        })) ?? [],
       articlesIDToRemove: [],
     });
   }

@@ -26,7 +26,7 @@ export class DemandEntity {
     switch (status) {
       case DemandStatus.IN_PROGRESS:
         return { color: "bg-orange-300", text: "En attente" };
-      case DemandStatus.DONE:
+      case DemandStatus.VALIDATED:
         return { color: "bg-green-300", text: "Validée" };
       default:
         return { color: "#ffffff", text: "Inconnu" };

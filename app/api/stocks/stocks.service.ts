@@ -1,30 +1,32 @@
-import { ArticleType, DemandStatus } from "@/lib/generated/prisma";
+import { DemandStatus } from "@/lib/generated/prisma";
 import { prisma } from "../prisma";
 import { StockEntity } from "./entity/stock.entity";
+import ArticleTypesService from "../article-types/article-types.service";
 
 export default class StocksService {
 
-  static async findOne(types: ArticleType[]) {
+  static async findOne(typeIDs: string[]) {
     // Get the sum of the quantity of all article by types
     const articles = await prisma.article.groupBy({
-      by: ["type"],
+      by: ["typeID"],
       where: {
-        type: { in: types },
+        type: { id: { in: typeIDs } },
       },
       _sum: {
         quantity: true,
       },
     });
+
     // Get the sum of the quantity of all content by types
     const contents = await prisma.content.groupBy({
-      by: ['type'],
+      by: ['typeID'],
       where: {
         type: {
-          in: types
+          id: { in: typeIDs },
         },
         container: {
           demand: {
-            status: DemandStatus.DONE,
+            status: DemandStatus.VALIDATED,
           }
         }
       },
@@ -32,12 +34,14 @@ export default class StocksService {
         quantity: true
       },
     });
+
+    const articleTypes = await ArticleTypesService.findAll();
+
     // Remove the content quantity from the article quantity to get the stock quantity
     const stocks = articles.map((article) => {
-      const content = contents.find((content) => content.type === article.type);
-      if (!content)
-        return article;
-      return { ...article, _sum: { quantity: (article._sum.quantity ?? 0) - (content._sum.quantity ?? 0) } }
+      const content = contents.find((content) => content.typeID === article.typeID);
+      const articleType = articleTypes.find((articleType) => article.typeID === articleType.id)!;
+      return { type: articleType, _sum: { quantity: (article._sum.quantity ?? 0) - (content?._sum.quantity ?? 0) } }
     })
     return stocks.map((stock) => new StockEntity(stock.type, stock._sum.quantity ?? 0));
   }

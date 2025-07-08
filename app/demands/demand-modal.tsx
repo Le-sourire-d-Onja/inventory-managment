@@ -61,7 +61,14 @@ export default function DemandModal(props: DemandModalProps) {
       id: data?.id ?? undefined,
       status: data?.status ?? DemandStatus.IN_PROGRESS,
       associationID: data?.association.id ?? undefined,
-      containers: data?.containers ?? [],
+      containers:
+        data?.containers.map((container) => ({
+          ...container,
+          contents: container.contents.map((content) => ({
+            ...content,
+            typeID: content.type.id,
+          })),
+        })) ?? [],
     });
   }
 

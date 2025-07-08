@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
   const updateArticleType = updateArticleTypeSchema.safeParse(body);
-  console.log(updateArticleType.error);
   if (!updateArticleType.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
