@@ -3,6 +3,7 @@
 import {
   Building,
   ChevronDown,
+  Folders,
   Gift,
   Inbox,
   LayoutDashboard,
@@ -88,7 +89,7 @@ export default function AppSidebar() {
                     pathname.includes("article-types") ? "default" : "ghost"
                   }
                 >
-                  <Building /> Type d'article
+                  <Folders /> Type d'article
                 </Button>
               </CollapsibleContent>
             </SidebarGroupContent>

@@ -21,6 +21,7 @@ import z from "zod";
 import { updateDonationSchema } from "@/app/api/donations/entity/update-donation.entity";
 import { useEffect, useState } from "react";
 import { MoonLoader } from "react-spinners";
+import { scrollBar } from "@/constants/tailwind";
 
 interface ArticleSelectorProps {
   form: UseFormReturn<z.infer<typeof updateDonationSchema>>;
@@ -85,124 +86,131 @@ export function ArticleSelector(props: ArticleSelectorProps) {
         </p>
       )}
 
-      {fields.map((field, index) => (
-        <div key={index} className="flex gap-2 items-center">
-          <FormField
-            control={control}
-            name={`articles.${index}.typeID`}
-            render={({ field }) => (
-              <FormItem>
-                {permission !== Permission.WRITE ? (
-                  <Input readOnly {...field} />
-                ) : (
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="min-w-[150px]">
-                        <SelectValue placeholder="Type d'article" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {!isLoading ? (
-                        articleTypes.map((type, i) => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <MoonLoader size={20} color="var(--color-foreground)" />
-                      )}
-                    </SelectContent>
-                  </Select>
-                )}
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name={`articles.${index}.quantity`}
-            render={({ field }) => (
-              <FormItem>
-                <FormControl className="relative min-w-[30px]">
-                  <div key={index}>
-                    <Input
-                      readOnly={permission !== Permission.WRITE}
-                      type="number"
-                      placeholder="Quantité"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 1)
-                      }
-                    />
-                    <span
-                      className="absolute top-[50%] right-1.5
-                     translate-[-50%]"
+      <div
+        className={`overflow-y-scroll max-h-[300px] space-y-8 pr-2 ${scrollBar}`}
+      >
+        {fields.map((field, index) => (
+          <div key={index} className="flex gap-2 items-center">
+            <FormField
+              control={control}
+              name={`articles.${index}.typeID`}
+              render={({ field }) => (
+                <FormItem>
+                  {permission !== Permission.WRITE ? (
+                    <Input readOnly {...field} />
+                  ) : (
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
                     >
-                      #
-                    </span>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                      <FormControl>
+                        <SelectTrigger className="min-w-[150px]">
+                          <SelectValue placeholder="Type d'article" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {!isLoading ? (
+                          articleTypes.map((type, i) => (
+                            <SelectItem key={type.id} value={type.id}>
+                              {type.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <MoonLoader
+                            size={20}
+                            color="var(--color-foreground)"
+                          />
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
 
-          <FormField
-            control={control}
-            name={`articles.${index}.value`}
-            render={({ field }) => (
-              <FormItem className="relative min-w-[50px]">
-                <FormControl>
-                  <div key={index}>
-                    <Input
-                      readOnly={permission !== Permission.WRITE}
-                      type="number"
-                      placeholder="10"
-                      min={0}
-                      step={0.01}
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseFloat(e.target.value) || 1)
-                      }
-                    />
-                    <span
-                      className="absolute top-[50%] right-1.5
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name={`articles.${index}.quantity`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl className="relative min-w-[30px]">
+                    <div key={index}>
+                      <Input
+                        readOnly={permission !== Permission.WRITE}
+                        type="number"
+                        placeholder="Quantité"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value) || 1)
+                        }
+                      />
+                      <span
+                        className="absolute top-[50%] right-1.5
                      translate-[-50%]"
-                    >
-                      €
-                    </span>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                      >
+                        #
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {permission === Permission.WRITE && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                if (field.id) {
-                  form.setValue("articlesIDToRemove", [
-                    ...form.getValues("articlesIDToRemove"),
-                    field.id,
-                  ]);
-                }
-                remove(index);
-              }}
-            >
-              <Trash className="h-4 w-4 text-destructive" />
-            </Button>
-          )}
-        </div>
-      ))}
+            <FormField
+              control={control}
+              name={`articles.${index}.value`}
+              render={({ field }) => (
+                <FormItem className="relative min-w-[50px]">
+                  <FormControl>
+                    <div key={index}>
+                      <Input
+                        readOnly={permission !== Permission.WRITE}
+                        type="number"
+                        placeholder="10"
+                        min={0}
+                        step={0.01}
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 1)
+                        }
+                      />
+                      <span
+                        className="absolute top-[50%] right-1.5
+                     translate-[-50%]"
+                      >
+                        €
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {permission === Permission.WRITE && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  if (field.id) {
+                    form.setValue("articlesIDToRemove", [
+                      ...form.getValues("articlesIDToRemove"),
+                      field.id,
+                    ]);
+                  }
+                  remove(index);
+                }}
+              >
+                <Trash className="h-4 w-4 text-destructive" />
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
