@@ -68,6 +68,13 @@ export default function Page() {
     const { association, ...demand } = foundSelected;
     const body = {
       ...demand,
+      containers: demand.containers.map((container) => ({
+        ...container,
+        contents: container.contents.map((content) => ({
+          ...content,
+          typeID: content.type.id,
+        })),
+      })),
       status: DemandStatus.VALIDATED,
       associationID: association.id,
     } as CreateDemandEntity;

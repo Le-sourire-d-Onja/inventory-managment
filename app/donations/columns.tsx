@@ -51,20 +51,6 @@ export const columns = (
     },
   },
   {
-    accessorKey: "description",
-    header: "Description",
-    cell: (props) => {
-      const row = props.row.original;
-      return (
-        <>
-          {row.description && row.description.length > 30
-            ? `${row.description.substring(0, 30)}...`
-            : row.description}{" "}
-        </>
-      );
-    },
-  },
-  {
     id: "total_value",
     accessorFn: (row) =>
       row.articles.reduce((prev, curr) => prev + curr.value, 0),
@@ -83,6 +69,20 @@ export const columns = (
       return (
         <>
           {quantity} article{quantity > 1 ? "s" : ""}{" "}
+        </>
+      );
+    },
+  },
+  {
+    accessorKey: "description",
+    header: "Description",
+    cell: (props) => {
+      const row = props.row.original;
+      return (
+        <>
+          {row.description && row.description.length > 30
+            ? `${row.description.substring(0, 30)}...`
+            : row.description}
         </>
       );
     },

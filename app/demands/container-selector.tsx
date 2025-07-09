@@ -23,6 +23,7 @@ import { updateDemandSchema } from "@/app/api/demands/entity/update-demand.entit
 import { PackagingType } from "@/lib/generated/prisma";
 import ContentSelector from "./content-selector";
 import { scrollBar } from "@/constants/tailwind";
+import { FloatInput } from "@/components/ui/float-input";
 
 interface ContainerSelectorProps {
   form: UseFormReturn<z.infer<typeof updateDemandSchema>>;
@@ -106,19 +107,13 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                 render={({ field }) => (
                   <FormItem className="relative">
                     <div key={index}>
-                      <Input
+                      <FloatInput
                         readOnly={permission !== Permission.WRITE}
-                        type="number"
                         placeholder="Poids"
-                        min={0}
-                        step={0.01}
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value) || 1)
-                        }
+                        field={field}
                       />
                       <span
-                        className="absolute top-[50%] right-1.5
+                        className="absolute top-[18px] right-1.5
                                      translate-[-50%]"
                       >
                         kg
@@ -135,19 +130,13 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                 render={({ field }) => (
                   <FormItem className="relative">
                     <div key={index}>
-                      <Input
+                      <FloatInput
                         readOnly={permission !== Permission.WRITE}
-                        type="number"
                         placeholder="Volume"
-                        min={0}
-                        step={0.01}
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value) || 1)
-                        }
+                        field={field}
                       />
                       <span
-                        className="absolute top-[50%] right-1.5
+                        className="absolute top-[18px] right-1.5
                                                translate-[-50%]"
                       >
                         m³

@@ -22,6 +22,7 @@ import { updateDonationSchema } from "@/app/api/donations/entity/update-donation
 import { useEffect, useState } from "react";
 import { MoonLoader } from "react-spinners";
 import { scrollBar } from "@/constants/tailwind";
+import { FloatInput } from "@/components/ui/float-input";
 
 interface ArticleSelectorProps {
   form: UseFormReturn<z.infer<typeof updateDonationSchema>>;
@@ -108,16 +109,25 @@ export function ArticleSelector(props: ArticleSelectorProps) {
                 control={control}
                 name={`articles.${index}.typeID`}
                 render={({ field }) => (
-                  <FormItem className="flex-1">
+                  <FormItem>
                     {permission !== Permission.WRITE ? (
-                      <Input readOnly {...field} />
+                      <Input
+                        className="overflow-ellipsis w-[225px]"
+                        readOnly
+                        {...field}
+                        value={
+                          availableTypes.find(
+                            (availableType) => availableType.id === field.value
+                          )?.name ?? "Inconnu"
+                        }
+                      />
                     ) : (
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="min-w-[225px]">
+                          <SelectTrigger className="overflow-ellipsis w-[225px]">
                             <SelectValue placeholder="Type d'article" />
                           </SelectTrigger>
                         </FormControl>
@@ -137,7 +147,6 @@ export function ArticleSelector(props: ArticleSelectorProps) {
                         </SelectContent>
                       </Select>
                     )}
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -152,15 +161,18 @@ export function ArticleSelector(props: ArticleSelectorProps) {
                       <div key={index}>
                         <Input
                           readOnly={permission !== Permission.WRITE}
-                          type="number"
                           placeholder="Quantité"
                           {...field}
                           onChange={(e) =>
-                            field.onChange(parseInt(e.target.value) || 1)
+                            field.onChange(
+                              e.target.value === ""
+                                ? ""
+                                : parseInt(e.target.value)
+                            )
                           }
                         />
                         <span
-                          className="absolute top-[50%] right-1.5
+                          className="absolute top-[18px] right-1.5
                      translate-[-50%]"
                         >
                           #
@@ -179,19 +191,13 @@ export function ArticleSelector(props: ArticleSelectorProps) {
                   <FormItem className="relative min-w-[50px]">
                     <FormControl>
                       <div key={index}>
-                        <Input
+                        <FloatInput
                           readOnly={permission !== Permission.WRITE}
-                          type="number"
-                          placeholder="10"
-                          min={0}
-                          step={0.01}
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseFloat(e.target.value) || 1)
-                          }
+                          placeholder="Prix"
+                          field={field}
                         />
                         <span
-                          className="absolute top-[50%] right-1.5
+                          className="absolute top-[18px] right-1.5
                      translate-[-50%]"
                         >
                           €

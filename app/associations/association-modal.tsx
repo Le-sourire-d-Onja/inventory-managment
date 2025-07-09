@@ -135,7 +135,11 @@ export default function AssociationModal(props: AssociationModalProps) {
                       <span className="text-red-700"> * </span>
                     </FormLabel>
                     {permission !== Permission.WRITE ? (
-                      <Input readOnly {...field} />
+                      <Input
+                        readOnly
+                        {...field}
+                        value={AssociationEntity.typeTxt(field.value)}
+                      />
                     ) : (
                       <Select
                         onValueChange={field.onChange}

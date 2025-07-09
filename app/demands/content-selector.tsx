@@ -123,14 +123,23 @@ export default function ContentSelector(props: ContentSelectorProps) {
         );
         return (
           <div key={field.fieldID} className="flex gap-2 ml-4">
-            <CornerDownRight size={40} className="mr-4" />
+            <CornerDownRight size={30} className="mr-4 mt-1" />
             <FormField
               control={control}
               name={`containers.${prevIndex}.contents.${index}.typeID`}
               render={({ field }) => (
-                <FormItem className="flex-1">
+                <FormItem>
                   {permission !== Permission.WRITE ? (
-                    <Input readOnly {...field} />
+                    <Input
+                      className="overflow-ellipsis w-[225px]"
+                      readOnly
+                      {...field}
+                      value={
+                        availableTypes.find(
+                          (availableType) => availableType.id === field.value
+                        )?.name ?? "Inconnu"
+                      }
+                    />
                   ) : (
                     <Select
                       onValueChange={(value) => {
@@ -140,7 +149,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="min-w-[225px]">
+                        <SelectTrigger className="overflow-ellipsis w-[225px]">
                           <SelectValue placeholder="Type d'article" />
                         </SelectTrigger>
                       </FormControl>
@@ -169,11 +178,14 @@ export default function ContentSelector(props: ContentSelectorProps) {
                     <div>
                       <Input
                         readOnly={permission !== Permission.WRITE}
-                        type="number"
                         placeholder="Quantité"
                         {...field}
                         onChange={(e) =>
-                          field.onChange(parseInt(e.target.value) || 0)
+                          field.onChange(
+                            e.target.value === ""
+                              ? ""
+                              : parseInt(e.target.value)
+                          )
                         }
                       />
                     </div>

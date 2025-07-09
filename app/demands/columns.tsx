@@ -1,11 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Eye, Pen, Trash } from "lucide-react";
+import { Check, Eye, Pen, Trash } from "lucide-react";
 import { DemandEntity } from "../api/demands/entity/demand.entity";
 import { Badge } from "@/components/ui/badge";
-import { DemandStatus } from "@/lib/generated/prisma";
 import { localeDateOptions } from "@/lib/utils";
 import { AssociationEntity } from "../api/associations/entity/association.entity";
+import { DemandStatus } from "@/lib/generated/prisma";
 
 export const columns = (
   onView: (id: string) => void,
@@ -34,7 +34,20 @@ export const columns = (
     cell: (props) => {
       const row = props.row.original;
       const statusTxt = DemandEntity.statusTxt(row.status);
-      return <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>;
+      const statusDate = DemandEntity.statusDate(row);
+      return (
+        <div className="flex flex-col gap-1.5">
+          <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
+          {statusDate ? (
+            <p className="text-muted-foreground text-xs">
+              Depuis le{" "}
+              {statusDate.toLocaleDateString("fr-FR", localeDateOptions)}{" "}
+            </p>
+          ) : (
+            <></>
+          )}
+        </div>
+      );
     },
   },
   {
@@ -58,38 +71,16 @@ export const columns = (
     },
   },
   {
-    accessorKey: "createdAt",
-    header: "Date de création",
-    cell: (props) => {
-      const row = props.row.original;
-      return (
-        <> {row.createdAt.toLocaleDateString("fr-FR", localeDateOptions)} </>
-      );
-    },
-  },
-  {
-    accessorKey: "validatedAt",
-    header: "Date de validation",
-    cell: (props) => {
-      const row = props.row.original;
-      if (!row.validatedAt) {
-        return (
-          <Button variant="secondary" onClick={() => onValidate(row.id)}>
-            Valider la demande
-          </Button>
-        );
-      }
-      return (
-        <> {row.validatedAt.toLocaleDateString("fr-FR", localeDateOptions)} </>
-      );
-    },
-  },
-  {
     id: "actions",
     cell: (props) => {
       const row = props.row.original;
       return (
         <div className="flex justify-end gap-1">
+          {row.status !== DemandStatus.VALIDATED && (
+            <Button variant="ghost" onClick={() => onValidate(row.id)}>
+              <Check />
+            </Button>
+          )}
           <Button variant="ghost" onClick={() => onView(row.id)}>
             <Eye />
           </Button>
