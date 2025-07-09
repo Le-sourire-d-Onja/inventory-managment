@@ -26,6 +26,24 @@ export class AssociationEntity {
     this.updatedAt = updatedAt;
   }
 
+  static typeTxt(type?: AssociationType) {
+    switch (type) {
+      case AssociationType.ASSOCIATION:
+        return "Association";
+      case AssociationType.CONGREGATION_RELIGIEUSE:
+        return "Congregation religieuse";
+      case AssociationType.ETABLISSEMENT:
+        return "Établissement";
+      case AssociationType.INDIVIDUEL:
+        return "Individuel";
+      case AssociationType.INSTITUTIONNEL_MINSAN:
+        return "Institutionnel minsan";
+      default:
+        return "Inconnu";
+    }
+  }
+
+
   static parse(obj: AssociationEntity) {
     return new AssociationEntity(obj.id, obj.name, obj.type, obj.person_in_charge, obj.address, obj.email, obj.phone, obj.description, new Date(obj.createdAt), new Date(obj.updatedAt));
   }

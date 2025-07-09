@@ -5,6 +5,7 @@ import { DemandEntity } from "../api/demands/entity/demand.entity";
 import { Badge } from "@/components/ui/badge";
 import { DemandStatus } from "@/lib/generated/prisma";
 import { localeDateOptions } from "@/lib/utils";
+import { AssociationEntity } from "../api/associations/entity/association.entity";
 
 export const columns = (
   onView: (id: string) => void,
@@ -21,7 +22,7 @@ export const columns = (
         <div className="flex flex-col">
           <p> {row.association.name} </p>
           <p className="text-muted-foreground text-xs">
-            {row.association.type}
+            {AssociationEntity.typeTxt(row.association.type)}
           </p>
         </div>
       );

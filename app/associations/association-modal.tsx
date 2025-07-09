@@ -149,7 +149,7 @@ export default function AssociationModal(props: AssociationModalProps) {
                         <SelectContent>
                           {Object.values(AssociationType).map((type, i) => (
                             <SelectItem key={i} value={type}>
-                              {type}
+                              {AssociationEntity.typeTxt(type)}
                             </SelectItem>
                           ))}
                         </SelectContent>
