@@ -29,7 +29,7 @@ model Article {
   id         String      @id @default(uuid())
   type       ArticleType @relation(fields: [typeID], references: [id])
   typeID     String
-  value      Float
+  price      Float
   quantity   Int
   donation   Donation    @relation(fields: [donationID], references: [id], onDelete: Cascade)
   donationID String
@@ -82,8 +82,11 @@ model Association {
 }
 
 model ArticleType {
-  id   String @id @default(uuid())
-  name String @unique
+  id     String @id @default(uuid())
+  name   String @unique
+  weight Float
+  volume Float
+  price  Float
 
   articles Article[]
   contents Content[]
@@ -93,6 +96,7 @@ enum PackagingType {
   CARDBOARD
   FILM
   TIED_STRING
+  NAKED
   NONE
 }
 

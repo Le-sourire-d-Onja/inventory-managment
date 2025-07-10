@@ -24,14 +24,17 @@ import { PackagingType } from "@/lib/generated/prisma";
 import ContentSelector from "./content-selector";
 import { scrollBar } from "@/constants/tailwind";
 import { FloatInput } from "@/components/ui/float-input";
+import { ContainerEntity } from "../api/demands/entity/container.entity";
+import { DemandEntity } from "../api/demands/entity/demand.entity";
 
 interface ContainerSelectorProps {
+  data: ContainerEntity[];
   form: UseFormReturn<z.infer<typeof updateDemandSchema>>;
   permission: Permission;
 }
 
 export default function ContainerSelector(props: ContainerSelectorProps) {
-  const { form, permission } = props;
+  const { data, form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
     control,
@@ -41,8 +44,6 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
 
   const addContainer = () => {
     append({
-      volume: 0,
-      weight: 0,
       packaging: PackagingType.CARDBOARD,
       contents: [],
     });
@@ -90,7 +91,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                         <SelectContent>
                           {Object.values(PackagingType).map((type, i) => (
                             <SelectItem key={i} value={type}>
-                              {type}
+                              {DemandEntity.packagingTxt(type)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -101,51 +102,25 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                 )}
               />
 
-              <FormField
-                control={control}
-                name={`containers.${index}.weight`}
-                render={({ field }) => (
-                  <FormItem className="relative">
-                    <div key={index}>
-                      <FloatInput
-                        readOnly={permission !== Permission.WRITE}
-                        placeholder="Poids"
-                        field={field}
-                      />
-                      <span
-                        className="absolute top-[18px] right-1.5
-                                     translate-[-50%]"
-                      >
-                        kg
-                      </span>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="relative min-w-[50px]">
+                <Input disabled value={data[index]?.weight ?? 0} />
+                <span
+                  className="opacity-25 absolute top-[18px] right-1.5
+                     translate-[-50%]"
+                >
+                  kg
+                </span>
+              </div>
 
-              <FormField
-                control={control}
-                name={`containers.${index}.volume`}
-                render={({ field }) => (
-                  <FormItem className="relative">
-                    <div key={index}>
-                      <FloatInput
-                        readOnly={permission !== Permission.WRITE}
-                        placeholder="Volume"
-                        field={field}
-                      />
-                      <span
-                        className="absolute top-[18px] right-1.5
-                                               translate-[-50%]"
-                      >
-                        m³
-                      </span>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="relative min-w-[50px]">
+                <Input disabled value={data[index]?.volume ?? 0} />
+                <span
+                  className="opacity-25 absolute top-[18px] right-1.5
+                     translate-[-50%]"
+                >
+                  m³
+                </span>
+              </div>
 
               {permission === Permission.WRITE && (
                 <Button

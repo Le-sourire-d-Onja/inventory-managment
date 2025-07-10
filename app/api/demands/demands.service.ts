@@ -1,10 +1,37 @@
-import { DemandStatus } from "@/lib/generated/prisma";
+import { ArticleType, DemandStatus } from "@/lib/generated/prisma";
 import { prisma } from "../prisma";
 import { CreateDemandEntity } from "./entity/create-demand.entity";
 import { DemandEntity } from "./entity/demand.entity";
 import { UpdateDemandEntity } from "./entity/update-demand.entity";
+import ArticleTypesService from "../article-types/article-types.service";
 
 export default class DemandsService {
+
+  /**
+   * This function will compute all weight and volume of all
+   * contents and total them for the container
+   * 
+   * @param container The container to reduce all weight and volume
+   * @param articleTypes All the types available in the container
+   * @returns [weight, volume] of the container
+   */
+  static computeContainerWeightAndVolume(
+    container: { contents: { typeID: string, quantity: number }[] },
+    articleTypes: ArticleType[]
+  ): [number, number] {
+    return container.contents.reduce(
+      ([weightTotal, volumeTotal], content) => {
+        const articleType = articleTypes.find((type) => type.id === content.typeID);
+        const weight = articleType?.weight ?? 0;
+        const volume = articleType?.volume ?? 0;
+
+        return [
+          weightTotal + content.quantity * weight,
+          volumeTotal + content.quantity * volume,
+        ];
+      }, [0, 0]);
+  }
+
 
   /**
    * This function is used to retrieve one the demand from the database
@@ -64,24 +91,30 @@ export default class DemandsService {
    * @returns The created demand
    */
   static async create(data: CreateDemandEntity): Promise<DemandEntity> {
+
+    const articleTypes = await ArticleTypesService.findAll();
+
     const demand = await prisma.demand.create({
       data: {
         associationID: data.associationID,
         status: data.status,
         containers: {
-          create: data.containers.map(container => ({
-            weight: container.weight,
-            volume: container.volume,
-            packaging: container.packaging,
-            contents: {
-              create: container.contents.map(content => ({
-                type: {
-                  connect: { id: content.typeID },
-                },
-                quantity: content.quantity,
-              }))
-            }
-          }))
+          create: data.containers.map(container => {
+            const [weight, volume] = DemandsService.computeContainerWeightAndVolume(container, articleTypes);
+            return {
+              weight: weight,
+              volume: volume,
+              packaging: container.packaging,
+              contents: {
+                create: container.contents.map(content => ({
+                  type: {
+                    connect: { id: content.typeID },
+                  },
+                  quantity: content.quantity,
+                }))
+              }
+            };
+          })
         }
       },
       include: {
@@ -108,7 +141,11 @@ export default class DemandsService {
  * @returns The updated demand
  */
   static async update(data: UpdateDemandEntity): Promise<DemandEntity> {
+
     const validatedAt = data.status === DemandStatus.VALIDATED ? new Date() : undefined;
+
+    const articleTypes = await ArticleTypesService.findAll();
+
     const demand = await prisma.demand.update({
       where: { id: data.id },
       data: {
@@ -116,20 +153,23 @@ export default class DemandsService {
         validatedAt: validatedAt,
         associationID: data.associationID,
         containers: {
-          deleteMany: {}, // on les supprime tous pour repartir proprement (autre stratégie possible ci-dessous)
-          create: data.containers.map(container => ({
-            weight: container.weight,
-            volume: container.volume,
-            packaging: container.packaging,
-            contents: {
-              create: container.contents.map(content => ({
-                type: {
-                  connect: { id: content.typeID },
-                },
-                quantity: content.quantity,
-              }))
-            }
-          }))
+          deleteMany: {},
+          create: data.containers.map(container => {
+            const [weight, volume] = DemandsService.computeContainerWeightAndVolume(container, articleTypes);
+            return {
+              weight: weight,
+              volume: volume,
+              packaging: container.packaging,
+              contents: {
+                create: container.contents.map(content => ({
+                  type: {
+                    connect: { id: content.typeID },
+                  },
+                  quantity: content.quantity,
+                }))
+              }
+            };
+          })
         }
       },
       include: {

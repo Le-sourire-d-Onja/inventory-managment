@@ -22,9 +22,10 @@ import { updateDonationSchema } from "@/app/api/donations/entity/update-donation
 import { useEffect, useState } from "react";
 import { MoonLoader } from "react-spinners";
 import { scrollBar } from "@/constants/tailwind";
-import { FloatInput } from "@/components/ui/float-input";
+import { DonationEntity } from "../api/donations/entity/donation.entity";
 
 interface ArticleSelectorProps {
+  data: DonationEntity | null;
   form: UseFormReturn<z.infer<typeof updateDonationSchema>>;
   permission: Permission;
 }
@@ -32,7 +33,7 @@ interface ArticleSelectorProps {
 export function ArticleSelector(props: ArticleSelectorProps) {
   const [articleTypes, setArticleTypes] = useState<ArticleType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { form, permission } = props;
+  const { data, form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
     control,
@@ -60,7 +61,6 @@ export function ArticleSelector(props: ArticleSelectorProps) {
     append({
       typeID: articleTypes[0].id,
       quantity: 1,
-      value: 1,
     });
   };
 
@@ -184,30 +184,15 @@ export function ArticleSelector(props: ArticleSelectorProps) {
                 )}
               />
 
-              <FormField
-                control={control}
-                name={`articles.${index}.value`}
-                render={({ field }) => (
-                  <FormItem className="relative min-w-[50px]">
-                    <FormControl>
-                      <div key={index}>
-                        <FloatInput
-                          readOnly={permission !== Permission.WRITE}
-                          placeholder="Prix"
-                          field={field}
-                        />
-                        <span
-                          className="absolute top-[18px] right-1.5
+              <div key={index} className="relative min-w-[50px]">
+                <Input disabled value={data?.articles[index].price ?? 0} />
+                <span
+                  className="opacity-25 absolute top-[18px] right-1.5
                      translate-[-50%]"
-                        >
-                          €
-                        </span>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                >
+                  €
+                </span>
+              </div>
 
               {permission === Permission.WRITE && (
                 <Button

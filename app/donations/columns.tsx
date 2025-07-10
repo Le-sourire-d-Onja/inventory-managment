@@ -53,7 +53,7 @@ export const columns = (
   {
     id: "total_value",
     accessorFn: (row) =>
-      row.articles.reduce((prev, curr) => prev + curr.value, 0),
+      row.articles.reduce((prev, curr) => prev + curr.price, 0),
     header: "Valeur totale",
     cell: (props) => {
       return <> {props.getValue()}€ </>;

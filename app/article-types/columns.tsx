@@ -1,8 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
-import { DonationEntity } from "../api/donations/entity/donation.entity";
-import { localeDateOptions } from "@/lib/utils";
 import { ArticleType } from "@/lib/generated/prisma";
 
 export const columns = (
@@ -14,7 +12,30 @@ export const columns = (
     accessorKey: "name",
     header: "Nom",
   },
-
+  {
+    accessorKey: "weight",
+    header: "Poids",
+    cell: (props) => {
+      const row = props.row.original;
+      return <> {row.weight} kg </>;
+    },
+  },
+  {
+    accessorKey: "volume",
+    header: "Poids",
+    cell: (props) => {
+      const row = props.row.original;
+      return <> {row.volume} m³ </>;
+    },
+  },
+  {
+    accessorKey: "price",
+    header: "Prix",
+    cell: (props) => {
+      const row = props.row.original;
+      return <> {row.price} € </>;
+    },
+  },
   {
     id: "actions",
     cell: (props) => {

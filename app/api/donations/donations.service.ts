@@ -1,3 +1,4 @@
+import ArticleTypesService from "../article-types/article-types.service";
 import { prisma } from "../prisma";
 import { CreateDonationEntity } from "./entity/create-donation.entity";
 import { DonationEntity } from "./entity/donation.entity";
@@ -32,6 +33,8 @@ export default class DonationsService {
    * @returns The created donation
    */
   static async create(data: CreateDonationEntity): Promise<DonationEntity> {
+    const articleTypes = await ArticleTypesService.findAll();
+
     const donation = await prisma.donation.create({
       data: {
         name: data.name,
@@ -39,13 +42,17 @@ export default class DonationsService {
         email: data.email,
         phone: data.phone,
         articles: {
-          create: data.articles.map((article) => ({
-            type: {
-              connect: { id: article.typeID },
-            },
-            value: article.value,
-            quantity: article.quantity
-          }))
+          create: data.articles.map((article) => {
+            const articleType = articleTypes.find((articleType) => articleType.id === article.typeID);
+            const price = articleType?.price ?? 0;
+            return {
+              type: {
+                connect: { id: article.typeID },
+              },
+              price: price * article.quantity,
+              quantity: article.quantity
+            }
+          })
         }
       },
       include: {
@@ -67,6 +74,8 @@ export default class DonationsService {
  * @returns The updated donation
  */
   static async update(data: UpdateDonationEntity): Promise<DonationEntity> {
+    const articleTypes = await ArticleTypesService.findAll();
+
     const donation = await prisma.donation.update({
       where: { id: data.id },
       data: {
@@ -76,13 +85,17 @@ export default class DonationsService {
         phone: data.phone,
         articles: {
           deleteMany: {},
-          create: data.articles.map((article) => ({
-            type: {
-              connect: { id: article.typeID },
-            },
-            value: article.value,
-            quantity: article.quantity,
-          })),
+          create: data.articles.map((article) => {
+            const articleType = articleTypes.find((articleType) => articleType.id === article.typeID);
+            const price = articleType?.price ?? 0;
+            return {
+              type: {
+                connect: { id: article.typeID },
+              },
+              price: price * article.quantity,
+              quantity: article.quantity
+            }
+          })
         }
       },
       include: {

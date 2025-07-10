@@ -1,5 +1,5 @@
 
-import { DemandStatus, Association } from "@/lib/generated/prisma";
+import { DemandStatus, Association, PackagingType } from "@/lib/generated/prisma";
 import { ContainerEntity } from "./container.entity";
 
 
@@ -24,6 +24,21 @@ export class DemandEntity {
     this.distributedAt = distributedAt;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+  }
+
+  static packagingTxt(packaging?: PackagingType) {
+    switch (packaging) {
+      case PackagingType.CARDBOARD:
+        return "Carton";
+      case PackagingType.FILM:
+        return "Filmé";
+      case PackagingType.TIED_STRING:
+        return "Ficelé";
+      case PackagingType.NAKED:
+        return "Nu";
+      default:
+        return "Inconnu";
+    }
   }
 
   static statusTxt(status?: DemandStatus) {

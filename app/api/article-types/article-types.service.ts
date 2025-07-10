@@ -23,9 +23,7 @@ export default class ArticleTypesService {
    */
   static async create(data: CreateArticleTypeEntity): Promise<ArticleTypeEntity> {
     const articleType = await prisma.articleType.create({
-      data: {
-        name: data.name,
-      },
+      data: data,
     });
     return ArticleTypeEntity.parse(articleType);
   }
@@ -40,9 +38,7 @@ export default class ArticleTypesService {
   static async update(data: UpdateArticleTypeEntity): Promise<ArticleTypeEntity> {
     const articleType = await prisma.articleType.update({
       where: { id: data.id },
-      data: {
-        name: data.name,
-      },
+      data: data,
     });
     return ArticleTypeEntity.parse(articleType);
   }

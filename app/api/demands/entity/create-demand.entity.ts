@@ -7,8 +7,6 @@ export const createContentSchema = z.object({
 })
 
 export const createContainerSchema = z.object({
-  weight: z.number().min(0),
-  volume: z.number().min(0),
   packaging: z.nativeEnum(PackagingType),
   contents: z.array(createContentSchema),
 });

@@ -55,7 +55,7 @@ export default function DonationModal(props: DonationModalProps) {
       phone: data?.phone ?? "",
       articles:
         data?.articles.map((article) => ({
-          ...article,
+          quantity: article.quantity,
           typeID: article.type.id,
         })) ?? [],
       articlesIDToRemove: [],
@@ -172,7 +172,7 @@ export default function DonationModal(props: DonationModalProps) {
               )}
             />
 
-            <ArticleSelector form={form} permission={permission} />
+            <ArticleSelector data={data} form={form} permission={permission} />
 
             <Separator />
             {permission === Permission.WRITE && (

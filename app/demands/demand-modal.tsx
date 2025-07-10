@@ -160,7 +160,11 @@ export default function DemandModal(props: DemandModalProps) {
               )}
             />
 
-            <ContainerSelector form={form} permission={permission} />
+            <ContainerSelector
+              data={data?.containers ?? []}
+              form={form}
+              permission={permission}
+            />
 
             <Separator />
             {permission === Permission.WRITE && (
