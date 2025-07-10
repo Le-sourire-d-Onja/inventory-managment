@@ -28,17 +28,17 @@ import { PulseLoader } from "react-spinners";
 
 interface ContentSelectorProps {
   prevIndex: number;
+  stocks: StockEntity[];
   form: UseFormReturn<z.infer<typeof updateDemandSchema>>;
   permission: Permission;
 }
 
 export default function ContentSelector(props: ContentSelectorProps) {
-  const [stocks, setStocks] = useState<StockEntity[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [articleTypes, setArticleTypes] = useState<ArticleType[]>([]);
   const [currArticleTypeIDs, setCurrArticleTypeIDs] = useState<string[]>([]);
   const [filteredTypes, setFilteredTypes] = useState<ArticleType[]>([]);
-  const { prevIndex, form, permission } = props;
+  const { stocks, prevIndex, form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
     control,
@@ -59,24 +59,6 @@ export default function ContentSelector(props: ContentSelectorProps) {
       .finally(() => setIsLoading(false));
   }
 
-  async function retrieveStocks() {
-    setIsLoading(true);
-    fetch(`/api/stocks?types=${JSON.stringify(currArticleTypeIDs)}`)
-      .then((res) => {
-        if (res.ok) return res.json();
-        throw res;
-      })
-      .then((res) => {
-        setStocks(res);
-      })
-      .catch((err) => {
-        console.log(err);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }
-
   function retrieveCurrentArticleTypes() {
     setCurrArticleTypeIDs(
       Array.from(new Set(watchedContents.map((c) => c.typeID)))
@@ -90,7 +72,6 @@ export default function ContentSelector(props: ContentSelectorProps) {
   }
 
   useEffect(() => {
-    retrieveStocks();
     retrieveFilteredTypes();
   }, [currArticleTypeIDs, articleTypes]);
 
@@ -112,7 +93,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
   return (
     <div className="flex flex-col gap-4">
       {fields.map((field, index) => {
-        const stock = stocks?.find((stock) => stock.type.id === field.typeID);
+        const stock = stocks.find((stock) => stock.type.id === field.typeID);
         const selectedTypes = form
           .getValues(`containers.${prevIndex}.contents`)
           ?.filter((_, i) => i !== index)

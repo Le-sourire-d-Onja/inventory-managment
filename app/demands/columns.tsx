@@ -5,9 +5,11 @@ import { DemandEntity } from "../api/demands/entity/demand.entity";
 import { Badge } from "@/components/ui/badge";
 import { localeDateOptions } from "@/lib/utils";
 import { AssociationEntity } from "../api/associations/entity/association.entity";
-import { DemandStatus } from "@/lib/generated/prisma";
+import { ArticleType, DemandStatus } from "@/lib/generated/prisma";
+import { StockEntity } from "../api/stocks/entity/stock.entity";
 
 export const columns = (
+  stocks: StockEntity[],
   onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void,
@@ -74,9 +76,16 @@ export const columns = (
     id: "actions",
     cell: (props) => {
       const row = props.row.original;
+      const contents = row.containers.flatMap(
+        (container) => container.contents
+      );
+      const hasStock = contents.every((content) => {
+        const stock = stocks.find((stock) => stock.type.id === content.type.id);
+        return stock && stock.quantity >= content.quantity;
+      });
       return (
         <div className="flex justify-end gap-1">
-          {row.status !== DemandStatus.VALIDATED && (
+          {row.status !== DemandStatus.VALIDATED && hasStock && (
             <Button variant="ghost" onClick={() => onValidate(row.id)}>
               <Check />
             </Button>

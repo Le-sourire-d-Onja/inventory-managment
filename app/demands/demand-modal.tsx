@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import ContainerSelector from "./container-selector";
 import { Badge } from "@/components/ui/badge";
+import { StockEntity } from "../api/stocks/entity/stock.entity";
 
 export enum Permission {
   READ,
@@ -43,6 +44,7 @@ export enum Permission {
 
 type DemandModalProps = {
   data: DemandEntity | null;
+  stocks: StockEntity[];
   associations: AssociationEntity[];
   permission: Permission;
   open: boolean;
@@ -50,7 +52,7 @@ type DemandModalProps = {
 };
 
 export default function DemandModal(props: DemandModalProps) {
-  const { data, associations, open, onOpenChange, permission } = props;
+  const { data, stocks, associations, open, onOpenChange, permission } = props;
   const statusTxt = DemandEntity.statusTxt(data?.status);
   const form = useForm<z.infer<typeof updateDemandSchema>>({
     resolver: zodResolver(updateDemandSchema),
@@ -162,6 +164,7 @@ export default function DemandModal(props: DemandModalProps) {
 
             <ContainerSelector
               data={data?.containers ?? []}
+              stocks={stocks ?? []}
               form={form}
               permission={permission}
             />

@@ -5,13 +5,13 @@ import ArticleTypesService from "../article-types/article-types.service";
 
 export default class StocksService {
 
-  static async findOne(typeIDs: string[]) {
+  static async findAll(typeIDs: string[]) {
     // Get the sum of the quantity of all article by types
     const articles = await prisma.article.groupBy({
       by: ["typeID"],
-      where: {
+      where: typeIDs.length !== 0 ? {
         type: { id: { in: typeIDs } },
-      },
+      } : undefined,
       _sum: {
         quantity: true,
       },
@@ -21,9 +21,9 @@ export default class StocksService {
     const contents = await prisma.content.groupBy({
       by: ['typeID'],
       where: {
-        type: {
+        type: typeIDs.length !== 0 ? {
           id: { in: typeIDs },
-        },
+        } : undefined,
         container: {
           demand: {
             status: DemandStatus.VALIDATED,

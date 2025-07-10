@@ -23,18 +23,19 @@ import { updateDemandSchema } from "@/app/api/demands/entity/update-demand.entit
 import { PackagingType } from "@/lib/generated/prisma";
 import ContentSelector from "./content-selector";
 import { scrollBar } from "@/constants/tailwind";
-import { FloatInput } from "@/components/ui/float-input";
 import { ContainerEntity } from "../api/demands/entity/container.entity";
 import { DemandEntity } from "../api/demands/entity/demand.entity";
+import { StockEntity } from "../api/stocks/entity/stock.entity";
 
 interface ContainerSelectorProps {
   data: ContainerEntity[];
+  stocks: StockEntity[];
   form: UseFormReturn<z.infer<typeof updateDemandSchema>>;
   permission: Permission;
 }
 
 export default function ContainerSelector(props: ContainerSelectorProps) {
-  const { data, form, permission } = props;
+  const { data, stocks, form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
     control,
@@ -137,6 +138,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
             </div>
             <ContentSelector
               prevIndex={index}
+              stocks={stocks}
               form={form}
               permission={permission}
             />

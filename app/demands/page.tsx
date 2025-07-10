@@ -14,6 +14,7 @@ import ConfirmModal from "@/components/confirm-modal";
 import ScanModal from "./scan-modal";
 import { Camera, Plus } from "lucide-react";
 import { useDevices } from "@yudiel/react-qr-scanner";
+import { StockEntity } from "../api/stocks/entity/stock.entity";
 
 enum Modals {
   SCAN,
@@ -25,6 +26,7 @@ enum Modals {
 
 export default function Page() {
   const [data, setData] = useState<DemandEntity[]>([]);
+  const [stocks, setStocks] = useState<StockEntity[]>([]);
   const [associations, setAssociations] = useState<AssociationEntity[]>([]);
   const [isLoading, setLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
@@ -35,26 +37,47 @@ export default function Page() {
   const devices = useDevices();
 
   async function retrieveDemands() {
+    setLoading(true);
     fetch("/api/demands")
-      .then((res) => res.json())
-      .then((demands) =>
-        demands.map((demand: any) => DemandEntity.parse(demand))
-      )
       .then((res) => {
-        setData(res);
-        setLoading(false);
-      });
+        if (res.ok) return res.json();
+        throw res;
+      })
+      .then((res) => res.map((demand: any) => DemandEntity.parse(demand)))
+      .then((data) => setData(data))
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
   }
 
   async function retrieveAssociations() {
+    setLoading(true);
     fetch("/api/associations")
-      .then((res) => res.json())
-      .then((associations) =>
-        associations.map((association: any) =>
-          AssociationEntity.parse(association)
-        )
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw res;
+      })
+      .then((res) =>
+        res.map((association: any) => AssociationEntity.parse(association))
       )
-      .then((res) => setAssociations(res));
+      .then((res) => setAssociations(res))
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
+  }
+
+  async function retrieveStocks() {
+    setLoading(true);
+    fetch("/api/stocks")
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw res;
+      })
+      .then((res) => res.map((stock: any) => StockEntity.parse(stock)))
+      .then((res) => {
+        console.log(res);
+        setStocks(res);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
   }
 
   async function deleteDemand(id: string) {
@@ -101,6 +124,7 @@ export default function Page() {
   useEffect(() => {
     retrieveDemands();
     retrieveAssociations();
+    retrieveStocks();
   }, []);
 
   function openModal(modal: Modals, id?: string) {
@@ -167,6 +191,7 @@ export default function Page() {
 
       <DemandModal
         data={selectedData}
+        stocks={stocks}
         associations={associations}
         open={opennedModal === Modals.DEMAND}
         onOpenChange={closeModal}
@@ -202,7 +227,7 @@ export default function Page() {
 
       <DataTable
         data={data}
-        columns={columns(onView, onEdit, onRemove, onValidate)}
+        columns={columns(stocks, onView, onEdit, onRemove, onValidate)}
         isLoading={isLoading}
       />
     </div>
