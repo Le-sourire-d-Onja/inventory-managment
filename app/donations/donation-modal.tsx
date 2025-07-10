@@ -89,7 +89,7 @@ export default function DonationModal(props: DonationModalProps) {
           <DialogTitle>
             {!data ? "Nouvelle Donation" : `Donation de ${data.name}`}{" "}
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-sm">
+          <DialogDescription className="text-left text-muted-foreground text-sm">
             Créée le{" "}
             {!data
               ? new Date().toLocaleDateString("fr-FR", localeDateOptions)

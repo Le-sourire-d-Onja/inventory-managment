@@ -3,8 +3,19 @@ import DemandsService from "./demands.service";
 import { createDemandSchema } from "./entity/create-demand.entity";
 import { updateDemandSchema } from "./entity/update-demand.entity";
 
-export async function GET(_: NextRequest) {
-  const data = await DemandsService.findAll();
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const id = searchParams.get('id');
+  let data;
+  if (id) {
+    try {
+      data = await DemandsService.findOne(id);
+    } catch {
+      return NextResponse.json({ message: "Not found" }, { status: 404 })
+    }
+  } else {
+    data = await DemandsService.findAll();
+  }
   return NextResponse.json(data);
 }
 

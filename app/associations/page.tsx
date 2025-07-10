@@ -7,6 +7,7 @@ import { AssociationEntity } from "../api/associations/entity/association.entity
 import AssociationModal, { Permission } from "./association-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
+import { Plus } from "lucide-react";
 
 enum Modals {
   ASSOCIATION,
@@ -91,7 +92,10 @@ export default function Page() {
         <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
           Associations
         </h1>
-        <Button onClick={() => onCreate()}>Créer une association</Button>
+        <Button onClick={() => onCreate()}>
+          <span className="hidden md:flex"> Créer une association </span>
+          <Plus />
+        </Button>
       </div>
 
       <AssociationModal

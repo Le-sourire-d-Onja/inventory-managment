@@ -11,8 +11,12 @@ import { DemandStatus } from "@/lib/generated/prisma";
 import { toast } from "sonner";
 import { CreateDemandEntity } from "../api/demands/entity/create-demand.entity";
 import ConfirmModal from "@/components/confirm-modal";
+import ScanModal from "./scan-modal";
+import { Camera, Plus } from "lucide-react";
+import { useDevices } from "@yudiel/react-qr-scanner";
 
 enum Modals {
+  SCAN,
   DEMAND,
   REMOVE,
   VALIDATE,
@@ -28,6 +32,7 @@ export default function Page() {
   const [modalPermission, setModalPermission] = useState<Permission>(
     Permission.READ
   );
+  const devices = useDevices();
 
   async function retrieveDemands() {
     fetch("/api/demands")
@@ -127,6 +132,10 @@ export default function Page() {
     openModal(Modals.DEMAND);
   }
 
+  function onScan() {
+    openModal(Modals.SCAN);
+  }
+
   function onValidate(id: string) {
     openModal(Modals.VALIDATE, id);
   }
@@ -141,7 +150,19 @@ export default function Page() {
         <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
           Demandes
         </h1>
-        <Button onClick={() => onCreate()}>Créer une demande</Button>
+        <div className="flex gap-2">
+          {devices.length !== 0 && (
+            <Button onClick={() => onScan()}>
+              <span className="hidden md:flex"> Scanner une demande </span>
+              <Camera />
+            </Button>
+          )}
+
+          <Button onClick={() => onCreate()}>
+            <span className="hidden md:flex"> Créer une demande </span>
+            <Plus />
+          </Button>
+        </div>
       </div>
 
       <DemandModal
@@ -150,6 +171,11 @@ export default function Page() {
         open={opennedModal === Modals.DEMAND}
         onOpenChange={closeModal}
         permission={modalPermission}
+      />
+
+      <ScanModal
+        open={opennedModal === Modals.SCAN}
+        onOpenChange={closeModal}
       />
 
       <ConfirmModal

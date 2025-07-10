@@ -7,6 +7,7 @@ import { DonationEntity } from "../api/donations/entity/donation.entity";
 import DonationModal, { Permission } from "./donation-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
+import { Plus } from "lucide-react";
 
 enum Modals {
   DONATION,
@@ -86,7 +87,10 @@ export default function Page() {
         <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
           Donations
         </h1>
-        <Button onClick={() => onCreate()}>Créer une donation</Button>
+        <Button onClick={() => onCreate()}>
+          <span className="hidden md:flex"> Créer une donation </span>
+          <Plus />
+        </Button>
       </div>
 
       <DonationModal

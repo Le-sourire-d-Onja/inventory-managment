@@ -7,6 +7,7 @@ import ArticleTypeModal, { Permission } from "./article-types-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
 import { ArticleType } from "@/lib/generated/prisma";
+import { Plus } from "lucide-react";
 
 enum Modals {
   ARTICLE_TYPES,
@@ -93,7 +94,10 @@ export default function Page() {
         <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
           Type d'article
         </h1>
-        <Button onClick={() => onCreate()}>Créer un type d'article</Button>
+        <Button onClick={() => onCreate()}>
+          <span className="hidden md:flex"> Créer un type d'article </span>
+          <Plus />
+        </Button>
       </div>
 
       <ArticleTypeModal

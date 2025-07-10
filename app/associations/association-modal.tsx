@@ -93,7 +93,7 @@ export default function AssociationModal(props: AssociationModalProps) {
           <DialogTitle>
             {!data ? "Nouvelle Association" : `Association de ${data.name}`}{" "}
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-sm">
+          <DialogDescription className="text-left text-muted-foreground text-sm">
             Créée le{" "}
             {!data
               ? new Date().toLocaleDateString("fr-FR", localeDateOptions)

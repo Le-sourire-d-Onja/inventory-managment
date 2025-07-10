@@ -51,7 +51,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-medium">Conteneurs</h3>
+        <h3 className="text-sm font-medium">Contenants</h3>
         {permission === Permission.WRITE && (
           <Button
             type="button"
@@ -59,7 +59,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
             variant="outline"
             onClick={addContainer}
           >
-            Ajouter un conteneur
+            Ajouter un contenant
           </Button>
         )}
       </div>
@@ -84,7 +84,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                       >
                         <FormControl>
                           <SelectTrigger className="min-w-[150px]">
-                            <SelectValue placeholder="Type de conteneur" />
+                            <SelectValue placeholder="Type de contenant" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

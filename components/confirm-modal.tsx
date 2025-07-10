@@ -24,7 +24,7 @@ export default function ConfirmModal(props: ConfirmModalProps) {
           <DialogTitle className="flex items-center gap-2">
             Confirmation d'action
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-sm">
+          <DialogDescription className="text-left text-muted-foreground text-sm">
             ⚠️ Cette pop-up vous demande de confirmer l'action que vous venez de
             déclencher. Attention, cette action est irréversible.
           </DialogDescription>

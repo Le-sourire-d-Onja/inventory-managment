@@ -104,7 +104,7 @@ export default function DemandModal(props: DemandModalProps) {
               <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
             )}
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-sm">
+          <DialogDescription className="text-left text-muted-foreground text-sm">
             Créée le{" "}
             {!data
               ? new Date().toLocaleDateString("fr-FR", localeDateOptions)

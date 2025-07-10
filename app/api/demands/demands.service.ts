@@ -7,7 +7,33 @@ import { UpdateDemandEntity } from "./entity/update-demand.entity";
 export default class DemandsService {
 
   /**
-   * This function is used to retrieve all the demands of the database
+   * This function is used to retrieve one the demand from the database
+   * 
+   * @returns All the demand entity of the database
+   */
+  static async findOne(id: string): Promise<DemandEntity> {
+    const demand = await prisma.demand.findUnique({
+      where: { id: id },
+      include: {
+        association: true,
+        containers: {
+          include: {
+            contents: {
+              include: {
+                type: true,
+              }
+            },
+          }
+        }
+      },
+    });
+    if (!demand)
+      throw new Error("Not found");
+    return DemandEntity.parse(demand);
+  }
+
+  /**
+   * This function is used to retrieve all the demands from the database
    * 
    * @returns All the demand entity of the database
    */

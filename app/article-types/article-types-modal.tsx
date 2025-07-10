@@ -5,7 +5,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ArticleTypeEntity } from "../api/article-types/entity/article-types.entity";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import {
   Form,
   FormControl,
@@ -20,7 +19,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect } from "react";
-import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { updateArticleTypeSchema } from "../api/article-types/entity/update-article-type.entity";
