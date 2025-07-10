@@ -34,8 +34,9 @@ export default function ScanModal(props: ScanModalProps) {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => setData(res))
-      .catch((res) => toast("Demande non trouvée"))
+      .then((res) => (res ? DemandEntity.parse(res) : null))
+      .then((data) => setData(data))
+      .catch((err) => toast("Demande non trouvée"))
       .finally(() => setIsLoading(false));
   }
 

@@ -25,6 +25,7 @@ import { ArticleType } from "@/lib/generated/prisma";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { useEffect, useState } from "react";
 import { PulseLoader } from "react-spinners";
+import { ArticleTypeEntity } from "../api/article-types/entity/article-types.entity";
 
 interface ContentSelectorProps {
   prevIndex: number;
@@ -54,7 +55,8 @@ export default function ContentSelector(props: ContentSelectorProps) {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => setArticleTypes(res))
+      .then((res) => res.map((obj: any) => ArticleTypeEntity.parse(obj)))
+      .then((data) => setArticleTypes(data))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
   }

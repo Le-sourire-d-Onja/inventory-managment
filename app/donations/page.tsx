@@ -17,7 +17,7 @@ enum Modals {
 
 export default function Page() {
   const [data, setData] = useState<DonationEntity[]>([]);
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedData, setSelectedData] = useState<DonationEntity | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
@@ -25,15 +25,16 @@ export default function Page() {
   );
 
   async function retrieveDonations() {
+    setIsLoading(true);
     fetch("/api/donations")
-      .then((res) => res.json())
-      .then((donations) =>
-        donations.map((donation: any) => DonationEntity.parse(donation))
-      )
       .then((res) => {
-        setData(res);
-        setLoading(false);
-      });
+        if (res.ok) return res.json();
+        throw res;
+      })
+      .then((res) => res.map((obj: any) => DonationEntity.parse(obj)))
+      .then((data) => setData(data))
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
   }
 
   async function deleteDonation(id: string) {

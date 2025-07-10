@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import { MoonLoader } from "react-spinners";
 import { scrollBar } from "@/constants/tailwind";
 import { DonationEntity } from "../api/donations/entity/donation.entity";
+import { ArticleTypeEntity } from "../api/article-types/entity/article-types.entity";
 
 interface ArticleSelectorProps {
   data: DonationEntity | null;
@@ -48,7 +49,8 @@ export function ArticleSelector(props: ArticleSelectorProps) {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => setArticleTypes(res))
+      .then((res) => res.map((obj: any) => ArticleTypeEntity.parse(obj)))
+      .then((data) => setArticleTypes(data))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
   }

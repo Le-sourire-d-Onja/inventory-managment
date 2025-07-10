@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import StocksService from "./stocks.service";
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const typeIDs = JSON.parse(searchParams.get('types') ?? "[]") as string[];
-  const data = await StocksService.findAll(typeIDs);
+export async function GET(_: NextRequest) {
+  const data = await StocksService.findAll();
   return NextResponse.json(data);
 }

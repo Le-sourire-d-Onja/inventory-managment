@@ -28,7 +28,7 @@ export default function Page() {
   const [data, setData] = useState<DemandEntity[]>([]);
   const [stocks, setStocks] = useState<StockEntity[]>([]);
   const [associations, setAssociations] = useState<AssociationEntity[]>([]);
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedData, setSelectedData] = useState<DemandEntity | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
@@ -37,47 +37,48 @@ export default function Page() {
   const devices = useDevices();
 
   async function retrieveDemands() {
-    setLoading(true);
+    setIsLoading(true);
     fetch("/api/demands")
       .then((res) => {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((demand: any) => DemandEntity.parse(demand)))
+      .then((res) => res.map((obj: any) => DemandEntity.parse(obj)))
       .then((data) => setData(data))
       .catch((err) => console.log(err))
-      .finally(() => setLoading(false));
+      .finally(() => setIsLoading(false));
   }
 
   async function retrieveAssociations() {
-    setLoading(true);
+    setIsLoading(true);
     fetch("/api/associations")
       .then((res) => {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) =>
-        res.map((association: any) => AssociationEntity.parse(association))
-      )
+      .then((res) => res.map((obj: any) => AssociationEntity.parse(obj)))
       .then((res) => setAssociations(res))
       .catch((err) => console.log(err))
-      .finally(() => setLoading(false));
+      .finally(() => setIsLoading(false));
   }
 
   async function retrieveStocks() {
-    setLoading(true);
+    setIsLoading(true);
     fetch("/api/stocks")
       .then((res) => {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((stock: any) => StockEntity.parse(stock)))
-      .then((res) => {
-        console.log(res);
-        setStocks(res);
-      })
+      .then((res) => res.map((obj: any) => StockEntity.parse(obj)))
+      .then((res) => setStocks(res))
       .catch((err) => console.log(err))
-      .finally(() => setLoading(false));
+      .finally(() => setIsLoading(false));
+  }
+
+  async function retrieveData() {
+    retrieveDemands();
+    retrieveAssociations();
+    retrieveStocks();
   }
 
   async function deleteDemand(id: string) {
@@ -113,7 +114,7 @@ export default function Page() {
     });
 
     if (response.ok) {
-      retrieveDemands();
+      retrieveData();
     } else {
       toast("Une erreur à s'est produite.", {
         description: response.status,
@@ -122,9 +123,7 @@ export default function Page() {
   }
 
   useEffect(() => {
-    retrieveDemands();
-    retrieveAssociations();
-    retrieveStocks();
+    retrieveData();
   }, []);
 
   function openModal(modal: Modals, id?: string) {
@@ -135,7 +134,9 @@ export default function Page() {
 
   function closeModal(open: boolean) {
     if (open) return;
-    if (modalPermission === Permission.WRITE) retrieveDemands();
+    if (modalPermission === Permission.WRITE) {
+      retrieveData();
+    }
     setModalPermission(Permission.READ);
     setOpennedModal(Modals.NONE);
     setSelectedData(null);

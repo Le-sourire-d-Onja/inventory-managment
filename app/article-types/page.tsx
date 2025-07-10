@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
 import { ArticleType } from "@/lib/generated/prisma";
 import { Plus } from "lucide-react";
+import { ArticleTypeEntity } from "../api/article-types/entity/article-types.entity";
 
 enum Modals {
   ARTICLE_TYPES,
@@ -31,15 +32,10 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => {
-        setData(res);
-      })
-      .catch((err) => {
-        console.log(err);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .then((res) => res.map((obj: any) => ArticleTypeEntity.parse(obj)))
+      .then((data) => setData(data))
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
   }
 
   async function deleteArticleType(id: string) {

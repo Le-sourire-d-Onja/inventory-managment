@@ -17,7 +17,7 @@ enum Modals {
 
 export default function Page() {
   const [data, setData] = useState<AssociationEntity[]>([]);
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedData, setSelectedData] = useState<AssociationEntity | null>(
     null
@@ -27,17 +27,16 @@ export default function Page() {
   );
 
   async function retrieveAssociations() {
+    setIsLoading(true);
     fetch("/api/associations")
-      .then((res) => res.json())
-      .then((associations) =>
-        associations.map((association: any) =>
-          AssociationEntity.parse(association)
-        )
-      )
       .then((res) => {
-        setData(res);
-        setLoading(false);
-      });
+        if (res.ok) return res.json();
+        throw res;
+      })
+      .then((res) => res.map((obj: any) => AssociationEntity.parse(obj)))
+      .then((data) => setData(data))
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
   }
 
   async function deleteAssociation(id: string) {
