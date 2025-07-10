@@ -65,77 +65,81 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
           </Button>
         )}
       </div>
-
       <div
         className={`overflow-y-scroll max-h-[450px] space-y-8 pr-2 ${scrollBar}`}
       >
         {fields.map((field, index) => (
           <div key={field.fieldID} className="flex flex-col gap-4 ">
-            <div className="flex gap-2 items-center">
-              <FormField
-                control={control}
-                name={`containers.${index}.packaging`}
-                render={({ field }) => (
-                  <FormItem>
-                    {permission !== Permission.WRITE ? (
-                      <Input readOnly {...field} />
-                    ) : (
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="min-w-[150px]">
-                            <SelectValue placeholder="Type de contenant" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.values(PackagingType).map((type, i) => (
-                            <SelectItem key={i} value={type}>
-                              {DemandEntity.packagingTxt(type)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    <FormMessage />
-                  </FormItem>
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2 items-center">
+                <FormField
+                  control={control}
+                  name={`containers.${index}.packaging`}
+                  render={({ field }) => (
+                    <FormItem>
+                      {permission !== Permission.WRITE ? (
+                        <Input readOnly {...field} />
+                      ) : (
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="min-w-[150px]">
+                              <SelectValue placeholder="Type de contenant" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Object.values(PackagingType).map((type, i) => (
+                              <SelectItem key={i} value={type}>
+                                {DemandEntity.packagingTxt(type)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="relative min-w-[50px]">
+                  <Input disabled value={data[index]?.weight ?? 0} />
+                  <span
+                    className="opacity-25 absolute top-[18px] right-1.5
+                     translate-[-50%]"
+                  >
+                    kg
+                  </span>
+                </div>
+                <div className="relative min-w-[50px]">
+                  <Input disabled value={data[index]?.volume ?? 0} />
+                  <span
+                    className="opacity-25 absolute top-[18px] right-1.5
+                     translate-[-50%]"
+                  >
+                    m³
+                  </span>
+                </div>
+                {permission === Permission.WRITE && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      remove(index);
+                    }}
+                  >
+                    <Trash className="h-4 w-4 text-destructive" />
+                  </Button>
                 )}
-              />
-
-              <div className="relative min-w-[50px]">
-                <Input disabled value={data[index]?.weight ?? 0} />
-                <span
-                  className="opacity-25 absolute top-[18px] right-1.5
-                     translate-[-50%]"
-                >
-                  kg
-                </span>
               </div>
-
-              <div className="relative min-w-[50px]">
-                <Input disabled value={data[index]?.volume ?? 0} />
-                <span
-                  className="opacity-25 absolute top-[18px] right-1.5
-                     translate-[-50%]"
-                >
-                  m³
-                </span>
-              </div>
-
-              {permission === Permission.WRITE && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    remove(index);
-                  }}
-                >
-                  <Trash className="h-4 w-4 text-destructive" />
-                </Button>
+              {field.id && (
+                <p className="ml-2 text-sm text-muted-foreground">
+                  N°{field.id}
+                </p>
               )}
             </div>
+
             <ContentSelector
               prevIndex={index}
               stocks={stocks}

@@ -15,6 +15,9 @@ import ScanModal from "./scan-modal";
 import { Camera, Plus } from "lucide-react";
 import { useDevices } from "@yudiel/react-qr-scanner";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useStateParam } from "@/lib/utils";
+import { ArticleEntity } from "../api/donations/entity/article.entity";
 
 enum Modals {
   SCAN,
@@ -30,11 +33,22 @@ export default function Page() {
   const [associations, setAssociations] = useState<AssociationEntity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
-  const [selectedData, setSelectedData] = useState<DemandEntity | null>(null);
+  const [selectedDataID, setSelectedDataID] = useStateParam("selected-data-id");
+  const selectedData =
+    data.find((demand) => demand.id === selectedDataID) ?? null;
   const [modalPermission, setModalPermission] = useState<Permission>(
     Permission.READ
   );
   const devices = useDevices();
+
+  useEffect(() => {
+    retrieveData();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedDataID) return;
+    openModal(Modals.DEMAND, selectedDataID);
+  }, [selectedDataID]);
 
   async function retrieveDemands() {
     setIsLoading(true);
@@ -122,13 +136,8 @@ export default function Page() {
     }
   }
 
-  useEffect(() => {
-    retrieveData();
-  }, []);
-
   function openModal(modal: Modals, id?: string) {
-    const foundSelected = data.find((demand) => demand.id === id) ?? null;
-    setSelectedData(foundSelected);
+    setSelectedDataID(id ?? null);
     setOpennedModal(modal);
   }
 
@@ -139,7 +148,7 @@ export default function Page() {
     }
     setModalPermission(Permission.READ);
     setOpennedModal(Modals.NONE);
-    setSelectedData(null);
+    setSelectedDataID(null);
   }
 
   function onView(id: string) {

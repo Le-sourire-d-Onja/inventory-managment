@@ -5,11 +5,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Scanner } from "@yudiel/react-qr-scanner";
-import { useState } from "react";
 import { toast } from "sonner";
-import { DemandEntity } from "../api/demands/entity/demand.entity";
-import { MoonLoader } from "react-spinners";
 import z from "zod";
+import { useRouter } from "next/navigation";
 
 type ScanModalProps = {
   open: boolean;
@@ -18,26 +16,17 @@ type ScanModalProps = {
 
 export default function ScanModal(props: ScanModalProps) {
   const { open, onOpenChange } = props;
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [data, setData] = useState<DemandEntity | null>(null);
+  const router = useRouter();
 
-  async function retrieveDemand(value: string) {
-    const isUUID = z.string().uuid();
-    const result = isUUID.safeParse(value);
+  async function handleScan(value: string) {
+    const isUrl = z.string().url();
+    const result = isUrl.safeParse(value);
     if (!result.success) {
       toast("QR code incorrect");
       return;
     }
-    setIsLoading(true);
-    fetch(`/api/demands?id=${result.data}`)
-      .then((res) => {
-        if (res.ok) return res.json();
-        throw res;
-      })
-      .then((res) => (res ? DemandEntity.parse(res) : null))
-      .then((data) => setData(data))
-      .catch((err) => toast("Demande non trouvée"))
-      .finally(() => setIsLoading(false));
+    onOpenChange(false);
+    router.push(result.data);
   }
 
   return (
@@ -48,12 +37,7 @@ export default function ScanModal(props: ScanModalProps) {
             Scanner une demande
           </DialogTitle>
         </DialogHeader>
-        <Scanner onScan={(result) => retrieveDemand(result[0].rawValue)} />
-        {!isLoading ? (
-          <></>
-        ) : (
-          <MoonLoader size={20} color="var(--color-foreground)" />
-        )}
+        <Scanner onScan={(result) => handleScan(result[0].rawValue)} />
       </DialogContent>
     </Dialog>
   );

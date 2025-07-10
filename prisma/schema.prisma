@@ -45,7 +45,7 @@ model Content {
 }
 
 model Container {
-  id        String        @id @default(uuid())
+  id        String        @id
   weight    Float
   volume    Float
   packaging PackagingType

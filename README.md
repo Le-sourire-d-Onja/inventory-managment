@@ -10,7 +10,7 @@ Rajouter scroll au niveau des dialog ✅
 
 Rajouter les tables pour les type materiel ✅
 
-Rajouter les identifiants pour les contenant (exemple: N 250001)
+Rajouter les identifiants pour les contenant (exemple: N 250001) ✅
 
 Imprimer en A6
 Sur l'etiquette :
@@ -22,24 +22,21 @@ Sur l'etiquette :
 
 Rajouter une vue vers la page via le qr-code
 
-
 Filtrer une demande par :
 
 - Association
 
-
 Recapitulatif par :
 
-- Association 
+- Association
 
-
-Rajouter : 
+Rajouter :
 
 - Poids
 - Volume
 - Prix
 
-par type d'article et on multiplie pour mettre à titre indiquatif
+par type d'article et on multiplie pour mettre à titre indiquatif ✅
 
 ## Questions
 
