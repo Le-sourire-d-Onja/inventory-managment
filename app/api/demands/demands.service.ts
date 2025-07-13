@@ -1,5 +1,5 @@
 import { ArticleType, DemandStatus } from "@/lib/generated/prisma";
-import { prisma } from "../prisma";
+import { prisma } from "../../../lib/prisma";
 import { CreateDemandEntity } from "./entity/create-demand.entity";
 import { DemandEntity } from "./entity/demand.entity";
 import { UpdateDemandEntity } from "./entity/update-demand.entity";

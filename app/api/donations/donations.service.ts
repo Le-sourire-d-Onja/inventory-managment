@@ -1,5 +1,5 @@
 import ArticleTypesService from "../article-types/article-types.service";
-import { prisma } from "../prisma";
+import { prisma } from "../../../lib/prisma";
 import { CreateDonationEntity } from "./entity/create-donation.entity";
 import { DonationEntity } from "./entity/donation.entity";
 import { UpdateDonationEntity } from "./entity/update-donation.entity";

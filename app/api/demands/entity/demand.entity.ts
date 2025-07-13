@@ -1,6 +1,8 @@
 
 import { DemandStatus, Association, PackagingType } from "@/lib/generated/prisma";
 import { ContainerEntity } from "./container.entity";
+import { LabelInfos } from "@/lib/pdf";
+import { UpdateDemandEntity } from "./update-demand.entity";
 
 
 export class DemandEntity {
@@ -76,5 +78,17 @@ export class DemandEntity {
     const containerizedAt = !!obj.containerizedAt ? new Date(obj.containerizedAt) : null;
     const distributedAt = !!obj.distributedAt ? new Date(obj.distributedAt) : null;
     return new DemandEntity(obj.id, obj.status, obj.containers.map((container) => ContainerEntity.parse(container)), obj.association, validatedAt, containerizedAt, distributedAt, new Date(obj.createdAt), new Date(obj.updatedAt));
+  }
+
+  static toLabelInfos(obj: DemandEntity): LabelInfos[] {
+    return obj.containers.map((container) => ({
+      demandID: obj.id,
+      containerID: container.id,
+      associationName: obj.association.name,
+      contents: container.contents.map((content) => ({
+        name: content.type.name,
+        quantity: content.quantity,
+      }))
+    }))
   }
 }

@@ -18,6 +18,7 @@ import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useStateParam } from "@/lib/utils";
 import { ArticleEntity } from "../api/donations/entity/article.entity";
+import { generatePdf } from "@/lib/pdf";
 
 enum Modals {
   SCAN,
@@ -136,6 +137,19 @@ export default function Page() {
     }
   }
 
+  async function downloadDemand(id: string) {
+    const demand = data.find((demand) => demand.id === id);
+    if (!demand) {
+      throw new Error("Demand not found");
+    }
+    const labelInfos = DemandEntity.toLabelInfos(demand);
+    const pdfBase64 = await generatePdf(labelInfos);
+    var link = document.createElement("a"); //Create <a>
+    link.href = "data:application/pdf;base64," + pdfBase64; //Image Base64 Goes here
+    link.download = "etiquette.pdf"; //File name Here
+    link.click();
+  }
+
   function openModal(modal: Modals, id?: string) {
     setSelectedDataID(id ?? null);
     setOpennedModal(modal);
@@ -237,7 +251,14 @@ export default function Page() {
 
       <DataTable
         data={data}
-        columns={columns(stocks, onView, onEdit, onRemove, onValidate)}
+        columns={columns(
+          stocks,
+          onView,
+          onEdit,
+          onRemove,
+          onValidate,
+          downloadDemand
+        )}
         isLoading={isLoading}
       />
     </div>

@@ -36,6 +36,7 @@ import {
 import ContainerSelector from "./container-selector";
 import { Badge } from "@/components/ui/badge";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
+import { generatePdf } from "@/lib/pdf";
 
 export enum Permission {
   READ,
@@ -77,6 +78,35 @@ export default function DemandModal(props: DemandModalProps) {
   useEffect(() => {
     resetForm();
   }, [data]);
+
+  async function onDownload(id: string) {
+    const demand = form.getValues();
+    const container = demand.containers.find(
+      (container) => container.id === id
+    );
+    if (!container) {
+      throw new Error("Container not found");
+    }
+    const pdfInfos = {
+      demandID: data?.id ?? "",
+      containerID: container.id ?? "",
+      associationName:
+        associations.find(
+          (association) => association.id === demand.associationID
+        )?.name ?? "Inconnue",
+      contents: container.contents.map((content) => ({
+        name:
+          stocks.find((stock) => stock.type.id === content.typeID)?.type.name ??
+          "Inconnu",
+        quantity: content.quantity,
+      })),
+    };
+    const pdfBase64 = await generatePdf([pdfInfos]);
+    var link = document.createElement("a"); //Create <a>
+    link.href = "data:application/pdf;base64," + pdfBase64; //Image Base64 Goes here
+    link.download = "etiquette.pdf"; //File name Here
+    link.click();
+  }
 
   async function onSubmit(values: z.infer<typeof updateDemandSchema>) {
     const response = await fetch(`/api/demands`, {
@@ -165,6 +195,7 @@ export default function DemandModal(props: DemandModalProps) {
             <ContainerSelector
               data={data?.containers ?? []}
               stocks={stocks ?? []}
+              onDownload={onDownload}
               form={form}
               permission={permission}
             />

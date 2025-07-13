@@ -10,12 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash } from "lucide-react";
+import { Download, Trash } from "lucide-react";
 import {
   FormField,
   FormItem,
   FormControl,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Permission } from "@/app/demands/demand-modal";
 import z from "zod";
@@ -26,16 +27,18 @@ import { scrollBar } from "@/constants/tailwind";
 import { ContainerEntity } from "../api/demands/entity/container.entity";
 import { DemandEntity } from "../api/demands/entity/demand.entity";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
+import { Separator } from "@radix-ui/react-separator";
 
 interface ContainerSelectorProps {
   data: ContainerEntity[];
   stocks: StockEntity[];
+  onDownload: (id: string) => void;
   form: UseFormReturn<z.infer<typeof updateDemandSchema>>;
   permission: Permission;
 }
 
 export default function ContainerSelector(props: ContainerSelectorProps) {
-  const { data, stocks, form, permission } = props;
+  const { data, stocks, onDownload, form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
     control,
@@ -43,24 +46,19 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
     keyName: "fieldID",
   });
 
-  const addContainer = () => {
+  function onAdd() {
     append({
       packaging: PackagingType.CARDBOARD,
       contents: [],
     });
-  };
+  }
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-medium">Contenants</h3>
         {permission === Permission.WRITE && (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={addContainer}
-          >
+          <Button type="button" size="sm" variant="outline" onClick={onAdd}>
             Ajouter un contenant
           </Button>
         )}
@@ -71,18 +69,23 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
         {fields.map((field, index) => (
           <div key={field.fieldID} className="flex flex-col gap-4 ">
             <div className="flex flex-col gap-1">
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-end">
                 <FormField
                   control={control}
                   name={`containers.${index}.packaging`}
-                  render={({ field }) => (
+                  render={({ field: selectField }) => (
                     <FormItem>
+                      {field.id && (
+                        <FormDescription className="ml-2 text-sm text-muted-foreground">
+                          N°{field.id}
+                        </FormDescription>
+                      )}
                       {permission !== Permission.WRITE ? (
-                        <Input readOnly {...field} />
+                        <Input readOnly {...selectField} />
                       ) : (
                         <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          onValueChange={selectField.onChange}
+                          defaultValue={selectField.value}
                         >
                           <FormControl>
                             <SelectTrigger className="min-w-[150px]">
@@ -120,6 +123,16 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                     m³
                   </span>
                 </div>
+                {field.id && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDownload(field.id!)}
+                  >
+                    <Download size={30} />
+                  </Button>
+                )}
                 {permission === Permission.WRITE && (
                   <Button
                     type="button"
@@ -133,11 +146,6 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                   </Button>
                 )}
               </div>
-              {field.id && (
-                <p className="ml-2 text-sm text-muted-foreground">
-                  N°{field.id}
-                </p>
-              )}
             </div>
 
             <ContentSelector
@@ -146,6 +154,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
               form={form}
               permission={permission}
             />
+            <Separator />
           </div>
         ))}
       </div>

@@ -20,7 +20,7 @@ Sur l'etiquette :
 - Le nom de l'association
 - Les contenus
 
-Rajouter une vue vers la page via le qr-code
+Rajouter une vue vers la page via le qr-code ✅
 
 Filtrer une demande par :
 

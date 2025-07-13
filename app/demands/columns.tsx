@@ -1,11 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Check, Eye, Pen, Trash } from "lucide-react";
+import { Check, Download, Eye, Pen, Trash } from "lucide-react";
 import { DemandEntity } from "../api/demands/entity/demand.entity";
 import { Badge } from "@/components/ui/badge";
 import { localeDateOptions } from "@/lib/utils";
 import { AssociationEntity } from "../api/associations/entity/association.entity";
-import { ArticleType, DemandStatus } from "@/lib/generated/prisma";
+import { DemandStatus } from "@/lib/generated/prisma";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 
 export const columns = (
@@ -13,7 +13,8 @@ export const columns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void,
-  onValidate: (id: string) => void
+  onValidate: (id: string) => void,
+  onDownload: (id: string) => void
 ): ColumnDef<DemandEntity>[] => [
   {
     accessorKey: "name",
@@ -95,6 +96,9 @@ export const columns = (
           </Button>
           <Button variant="ghost" onClick={() => onEdit(row.id)}>
             <Pen />
+          </Button>
+          <Button variant="ghost" onClick={() => onDownload(row.id)}>
+            <Download />
           </Button>
           <Button variant="ghost" onClick={() => onRemove(row.id)}>
             <Trash className="text-destructive" />
