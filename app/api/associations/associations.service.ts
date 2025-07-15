@@ -1,4 +1,4 @@
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "../prisma";
 import { CreateAssociationEntity } from "./entity/create-association.entity";
 import { AssociationEntity } from "./entity/association.entity";
 import { UpdateAssociationEntity } from "./entity/update-association.entity";

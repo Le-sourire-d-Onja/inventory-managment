@@ -1,5 +1,5 @@
 import { DemandStatus } from "@/lib/generated/prisma";
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "../prisma";
 import { StockEntity } from "./entity/stock.entity";
 import ArticleTypesService from "../article-types/article-types.service";
 

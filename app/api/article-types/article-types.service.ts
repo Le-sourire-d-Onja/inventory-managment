@@ -1,4 +1,4 @@
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "../prisma";
 import { ArticleTypeEntity } from "./entity/article-types.entity";
 import { CreateArticleTypeEntity } from "./entity/create-article-type.entity";
 import { UpdateArticleTypeEntity } from "./entity/update-article-type.entity";
