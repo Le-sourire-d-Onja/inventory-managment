@@ -5,6 +5,8 @@ import AppSidebar from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
+import { Suspense } from "react";
+import { MoonLoader } from "react-spinners";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +41,9 @@ export default function RootLayout({
         >
           <SidebarProvider>
             <AppSidebar />
-            <main className="w-full p-8">{children}</main>
+            <Suspense fallback={<MoonLoader />}>
+              <main className="w-full p-8">{children}</main>
+            </Suspense>
           </SidebarProvider>
           <Toaster />
         </ThemeProvider>
