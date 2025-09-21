@@ -37,10 +37,7 @@ export default class DonationsService {
 
     const donation = await prisma.donation.create({
       data: {
-        name: data.name,
         description: data.description,
-        email: data.email,
-        phone: data.phone,
         articles: {
           create: data.articles.map((article) => {
             const articleType = articleTypes.find((articleType) => articleType.id === article.typeID);
@@ -79,10 +76,7 @@ export default class DonationsService {
     const donation = await prisma.donation.update({
       where: { id: data.id },
       data: {
-        name: data.name,
         description: data.description,
-        email: data.email,
-        phone: data.phone,
         articles: {
           deleteMany: {},
           create: data.articles.map((article) => {

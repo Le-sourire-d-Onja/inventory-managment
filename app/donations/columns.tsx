@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
 import { DonationEntity } from "../api/donations/entity/donation.entity";
 import { localeDateOptions } from "@/lib/utils";
+import { ArticleEntity } from "../api/donations/entity/article.entity";
+import { Badge } from "@/components/ui/badge";
 
 export const columns = (
   onView: (id: string) => void,
@@ -10,45 +12,15 @@ export const columns = (
   onRemove: (id: string) => void
 ): ColumnDef<DonationEntity>[] => [
   {
-    accessorKey: "name",
-    header: "Nom",
+    id: "articles",
+    accessorFn: (row) => row.articles,
+    header: "Articles",
     cell: (props) => {
-      const row = props.row.original;
-      return (
-        <div className="flex flex-col">
-          <p> {row.name} </p>
-          <p className="text-muted-foreground text-xs">
-            Créée le:{" "}
-            {row.createdAt.toLocaleDateString("fr-FR", localeDateOptions)}
-          </p>
-        </div>
-      );
-    },
-  },
-  {
-    accessorFn: (row) => `${row.email} ${row.phone}`,
-    header: "Contact",
-    cell: (props) => {
-      const row = props.row.original;
-      return (
-        <div className="flex flex-col">
-          {row.email ? (
-            <p className="flex">
-              <span className="min-w-[90px]"> Email: </span> {row.email}
-            </p>
-          ) : (
-            <></>
-          )}
-          {row.phone ? (
-            <p className="flex">
-              <span className="min-w-[90px]">Téléphone: </span> {row.phone}
-            </p>
-          ) : (
-            <></>
-          )}
-        </div>
-      );
-    },
+      const articles = props.getValue() as ArticleEntity[]
+      return <div className="flex" >
+        {articles.map((article) => <Badge>{article.type.name}</Badge>)}
+      </div>
+    }
   },
   {
     id: "total_value",

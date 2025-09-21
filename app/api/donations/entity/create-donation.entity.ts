@@ -6,10 +6,7 @@ export const createArticleSchema = z.object({
 });
 
 export const createDonationSchema = z.object({
-  name: z.string().nonempty(),
   description: z.string(),
-  email: z.string().email(),
-  phone: z.string().refine((val) => val.length === 0 || /\+\d+/g.test(val), "Le numéro de téléphone est invalid."),
   articles: z.array(createArticleSchema),
 });
 

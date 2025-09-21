@@ -107,8 +107,7 @@ export default function Page() {
         onConfirm={() => selectedData && deleteDonation(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
-        Vous êtes sur le point de supprimer la demande de{" "}
-        {selectedData?.name ?? "Inconnu"}. Êtes-vous sûr de vouloir continuer ?
+        Vous êtes sur le point de supprimer une donation. Êtes-vous sûr de vouloir continuer ?
       </ConfirmModal>
 
       <DataTable

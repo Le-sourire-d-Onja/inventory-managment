@@ -49,10 +49,7 @@ export default function DonationModal(props: DonationModalProps) {
   function resetForm() {
     form.reset({
       id: data?.id ?? undefined,
-      name: data?.name ?? "",
       description: data?.description ?? "",
-      email: data?.email ?? "",
-      phone: data?.phone ?? "",
       articles:
         data?.articles.map((article) => ({
           quantity: article.quantity,
@@ -87,7 +84,7 @@ export default function DonationModal(props: DonationModalProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {!data ? "Nouvelle Donation" : `Donation de ${data.name}`}{" "}
+            {!data ? "Nouvelle Donation" : "Donation"}
           </DialogTitle>
           <DialogDescription className="text-left text-muted-foreground text-sm">
             Créée le{" "}
@@ -103,25 +100,6 @@ export default function DonationModal(props: DonationModalProps) {
           >
             <FormField
               control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Nom <span className="text-red-700"> * </span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      readOnly={permission !== Permission.WRITE}
-                      placeholder="John Doe"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
@@ -130,40 +108,6 @@ export default function DonationModal(props: DonationModalProps) {
                     <Textarea
                       readOnly={permission !== Permission.WRITE}
                       placeholder="Ceci est une description..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel> Email </FormLabel>
-                  <FormControl>
-                    <Input
-                      readOnly={permission !== Permission.WRITE}
-                      placeholder="john.doe@email.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel> Téléphone </FormLabel>
-                  <FormControl>
-                    <Input
-                      readOnly={permission !== Permission.WRITE}
-                      placeholder="+33695243465"
                       {...field}
                     />
                   </FormControl>
