@@ -18,18 +18,9 @@ export const columns = (
     cell: (props) => {
       const articles = props.getValue() as ArticleEntity[]
       return <div className="flex" >
-        {articles.map((article) => <Badge>{article.type.name}</Badge>)}
+        {articles.map((article) => <Badge key={article.id}>{article.type.name}</Badge>)}
       </div>
     }
-  },
-  {
-    id: "total_value",
-    accessorFn: (row) =>
-      row.articles.reduce((prev, curr) => prev + curr.price, 0),
-    header: "Valeur totale",
-    cell: (props) => {
-      return <> {props.getValue()}€ </>;
-    },
   },
   {
     id: "total_quantity",

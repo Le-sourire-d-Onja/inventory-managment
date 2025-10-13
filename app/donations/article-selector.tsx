@@ -61,7 +61,7 @@ export function ArticleSelector(props: ArticleSelectorProps) {
 
   const addArticle = () => {
     append({
-      typeID: articleTypes[0].id,
+      type_id: articleTypes[0].id,
       quantity: 1,
     });
   };
@@ -99,17 +99,17 @@ export function ArticleSelector(props: ArticleSelectorProps) {
           const selectedTypes = form
             .getValues("articles")
             ?.filter((_, i) => i !== index)
-            .map((a) => a.typeID);
+            .map((a) => a.type_id);
 
           const availableTypes = articleTypes.filter(
             (type) =>
-              !selectedTypes.includes(type.id) || type.id === field.typeID
+              !selectedTypes.includes(type.id) || type.id === field.type_id
           );
           return (
             <div key={index} className="flex gap-2 items-center">
               <FormField
                 control={control}
-                name={`articles.${index}.typeID`}
+                name={`articles.${index}.type_id`}
                 render={({ field }) => (
                   <FormItem>
                     {permission !== Permission.WRITE ? (
@@ -185,16 +185,6 @@ export function ArticleSelector(props: ArticleSelectorProps) {
                   </FormItem>
                 )}
               />
-
-              <div key={index} className="relative min-w-[50px]">
-                <Input disabled value={data?.articles[index].price ?? 0} />
-                <span
-                  className="opacity-25 absolute top-[18px] right-1.5
-                     translate-[-50%]"
-                >
-                  €
-                </span>
-              </div>
 
               {permission === Permission.WRITE && (
                 <Button

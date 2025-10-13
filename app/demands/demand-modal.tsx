@@ -63,13 +63,13 @@ export default function DemandModal(props: DemandModalProps) {
     form.reset({
       id: data?.id ?? undefined,
       status: data?.status ?? DemandStatus.IN_PROGRESS,
-      associationID: data?.association.id ?? undefined,
+      association_id: data?.association.id ?? undefined,
       containers:
         data?.containers.map((container) => ({
           ...container,
           contents: container.contents.map((content) => ({
             ...content,
-            typeID: content.type.id,
+            type_id: content.type.id,
           })),
         })) ?? [],
     });
@@ -88,15 +88,15 @@ export default function DemandModal(props: DemandModalProps) {
       throw new Error("Container not found");
     }
     const pdfInfos = {
-      demandID: data?.id ?? "",
-      containerID: container.id ?? "",
+      demand_id: data?.id ?? "",
+      container_id: container.id ?? "",
       associationName:
         associations.find(
-          (association) => association.id === demand.associationID
+          (association) => association.id === demand.association_id
         )?.name ?? "Inconnue",
       contents: container.contents.map((content) => ({
         name:
-          stocks.find((stock) => stock.type.id === content.typeID)?.type.name ??
+          stocks.find((stock) => stock.type.id === content.type_id)?.type.name ??
           "Inconnu",
         quantity: content.quantity,
       })),
@@ -140,7 +140,7 @@ export default function DemandModal(props: DemandModalProps) {
             Créée le{" "}
             {!data
               ? new Date().toLocaleDateString("fr-FR", localeDateOptions)
-              : data.createdAt.toLocaleDateString("fr-FR", localeDateOptions)}
+              : data.created_at.toLocaleDateString("fr-FR", localeDateOptions)}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -150,7 +150,7 @@ export default function DemandModal(props: DemandModalProps) {
           >
             <FormField
               control={form.control}
-              name="associationID"
+              name="association_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>

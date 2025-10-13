@@ -5,23 +5,23 @@ export class DonationEntity {
   id: string;
   description: string | null;
   articles: ArticleEntity[];
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 
-  constructor(id: string, articles: ArticleEntity[], createdAt: Date, updatedAt: Date, description: string | null) {
+  constructor(id: string, articles: ArticleEntity[], created_at: Date, updated_at: Date, description: string | null) {
     this.id = id;
     this.description = description;
     this.articles = articles;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
+    this.created_at = created_at;
+    this.updated_at = updated_at;
   }
 
   static parse(obj: DonationEntity) {
     return new DonationEntity(
       obj.id,
       obj.articles.map((article) => ArticleEntity.parse(article)),
-      new Date(obj.createdAt),
-      new Date(obj.updatedAt),
+      new Date(obj.created_at),
+      new Date(obj.updated_at),
       obj.description,
     );
   }

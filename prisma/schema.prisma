@@ -18,27 +18,26 @@ model Donation {
   id          String    @id @default(uuid())
   description String
   articles    Article[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
 }
 
 model Article {
   id         String      @id @default(uuid())
-  type       ArticleType @relation(fields: [typeID], references: [id])
-  typeID     String
-  price      Float
+  type       ArticleType @relation(fields: [type_id], references: [id])
+  type_id     String
   quantity   Int
-  donation   Donation    @relation(fields: [donationID], references: [id], onDelete: Cascade)
-  donationID String
+  donation   Donation    @relation(fields: [donation_id], references: [id], onDelete: Cascade)
+  donation_id String
 }
 
 model Content {
   id          String      @id @default(uuid())
-  type        ArticleType @relation(fields: [typeID], references: [id])
-  typeID      String
+  type        ArticleType @relation(fields: [type_id], references: [id])
+  type_id      String
   quantity    Int
-  container   Container   @relation(fields: [containerID], references: [id], onDelete: Cascade)
-  containerID String
+  container   Container   @relation(fields: [container_id], references: [id], onDelete: Cascade)
+  container_id String
 }
 
 model Container {
@@ -46,8 +45,8 @@ model Container {
   weight    Float
   volume    Float
   packaging PackagingType
-  demand    Demand        @relation(fields: [demandID], references: [id], onDelete: Cascade)
-  demandID  String
+  demand    Demand        @relation(fields: [demand_id], references: [id], onDelete: Cascade)
+  demand_id  String
   contents  Content[]
 }
 
@@ -55,13 +54,13 @@ model Demand {
   id              String       @id @default(uuid())
   status          DemandStatus
   containers      Container[]
-  association     Association  @relation(fields: [associationID], references: [id], onDelete: Cascade)
-  associationID   String
-  validatedAt     DateTime?
-  containerizedAt DateTime?
-  distributedAt   DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  association     Association  @relation(fields: [association_id], references: [id], onDelete: Cascade)
+  association_id  String
+  validated_at     DateTime?
+  containerized_at DateTime?
+  distributed_at   DateTime?
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
 }
 
 model Association {
@@ -74,8 +73,8 @@ model Association {
   phone            String
   description      String
   demands          Demand[]
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  created_at        DateTime        @default(now())
+  updated_at        DateTime        @updatedAt
 }
 
 model ArticleType {
@@ -83,7 +82,6 @@ model ArticleType {
   name   String @unique
   weight Float
   volume Float
-  price  Float
 
   articles Article[]
   contents Content[]

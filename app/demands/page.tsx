@@ -15,9 +15,7 @@ import ScanModal from "./scan-modal";
 import { Camera, Plus } from "lucide-react";
 import { useDevices } from "@yudiel/react-qr-scanner";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useStateParam } from "@/lib/utils";
-import { ArticleEntity } from "../api/donations/entity/article.entity";
 import { generatePdf } from "@/lib/pdf";
 
 enum Modals {
@@ -116,11 +114,11 @@ export default function Page() {
         ...container,
         contents: container.contents.map((content) => ({
           ...content,
-          typeID: content.type.id,
+          type_id: content.type.id,
         })),
       })),
       status: DemandStatus.VALIDATED,
-      associationID: association.id,
+      association_id: association.id,
     } as CreateDemandEntity;
     const response = await fetch(`/api/demands`, {
       method: "PATCH",

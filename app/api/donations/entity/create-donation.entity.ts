@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const createArticleSchema = z.object({
-  typeID: z.string().uuid(),
+  type_id: z.string().uuid(),
   quantity: z.number().min(1),
 });
 

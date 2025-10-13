@@ -4,8 +4,8 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import QRCode from 'qrcode'; // pour générer le QR code
 
 export type LabelInfos = {
-  demandID: string,
-  containerID: string,
+  demand_id: string,
+  container_id: string,
   associationName: string,
   contents: {
     name: string,
@@ -25,7 +25,7 @@ export async function generatePdf(pdfInfos: LabelInfos[]): Promise<string> {
   const labelHeight = 842 / 2;
 
   for (let i = 0; i < pdfInfos.length; i++) {
-    const qrDataUrl = await QRCode.toDataURL(`https://192.168.1.44:3000/demands?selected-data-id=${pdfInfos[i].demandID}`);
+    const qrDataUrl = await QRCode.toDataURL(`https://192.168.1.44:3000/demands?selected-data-id=${pdfInfos[i].demand_id}`);
     const qrImageBytes = Uint8Array.from(atob(qrDataUrl.split(",")[1]), c => c.charCodeAt(0));
     const qrImage = await pdfDoc.embedPng(qrImageBytes);
     const qrSize = 60;
@@ -62,7 +62,7 @@ export async function generatePdf(pdfInfos: LabelInfos[]): Promise<string> {
     textY -= 18;
 
     // Container ID
-    page.drawText(`Numero contenant : ${pdfInfos[i].containerID}`, {
+    page.drawText(`Numero contenant : ${pdfInfos[i].container_id}`, {
       x: textX,
       y: textY,
       size: textFontSize,

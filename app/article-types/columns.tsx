@@ -29,14 +29,6 @@ export const columns = (
     },
   },
   {
-    accessorKey: "price",
-    header: "Prix",
-    cell: (props) => {
-      const row = props.row.original;
-      return <> {row.price} € </>;
-    },
-  },
-  {
     id: "actions",
     cell: (props) => {
       const row = props.row.original;

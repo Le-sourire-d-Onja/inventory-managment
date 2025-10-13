@@ -8,7 +8,7 @@ export default class StocksService {
   static async findAll() {
     // Get the sum of the quantity of all article by types
     const articles = await prisma.article.groupBy({
-      by: ["typeID"],
+      by: ["type_id"],
       _sum: {
         quantity: true,
       },
@@ -16,7 +16,7 @@ export default class StocksService {
 
     // Get the sum of the quantity of all content by types
     const contents = await prisma.content.groupBy({
-      by: ['typeID'],
+      by: ['type_id'],
       where: {
         container: {
           demand: {
@@ -33,8 +33,8 @@ export default class StocksService {
 
     // Remove the content quantity from the article quantity to get the stock quantity
     const stocks = articles.map((article) => {
-      const content = contents.find((content) => content.typeID === article.typeID);
-      const articleType = articleTypes.find((articleType) => article.typeID === articleType.id)!;
+      const content = contents.find((content) => content.type_id === article.type_id);
+      const articleType = articleTypes.find((articleType) => article.type_id === articleType.id)!;
       return { type: articleType, _sum: { quantity: (article._sum.quantity ?? 0) - (content?._sum.quantity ?? 0) } }
     })
     return stocks.map((stock) => new StockEntity(stock.type, stock._sum.quantity ?? 0));

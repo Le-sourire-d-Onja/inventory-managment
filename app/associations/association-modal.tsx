@@ -97,7 +97,7 @@ export default function AssociationModal(props: AssociationModalProps) {
             Créée le{" "}
             {!data
               ? new Date().toLocaleDateString("fr-FR", localeDateOptions)
-              : data.createdAt.toLocaleDateString("fr-FR", localeDateOptions)}
+              : data.created_at.toLocaleDateString("fr-FR", localeDateOptions)}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

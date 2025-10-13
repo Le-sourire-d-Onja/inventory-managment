@@ -16,7 +16,7 @@ export default class DemandsService {
   static async findNbContainers() {
     const startOfYear = new Date(new Date().getFullYear(), 0, 1);
     const nbContainers = await prisma.container.count({
-      where: { demand: { createdAt: { gte: startOfYear, } } },
+      where: { demand: { created_at: { gte: startOfYear, } } },
     });
     return nbContainers + 1
   }
@@ -44,12 +44,12 @@ export default class DemandsService {
    * @returns [weight, volume] of the container
    */
   static findContainerWeightAndVolume(
-    container: { contents: { typeID: string, quantity: number }[] },
+    container: { contents: { type_id: string, quantity: number }[] },
     articleTypes: ArticleType[]
   ): [number, number] {
     return container.contents.reduce(
       ([weightTotal, volumeTotal], content) => {
-        const articleType = articleTypes.find((type) => type.id === content.typeID);
+        const articleType = articleTypes.find((type) => type.id === content.type_id);
         const weight = articleType?.weight ?? 0;
         const volume = articleType?.volume ?? 0;
 
@@ -126,7 +126,7 @@ export default class DemandsService {
 
     const demand = await prisma.demand.create({
       data: {
-        associationID: data.associationID,
+        association_id: data.association_id,
         status: data.status,
         containers: {
           create: data.containers.map((container) => {
@@ -139,7 +139,7 @@ export default class DemandsService {
               contents: {
                 create: container.contents.map(content => ({
                   type: {
-                    connect: { id: content.typeID },
+                    connect: { id: content.type_id },
                   },
                   quantity: content.quantity,
                 }))
@@ -173,7 +173,7 @@ export default class DemandsService {
  */
   static async update(data: UpdateDemandEntity): Promise<DemandEntity> {
 
-    const validatedAt = data.status === DemandStatus.VALIDATED ? new Date() : undefined;
+    const validated_at = data.status === DemandStatus.VALIDATED ? new Date() : undefined;
 
     const articleTypes = await ArticleTypesService.findAll();
 
@@ -183,8 +183,8 @@ export default class DemandsService {
       where: { id: data.id },
       data: {
         status: data.status,
-        validatedAt: validatedAt,
-        associationID: data.associationID,
+        validated_at: validated_at,
+        association_id: data.association_id,
         containers: {
           deleteMany: {},
           create: data.containers.map(container => {
@@ -197,7 +197,7 @@ export default class DemandsService {
               contents: {
                 create: container.contents.map(content => ({
                   type: {
-                    connect: { id: content.typeID },
+                    connect: { id: content.type_id },
                   },
                   quantity: content.quantity,
                 }))

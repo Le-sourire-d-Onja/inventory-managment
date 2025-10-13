@@ -33,20 +33,15 @@ export default class DonationsService {
    * @returns The created donation
    */
   static async create(data: CreateDonationEntity): Promise<DonationEntity> {
-    const articleTypes = await ArticleTypesService.findAll();
-
     const donation = await prisma.donation.create({
       data: {
         description: data.description,
         articles: {
           create: data.articles.map((article) => {
-            const articleType = articleTypes.find((articleType) => articleType.id === article.typeID);
-            const price = articleType?.price ?? 0;
             return {
               type: {
-                connect: { id: article.typeID },
+                connect: { id: article.type_id },
               },
-              price: price * article.quantity,
               quantity: article.quantity
             }
           })
@@ -71,7 +66,6 @@ export default class DonationsService {
  * @returns The updated donation
  */
   static async update(data: UpdateDonationEntity): Promise<DonationEntity> {
-    const articleTypes = await ArticleTypesService.findAll();
 
     const donation = await prisma.donation.update({
       where: { id: data.id },
@@ -80,13 +74,10 @@ export default class DonationsService {
         articles: {
           deleteMany: {},
           create: data.articles.map((article) => {
-            const articleType = articleTypes.find((articleType) => articleType.id === article.typeID);
-            const price = articleType?.price ?? 0;
             return {
               type: {
-                connect: { id: article.typeID },
+                connect: { id: article.type_id },
               },
-              price: price * article.quantity,
               quantity: article.quantity
             }
           })

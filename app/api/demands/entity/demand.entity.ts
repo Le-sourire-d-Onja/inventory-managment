@@ -10,22 +10,22 @@ export class DemandEntity {
   status: DemandStatus;
   containers: ContainerEntity[];
   association: Association;
-  validatedAt: Date | null;
-  containerizedAt: Date | null;
-  distributedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  validated_at: Date | null;
+  containerized_at: Date | null;
+  distributed_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
 
-  constructor(id: string, status: DemandStatus, containers: ContainerEntity[], association: Association, validatedAt: Date | null, containerizedAt: Date | null, distributedAt: Date | null, createdAt: Date, updatedAt: Date) {
+  constructor(id: string, status: DemandStatus, containers: ContainerEntity[], association: Association, validated_at: Date | null, containerized_at: Date | null, distributed_at: Date | null, created_at: Date, updated_at: Date) {
     this.id = id;
     this.status = status;
     this.containers = containers;
     this.association = association;
-    this.validatedAt = validatedAt;
-    this.containerizedAt = containerizedAt;
-    this.distributedAt = distributedAt;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
+    this.validated_at = validated_at;
+    this.containerized_at = containerized_at;
+    this.distributed_at = distributed_at;
+    this.created_at = created_at;
+    this.updated_at = updated_at;
   }
 
   static packagingTxt(packaging?: PackagingType) {
@@ -61,29 +61,29 @@ export class DemandEntity {
   static statusDate(demand?: DemandEntity): Date | null {
     switch (demand?.status) {
       case DemandStatus.IN_PROGRESS:
-        return demand.createdAt;
+        return demand.created_at;
       case DemandStatus.VALIDATED:
-        return demand.validatedAt;
+        return demand.validated_at;
       case DemandStatus.CONTAINERIZED:
-        return demand.containerizedAt;
+        return demand.containerized_at;
       case DemandStatus.DISTRIBUTED:
-        return demand.distributedAt;
+        return demand.distributed_at;
       default:
         return null;
     }
   }
 
   static parse(obj: DemandEntity) {
-    const validatedAt = !!obj.validatedAt ? new Date(obj.validatedAt) : null;
-    const containerizedAt = !!obj.containerizedAt ? new Date(obj.containerizedAt) : null;
-    const distributedAt = !!obj.distributedAt ? new Date(obj.distributedAt) : null;
-    return new DemandEntity(obj.id, obj.status, obj.containers.map((container) => ContainerEntity.parse(container)), obj.association, validatedAt, containerizedAt, distributedAt, new Date(obj.createdAt), new Date(obj.updatedAt));
+    const validated_at = !!obj.validated_at ? new Date(obj.validated_at) : null;
+    const containerized_at = !!obj.containerized_at ? new Date(obj.containerized_at) : null;
+    const distributed_at = !!obj.distributed_at ? new Date(obj.distributed_at) : null;
+    return new DemandEntity(obj.id, obj.status, obj.containers.map((container) => ContainerEntity.parse(container)), obj.association, validated_at, containerized_at, distributed_at, new Date(obj.created_at), new Date(obj.updated_at));
   }
 
   static toLabelInfos(obj: DemandEntity): LabelInfos[] {
     return obj.containers.map((container) => ({
-      demandID: obj.id,
-      containerID: container.id,
+      demand_id: obj.id,
+      container_id: container.id,
       associationName: obj.association.name,
       contents: container.contents.map((content) => ({
         name: content.type.name,

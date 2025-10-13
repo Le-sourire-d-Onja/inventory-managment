@@ -63,7 +63,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
 
   function retrieveCurrentArticleTypes() {
     setCurrArticleTypeIDs(
-      Array.from(new Set(watchedContents.map((c) => c.typeID)))
+      Array.from(new Set(watchedContents.map((c) => c.type_id)))
     );
   }
 
@@ -87,7 +87,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
 
   const addContent = () => {
     append({
-      typeID: filteredTypes[0].id,
+      type_id: filteredTypes[0].id,
       quantity: 0,
     });
   };
@@ -95,21 +95,21 @@ export default function ContentSelector(props: ContentSelectorProps) {
   return (
     <div className="flex flex-col gap-4">
       {fields.map((field, index) => {
-        const stock = stocks.find((stock) => stock.type.id === field.typeID);
+        const stock = stocks.find((stock) => stock.type.id === field.type_id);
         const selectedTypes = form
           .getValues(`containers.${prevIndex}.contents`)
           ?.filter((_, i) => i !== index)
-          .map<string>((c) => c.typeID);
+          .map<string>((c) => c.type_id);
 
         const availableTypes = articleTypes.filter(
-          (type) => !selectedTypes.includes(type.id) || type.id === field.typeID
+          (type) => !selectedTypes.includes(type.id) || type.id === field.type_id
         );
         return (
           <div key={field.fieldID} className="flex gap-2 ml-4">
             <CornerDownRight size={30} className="mr-4 mt-1" />
             <FormField
               control={control}
-              name={`containers.${prevIndex}.contents.${index}.typeID`}
+              name={`containers.${prevIndex}.contents.${index}.type_id`}
               render={({ field }) => (
                 <FormItem>
                   {permission !== Permission.WRITE ? (

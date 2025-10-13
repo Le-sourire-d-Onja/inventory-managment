@@ -2,7 +2,7 @@ import { DemandStatus, PackagingType } from "@/lib/generated/prisma";
 import z from "zod";
 
 export const createContentSchema = z.object({
-  typeID: z.string().uuid(),
+  type_id: z.string().uuid(),
   quantity: z.number().min(0)
 })
 
@@ -12,7 +12,7 @@ export const createContainerSchema = z.object({
 });
 
 export const createDemandSchema = z.object({
-  associationID: z.string().uuid(),
+  association_id: z.string().uuid(),
   status: z.nativeEnum(DemandStatus),
   containers: z.array(createContainerSchema),
 });

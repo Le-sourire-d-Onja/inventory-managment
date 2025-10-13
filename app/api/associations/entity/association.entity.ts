@@ -10,10 +10,10 @@ export class AssociationEntity {
   email: string
   phone: string;
   description: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 
-  constructor(id: string, name: string, type: AssociationType, person_in_charge: string, address: string, email: string, phone: string, description: string, createdAt: Date, updatedAt: Date) {
+  constructor(id: string, name: string, type: AssociationType, person_in_charge: string, address: string, email: string, phone: string, description: string, created_at: Date, updated_at: Date) {
     this.id = id;
     this.name = name;
     this.type = type;
@@ -22,8 +22,8 @@ export class AssociationEntity {
     this.email = email;
     this.phone = phone;
     this.description = description;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
+    this.created_at = created_at;
+    this.updated_at = updated_at;
   }
 
   static typeTxt(type?: AssociationType) {
@@ -45,6 +45,6 @@ export class AssociationEntity {
 
 
   static parse(obj: AssociationEntity) {
-    return new AssociationEntity(obj.id, obj.name, obj.type, obj.person_in_charge, obj.address, obj.email, obj.phone, obj.description, new Date(obj.createdAt), new Date(obj.updatedAt));
+    return new AssociationEntity(obj.id, obj.name, obj.type, obj.person_in_charge, obj.address, obj.email, obj.phone, obj.description, new Date(obj.created_at), new Date(obj.updated_at));
   }
 }

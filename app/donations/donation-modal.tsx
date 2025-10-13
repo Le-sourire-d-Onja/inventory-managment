@@ -53,7 +53,7 @@ export default function DonationModal(props: DonationModalProps) {
       articles:
         data?.articles.map((article) => ({
           quantity: article.quantity,
-          typeID: article.type.id,
+          type_id: article.type.id,
         })) ?? [],
       articlesIDToRemove: [],
     });
@@ -90,7 +90,7 @@ export default function DonationModal(props: DonationModalProps) {
             Créée le{" "}
             {!data
               ? new Date().toLocaleDateString("fr-FR", localeDateOptions)
-              : data.createdAt.toLocaleDateString("fr-FR", localeDateOptions)}
+              : data.created_at.toLocaleDateString("fr-FR", localeDateOptions)}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
