@@ -45,7 +45,7 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    if (!selectedDataID) return;
+    if (!selectedDataID || opennedModal !== Modals.NONE) return;
     openModal(Modals.DEMAND, selectedDataID);
   }, [selectedDataID]);
 
@@ -99,6 +99,8 @@ export default function Page() {
       method: "DELETE",
     }).then(() => {
       setData((prev) => prev.filter((demand) => demand.id !== id));
+    }).then(() => {
+      retrieveStocks();
     });
   }
 
@@ -129,7 +131,7 @@ export default function Page() {
     if (response.ok) {
       retrieveData();
     } else {
-      toast("Une erreur à s'est produite.", {
+      toast("Une erreur s'est produite.", {
         description: response.status,
       });
     }
@@ -188,6 +190,7 @@ export default function Page() {
 
   function onRemove(id: string) {
     openModal(Modals.REMOVE, id);
+
   }
 
   return (
