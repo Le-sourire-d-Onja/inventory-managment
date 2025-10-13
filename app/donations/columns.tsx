@@ -17,7 +17,7 @@ export const columns = (
     header: "Articles",
     cell: (props) => {
       const articles = props.getValue() as ArticleEntity[]
-      return <div className="flex" >
+      return <div className="flex gap-1 w-[500px] overflow-x-hidden" >
         {articles.map((article) => <Badge key={article.id}>{article.type.name}</Badge>)}
       </div>
     }
