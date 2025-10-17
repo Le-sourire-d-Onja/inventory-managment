@@ -14,7 +14,7 @@ export type StockUnit = {
   unit: string;
 };
 
-export const stockUnits: StockUnit[] = [
+const stockUnits: StockUnit[] = [
   { value: "quantity", unit: "#" },
   { value: "volume", unit: "m³" },
   { value: "weight", unit: "kg" },
