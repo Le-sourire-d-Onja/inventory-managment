@@ -1,9 +1,7 @@
 
 import { DemandStatus, Association, PackagingType } from "@/lib/generated/prisma";
-import { ContainerEntity } from "./container.entity";
+import { ContainerEntity } from "../../containers/entity/container.entity";
 import { LabelInfos } from "@/lib/pdf";
-import { UpdateDemandEntity } from "./update-demand.entity";
-
 
 export class DemandEntity {
   id: string;

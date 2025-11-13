@@ -24,7 +24,7 @@ import { updateDemandSchema } from "@/app/api/demands/entity/update-demand.entit
 import { PackagingType } from "@/lib/generated/prisma";
 import ContentSelector from "./content-selector";
 import { scrollBar } from "@/constants/tailwind";
-import { ContainerEntity } from "../api/demands/entity/container.entity";
+import { ContainerEntity } from "../api/containers/entity/container.entity";
 import { DemandEntity } from "../api/demands/entity/demand.entity";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { Separator } from "@radix-ui/react-separator";

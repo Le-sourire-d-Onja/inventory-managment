@@ -18,25 +18,25 @@ model Donation {
   id          String    @id @default(uuid())
   description String
   articles    Article[]
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
 }
 
 model Article {
-  id         String      @id @default(uuid())
-  type       ArticleType @relation(fields: [type_id], references: [id])
+  id          String      @id @default(uuid())
+  type        ArticleType @relation(fields: [type_id], references: [id])
   type_id     String
-  quantity   Int
-  donation   Donation    @relation(fields: [donation_id], references: [id], onDelete: Cascade)
+  quantity    Int
+  donation    Donation    @relation(fields: [donation_id], references: [id], onDelete: Cascade)
   donation_id String
 }
 
 model Content {
-  id          String      @id @default(uuid())
-  type        ArticleType @relation(fields: [type_id], references: [id])
+  id           String      @id @default(uuid())
+  type         ArticleType @relation(fields: [type_id], references: [id])
   type_id      String
-  quantity    Int
-  container   Container   @relation(fields: [container_id], references: [id], onDelete: Cascade)
+  quantity     Int
+  container    Container   @relation(fields: [container_id], references: [id], onDelete: Cascade)
   container_id String
 }
 
@@ -45,17 +45,17 @@ model Container {
   weight    Float
   volume    Float
   packaging PackagingType
-  demand    Demand        @relation(fields: [demand_id], references: [id], onDelete: Cascade)
-  demand_id  String
+  demand    Demand?        @relation(fields: [demand_id], references: [id], onDelete: Cascade)
+  demand_id String?
   contents  Content[]
 }
 
 model Demand {
-  id              String       @id @default(uuid())
-  status          DemandStatus
-  containers      Container[]
-  association     Association  @relation(fields: [association_id], references: [id], onDelete: Cascade)
-  association_id  String
+  id               String       @id @default(uuid())
+  status           DemandStatus
+  containers       Container[]
+  association      Association  @relation(fields: [association_id], references: [id], onDelete: Cascade)
+  association_id   String
   validated_at     DateTime?
   containerized_at DateTime?
   distributed_at   DateTime?
@@ -73,8 +73,8 @@ model Association {
   phone            String
   description      String
   demands          Demand[]
-  created_at        DateTime        @default(now())
-  updated_at        DateTime        @updatedAt
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
 }
 
 model ArticleType {

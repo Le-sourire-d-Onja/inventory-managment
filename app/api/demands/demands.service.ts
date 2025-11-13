@@ -4,67 +4,16 @@ import { CreateDemandEntity } from "./entity/create-demand.entity";
 import { DemandEntity } from "./entity/demand.entity";
 import { UpdateDemandEntity } from "./entity/update-demand.entity";
 import ArticleTypesService from "../article-types/article-types.service";
+import ContainersService from "../containers/containers.service";
 
 export default class DemandsService {
 
   /**
-   * This function returns the number of containers created in the current year
-   * from the database
-   * 
-   * @returns The number of containers
-   */
-  static async findNbContainers() {
-    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-    const nbContainers = await prisma.container.count({
-      where: { demand: { created_at: { gte: startOfYear, } } },
-    });
-    return nbContainers + 1
-  }
-
-  /**
-   * This function format the id of a container from the number 
-   * of container in the database
-   * 
-   * format: YYNbContainer
-   * 
-   * @param nbContainers The number of container in the database
-   * @returns the formatted id
-   */
-  static formatContainerID(nbContainers: number) {
-    const year = new Date().getFullYear() % 100;
-    return `${year}${String(nbContainers).padStart(4, '0')}`
-  }
-
-  /**
-   * This function will compute all weight and volume of all
-   * contents and total them for the container
-   * 
-   * @param container The container to reduce all weight and volume
-   * @param articleTypes All the types available in the container
-   * @returns [weight, volume] of the container
-   */
-  static findContainerWeightAndVolume(
-    container: { contents: { type_id: string, quantity: number }[] },
-    articleTypes: ArticleType[]
-  ): [number, number] {
-    return container.contents.reduce(
-      ([weightTotal, volumeTotal], content) => {
-        const articleType = articleTypes.find((type) => type.id === content.type_id);
-        const weight = articleType?.weight ?? 0;
-        const volume = articleType?.volume ?? 0;
-
-        return [
-          weightTotal + content.quantity * weight,
-          volumeTotal + content.quantity * volume,
-        ];
-      }, [0, 0]);
-  }
-
-
-  /**
-   * This function is used to retrieve one the demand from the database
-   * 
-   * @returns All the demand entity of the database
+   * This function is used to retrieve one demand from the database
+   *
+   * @param id The id of the demand
+   * @returns The demand entity of the database
+   * @throws An error if the container doesn't exists
    */
   static async findOne(id: string): Promise<DemandEntity> {
     const demand = await prisma.demand.findUnique({
@@ -88,7 +37,7 @@ export default class DemandsService {
   }
 
   /**
-   * This function is used to retrieve all the demands from the database
+   * This function is used to retrieve all demands from the database
    * 
    * @returns All the demand entity of the database
    */
@@ -122,17 +71,17 @@ export default class DemandsService {
 
     const articleTypes = await ArticleTypesService.findAll();
 
-    let nbContainers = await this.findNbContainers();
+    let nbContainers = await ContainersService.findNbContainers();
 
     const demand = await prisma.demand.create({
       data: {
         association_id: data.association_id,
-        status: data.status,
+        status: DemandStatus.IN_PROGRESS,
         containers: {
           create: data.containers.map((container) => {
-            const [weight, volume] = DemandsService.findContainerWeightAndVolume(container, articleTypes);
+            const [weight, volume] = ContainersService.findContainerWeightAndVolume(container, articleTypes);
             return {
-              id: this.formatContainerID(nbContainers++),
+              id: ContainersService.formatContainerID(nbContainers++),
               weight: weight,
               volume: volume,
               packaging: container.packaging,
@@ -165,8 +114,17 @@ export default class DemandsService {
   }
 
   /**
+   * This function is used to create a container in the database
+   * that will not be link to a demand
+   * 
+   * @param data The entity to create the container
+   * @returns The created container
+   */
+
+
+  /**
  * This function is used to update a demand in the database
- * 
+ *
  * @param data The entity to update the demand, the id to update
  * the demand is included in the object
  * @returns The updated demand
@@ -177,7 +135,7 @@ export default class DemandsService {
 
     const articleTypes = await ArticleTypesService.findAll();
 
-    let nbContainers = await this.findNbContainers();
+    let nbContainers = await ContainersService.findNbContainers();
 
     const demand = await prisma.demand.update({
       where: { id: data.id },
@@ -188,9 +146,9 @@ export default class DemandsService {
         containers: {
           deleteMany: {},
           create: data.containers.map(container => {
-            const [weight, volume] = DemandsService.findContainerWeightAndVolume(container, articleTypes);
+            const [weight, volume] = ContainersService.findContainerWeightAndVolume(container, articleTypes);
             return {
-              id: container.id ?? this.formatContainerID(nbContainers++),
+              id: container.id ?? ContainersService.formatContainerID(nbContainers++),
               weight: weight,
               volume: volume,
               packaging: container.packaging,
@@ -222,6 +180,12 @@ export default class DemandsService {
     return DemandEntity.parse(demand);
   }
 
+  /**
+   * This function is used to delete a demand from the database
+   *
+   * @param id The id of the demand
+   * @returns The demand entity of the database
+   */
   static async delete(id: string): Promise<DemandEntity> {
     const demand = await prisma.demand.delete({
       where: { id: id },
@@ -239,6 +203,5 @@ export default class DemandsService {
       }
     });
     return DemandEntity.parse(demand);
-
   }
 }
