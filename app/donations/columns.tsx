@@ -1,25 +1,27 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
-import { DonationEntity } from "../api/donations/entity/donation.entity";
+import { DonationDto } from "../api/donations/dto/donation.dto";
 import { localeDateOptions } from "@/lib/utils";
-import { ArticleEntity } from "../api/donations/entity/article.entity";
+import { ArticleDto } from "../api/donations/dto/article.dto";
 import { Badge } from "@/components/ui/badge";
 
 export const columns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void
-): ColumnDef<DonationEntity>[] => [
+): ColumnDef<DonationDto>[] => [
   {
     id: "articles",
     accessorFn: (row) => row.articles,
     header: "Articles",
     cell: (props) => {
-      const articles = props.getValue() as ArticleEntity[]
-      return <div className="flex gap-1 w-[500px] overflow-x-hidden" >
-        {articles.map((article) => <Badge key={article.id}>{article.type.name}</Badge>)}
-      </div>
+      const articles = props.getValue() as ArticleDto[]
+      return (
+        <div className="flex gap-1 w-[500px] overflow-x-hidden" >
+          {articles.map((article) => <Badge key={article.id}>{article.type.name}</Badge>)}
+        </div>
+      )
     }
   },
   {

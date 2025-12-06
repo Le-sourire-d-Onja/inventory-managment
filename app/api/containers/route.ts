@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import ContainersService from "./containers.service";
-import { createContainerSchema } from "./entity/create-container.entity";
-import { updateContainerSchema } from "./entity/update-container.entity";
+import { createContainerDtoSchema } from "./dto/create-container.dto";
+import { updateContainerDtoSchema } from "./dto/update-container.dto";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const createContainer = createContainerSchema.safeParse(body);
+  const createContainer = createContainerDtoSchema.safeParse(body);
   if (!createContainer.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
-  const updateContainer = updateContainerSchema.safeParse(body);
+  const updateContainer = updateContainerDtoSchema.safeParse(body);
   if (!updateContainer.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }

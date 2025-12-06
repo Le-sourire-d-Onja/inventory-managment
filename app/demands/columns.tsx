@@ -1,10 +1,10 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Check, Download, Eye, Pen, Trash } from "lucide-react";
-import { DemandEntity } from "../api/demands/entity/demand.entity";
+import { DemandDto } from "../api/demands/dto/demand.dto";
 import { Badge } from "@/components/ui/badge";
 import { localeDateOptions } from "@/lib/utils";
-import { AssociationEntity } from "../api/associations/entity/association.entity";
+import { AssociationDto } from "../api/associations/dto/association.dto";
 import { DemandStatus } from "@/lib/generated/prisma";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 
@@ -15,7 +15,7 @@ export const columns = (
   onRemove: (id: string) => void,
   onValidate: (id: string) => void,
   onDownload: (id: string) => void
-): ColumnDef<DemandEntity>[] => [
+): ColumnDef<DemandDto>[] => [
   {
     accessorKey: "name",
     header: "Nom",
@@ -25,7 +25,7 @@ export const columns = (
         <div className="flex flex-col">
           <p> {row.association.name} </p>
           <p className="text-muted-foreground text-xs">
-            {AssociationEntity.typeTxt(row.association.type)}
+            {AssociationDto.typeTxt(row.association.type)}
           </p>
         </div>
       );
@@ -36,8 +36,8 @@ export const columns = (
     header: "Statut",
     cell: (props) => {
       const row = props.row.original;
-      const statusTxt = DemandEntity.statusTxt(row.status);
-      const statusDate = DemandEntity.statusDate(row);
+      const statusTxt = DemandDto.statusData(row.status);
+      const statusDate = DemandDto.statusDate(row);
       return (
         <div className="flex flex-col gap-1.5">
           <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>

@@ -20,20 +20,20 @@ import {
 } from "@/components/ui/form";
 import { Permission } from "@/app/demands/demand-modal";
 import z from "zod";
-import { updateDemandSchema } from "@/app/api/demands/entity/update-demand.entity";
+import { updateDemandDtoSchema } from "@/app/api/demands/dto/update-demand.entity";
 import { PackagingType } from "@/lib/generated/prisma";
 import ContentSelector from "./content-selector";
 import { scrollBar } from "@/constants/tailwind";
-import { ContainerEntity } from "../api/containers/entity/container.entity";
-import { DemandEntity } from "../api/demands/entity/demand.entity";
+import { ContainerDto } from "../api/containers/dto/container.dto";
+import { DemandDto } from "../api/demands/dto/demand.dto";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { Separator } from "@radix-ui/react-separator";
 
 interface ContainerSelectorProps {
-  data: ContainerEntity[];
+  data: ContainerDto[];
   stocks: StockEntity[];
   onDownload: (id: string) => void;
-  form: UseFormReturn<z.infer<typeof updateDemandSchema>>;
+  form: UseFormReturn<z.infer<typeof updateDemandDtoSchema>>;
   permission: Permission;
 }
 
@@ -68,7 +68,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
       >
         {fields.map((field, index) => (
           <div key={field.fieldID} className="flex flex-col gap-4 ">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <div className="flex gap-2 items-end">
                 <FormField
                   control={control}
@@ -95,7 +95,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                           <SelectContent>
                             {Object.values(PackagingType).map((type, i) => (
                               <SelectItem key={i} value={type}>
-                                {DemandEntity.packagingTxt(type)}
+                                {DemandDto.packagingTxt(type)}
                               </SelectItem>
                             ))}
                           </SelectContent>

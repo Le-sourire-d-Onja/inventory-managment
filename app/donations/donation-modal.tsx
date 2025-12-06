@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { DonationEntity } from "../api/donations/entity/donation.entity";
+import { DonationDto } from "../api/donations/dto/donation.dto";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import {
   Form,
@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArticleSelector } from "@/app/donations/article-selector";
-import { updateDonationSchema } from "../api/donations/entity/update-donation.entity";
+import { updateDonationDtoSchema } from "../api/donations/dto/update-donation.entity";
 import { useEffect } from "react";
 import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
@@ -33,7 +33,7 @@ export enum Permission {
 }
 
 type DonationModalProps = {
-  data: DonationEntity | null;
+  data: DonationDto | null;
   permission: Permission;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -42,8 +42,8 @@ type DonationModalProps = {
 export default function DonationModal(props: DonationModalProps) {
   const { data, open, onOpenChange, permission } = props;
 
-  const form = useForm<z.infer<typeof updateDonationSchema>>({
-    resolver: zodResolver(updateDonationSchema),
+  const form = useForm<z.infer<typeof updateDonationDtoSchema>>({
+    resolver: zodResolver(updateDonationDtoSchema),
   });
 
   function resetForm() {
@@ -63,7 +63,7 @@ export default function DonationModal(props: DonationModalProps) {
     resetForm();
   }, [data]);
 
-  async function onSubmit(values: z.infer<typeof updateDonationSchema>) {
+  async function onSubmit(values: z.infer<typeof updateDonationDtoSchema>) {
     const response = await fetch(`/api/donations`, {
       method: data ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },

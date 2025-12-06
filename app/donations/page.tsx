@@ -3,7 +3,7 @@
 import { DataTable } from "@/components/data-table";
 import { useEffect, useState } from "react";
 import { columns } from "./columns";
-import { DonationEntity } from "../api/donations/entity/donation.entity";
+import { DonationDto } from "../api/donations/dto/donation.dto";
 import DonationModal, { Permission } from "./donation-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
@@ -16,10 +16,10 @@ enum Modals {
 }
 
 export default function Page() {
-  const [data, setData] = useState<DonationEntity[]>([]);
+  const [data, setData] = useState<DonationDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
-  const [selectedData, setSelectedData] = useState<DonationEntity | null>(null);
+  const [selectedData, setSelectedData] = useState<DonationDto | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
     Permission.READ
   );
@@ -31,7 +31,7 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => DonationEntity.parse(obj)))
+      .then((res) => res.map((obj: any) => DonationDto.parse(obj)))
       .then((data) => setData(data))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));

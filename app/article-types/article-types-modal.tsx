@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArticleTypeEntity } from "../api/article-types/entity/article-types.entity";
+import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
 import {
   Form,
   FormControl,
@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import { updateArticleTypeSchema } from "../api/article-types/entity/update-article-type.entity";
+import { updateArticleTypeDtoSchema } from "../api/article-types/dto/update-article-type.entity";
 import { FloatInput } from "@/components/ui/float-input";
 
 export enum Permission {
@@ -30,7 +30,7 @@ export enum Permission {
 }
 
 type ArticleTypeModalProps = {
-  data: ArticleTypeEntity | null;
+  data: ArticleTypeDto | null;
   permission: Permission;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,8 +39,8 @@ type ArticleTypeModalProps = {
 export default function ArticleTypeModal(props: ArticleTypeModalProps) {
   const { data, open, onOpenChange, permission } = props;
 
-  const form = useForm<z.infer<typeof updateArticleTypeSchema>>({
-    resolver: zodResolver(updateArticleTypeSchema),
+  const form = useForm<z.infer<typeof updateArticleTypeDtoSchema>>({
+    resolver: zodResolver(updateArticleTypeDtoSchema),
   });
 
   function resetForm() {
@@ -56,7 +56,7 @@ export default function ArticleTypeModal(props: ArticleTypeModalProps) {
     resetForm();
   }, [data]);
 
-  async function onSubmit(values: z.infer<typeof updateArticleTypeSchema>) {
+  async function onSubmit(values: z.infer<typeof updateArticleTypeDtoSchema>) {
     const response = await fetch(`/api/article-types`, {
       method: data ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },

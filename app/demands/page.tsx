@@ -3,13 +3,13 @@
 import { DataTable } from "@/components/data-table";
 import { useEffect, useState } from "react";
 import { columns } from "./columns";
-import { DemandEntity } from "../api/demands/entity/demand.entity";
+import { DemandDto } from "../api/demands/dto/demand.dto";
 import DemandModal, { Permission } from "./demand-modal";
 import { Button } from "@/components/ui/button";
-import { AssociationEntity } from "../api/associations/entity/association.entity";
+import { AssociationDto } from "../api/associations/dto/association.dto";
 import { DemandStatus } from "@/lib/generated/prisma";
 import { toast } from "sonner";
-import { CreateDemandEntity } from "../api/demands/entity/create-demand.entity";
+import { CreateDemandDto } from "../api/demands/dto/create-demand.dto";
 import ConfirmModal from "@/components/confirm-modal";
 import ScanModal from "./scan-modal";
 import { Camera, Plus } from "lucide-react";
@@ -27,9 +27,9 @@ enum Modals {
 }
 
 export default function Page() {
-  const [data, setData] = useState<DemandEntity[]>([]);
+  const [data, setData] = useState<DemandDto[]>([]);
   const [stocks, setStocks] = useState<StockEntity[]>([]);
-  const [associations, setAssociations] = useState<AssociationEntity[]>([]);
+  const [associations, setAssociations] = useState<AssociationDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedDataID, setSelectedDataID] = useStateParam("selected-data-id");
@@ -56,7 +56,7 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => DemandEntity.parse(obj)))
+      .then((res) => res.map((obj: any) => DemandDto.parse(obj)))
       .then((data) => setData(data))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
@@ -69,7 +69,7 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => AssociationEntity.parse(obj)))
+      .then((res) => res.map((obj: any) => AssociationDto.parse(obj)))
       .then((res) => setAssociations(res))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
@@ -121,7 +121,7 @@ export default function Page() {
       })),
       status: DemandStatus.VALIDATED,
       association_id: association.id,
-    } as CreateDemandEntity;
+    } as CreateDemandDto;
     const response = await fetch(`/api/demands`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -142,7 +142,7 @@ export default function Page() {
     if (!demand) {
       throw new Error("Demand not found");
     }
-    const labelInfos = DemandEntity.toLabelInfos(demand);
+    const labelInfos = DemandDto.toLabelInfos(demand);
     const pdfBase64 = await generatePdf(labelInfos);
     var link = document.createElement("a"); //Create <a>
     link.href = "data:application/pdf;base64," + pdfBase64; //Image Base64 Goes here

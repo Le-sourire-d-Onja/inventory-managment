@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import ArticleTypesService from "./article-types.service";
-import { createArticleTypeSchema } from "./entity/create-article-type.entity";
-import { updateArticleTypeSchema } from "./entity/update-article-type.entity";
+import { createArticleTypeDtoSchema } from "./dto/create-article-type.dto";
+import { updateArticleTypeDtoSchema } from "./dto/update-article-type.entity";
 
 export async function GET(_: NextRequest) {
   const data = await ArticleTypesService.findAll();
@@ -10,7 +10,7 @@ export async function GET(_: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const createArticleType = createArticleTypeSchema.safeParse(body);
+  const createArticleType = createArticleTypeDtoSchema.safeParse(body);
   if (!createArticleType.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
-  const updateArticleType = updateArticleTypeSchema.safeParse(body);
+  const updateArticleType = updateArticleTypeDtoSchema.safeParse(body);
   if (!updateArticleType.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import DemandsService from "./demands.service";
-import { createDemandSchema } from "./entity/create-demand.entity";
-import { updateDemandSchema } from "./entity/update-demand.entity";
+import { createDemandDtoSchema } from "./dto/create-demand.dto";
+import { updateDemandDtoSchema } from "./dto/update-demand.entity";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const createDemand = createDemandSchema.safeParse(body);
+  const createDemand = createDemandDtoSchema.safeParse(body);
   if (!createDemand.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
-  const updateDemand = updateDemandSchema.safeParse(body);
+  const updateDemand = updateDemandDtoSchema.safeParse(body);
   if (!updateDemand.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }

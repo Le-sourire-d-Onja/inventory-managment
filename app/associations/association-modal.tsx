@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AssociationEntity } from "../api/associations/entity/association.entity";
+import { AssociationDto } from "../api/associations/dto/association.dto";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import {
   Form,
@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { updateAssociationSchema } from "../api/associations/entity/update-association.entity";
+import { updateAssociationDtoSchema } from "../api/associations/dto/update-association.dto";
 import { useEffect } from "react";
 import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
@@ -40,7 +40,7 @@ export enum Permission {
 }
 
 type AssociationModalProps = {
-  data: AssociationEntity | null;
+  data: AssociationDto | null;
   permission: Permission;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -49,8 +49,8 @@ type AssociationModalProps = {
 export default function AssociationModal(props: AssociationModalProps) {
   const { data, open, onOpenChange, permission } = props;
 
-  const form = useForm<z.infer<typeof updateAssociationSchema>>({
-    resolver: zodResolver(updateAssociationSchema),
+  const form = useForm<z.infer<typeof updateAssociationDtoSchema>>({
+    resolver: zodResolver(updateAssociationDtoSchema),
   });
 
   function resetForm() {
@@ -70,7 +70,7 @@ export default function AssociationModal(props: AssociationModalProps) {
     resetForm();
   }, [data]);
 
-  async function onSubmit(values: z.infer<typeof updateAssociationSchema>) {
+  async function onSubmit(values: z.infer<typeof updateAssociationDtoSchema>) {
     const response = await fetch(`/api/associations`, {
       method: data ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
@@ -138,7 +138,7 @@ export default function AssociationModal(props: AssociationModalProps) {
                       <Input
                         readOnly
                         {...field}
-                        value={AssociationEntity.typeTxt(field.value)}
+                        value={AssociationDto.typeTxt(field.value)}
                       />
                     ) : (
                       <Select
@@ -153,7 +153,7 @@ export default function AssociationModal(props: AssociationModalProps) {
                         <SelectContent>
                           {Object.values(AssociationType).map((type, i) => (
                             <SelectItem key={i} value={type}>
-                              {AssociationEntity.typeTxt(type)}
+                              {AssociationDto.typeTxt(type)}
                             </SelectItem>
                           ))}
                         </SelectContent>

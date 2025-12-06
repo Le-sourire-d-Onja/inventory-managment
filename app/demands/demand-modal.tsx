@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { DemandEntity } from "../api/demands/entity/demand.entity";
+import { DemandDto } from "../api/demands/dto/demand.dto";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import {
   Form,
@@ -19,13 +19,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { updateDemandSchema } from "../api/demands/entity/update-demand.entity";
+import { updateDemandDtoSchema } from "../api/demands/dto/update-demand.entity";
 import { useEffect } from "react";
 import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { DemandStatus } from "@/lib/generated/prisma";
-import { AssociationEntity } from "../api/associations/entity/association.entity";
+import { AssociationDto } from "../api/associations/dto/association.dto";
 import {
   Select,
   SelectContent,
@@ -44,9 +44,9 @@ export enum Permission {
 }
 
 type DemandModalProps = {
-  data: DemandEntity | null;
+  data: DemandDto | null;
   stocks: StockEntity[];
-  associations: AssociationEntity[];
+  associations: AssociationDto[];
   permission: Permission;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -54,9 +54,9 @@ type DemandModalProps = {
 
 export default function DemandModal(props: DemandModalProps) {
   const { data, stocks, associations, open, onOpenChange, permission } = props;
-  const statusTxt = DemandEntity.statusTxt(data?.status);
-  const form = useForm<z.infer<typeof updateDemandSchema>>({
-    resolver: zodResolver(updateDemandSchema),
+  const statusTxt = DemandDto.statusData(data?.status);
+  const form = useForm<z.infer<typeof updateDemandDtoSchema>>({
+    resolver: zodResolver(updateDemandDtoSchema),
   });
 
   function resetForm() {
@@ -108,7 +108,7 @@ export default function DemandModal(props: DemandModalProps) {
     link.click();
   }
 
-  async function onSubmit(values: z.infer<typeof updateDemandSchema>) {
+  async function onSubmit(values: z.infer<typeof updateDemandDtoSchema>) {
     const response = await fetch(`/api/demands`, {
       method: data ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
@@ -131,7 +131,7 @@ export default function DemandModal(props: DemandModalProps) {
           <DialogTitle className="flex items-center gap-2">
             {!data
               ? "Nouvelle demande"
-              : `Demande pour ${data.association.name}`}
+              : (`Demande pour ${data.association.name}`)}
             {data?.status === DemandStatus.VALIDATED && (
               <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
             )}

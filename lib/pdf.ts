@@ -1,5 +1,5 @@
-import { ContainerEntity } from "@/app/api/containers/entity/container.entity";
-import { DemandEntity } from "@/app/api/demands/entity/demand.entity";
+import { ContainerDto } from "@/app/api/containers/dto/container.dto";
+import { DemandDto } from "@/app/api/demands/dto/demand.dto";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import QRCode from 'qrcode'; // pour générer le QR code
 

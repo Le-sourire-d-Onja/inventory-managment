@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AppSidebar from "@/components/app-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { Suspense } from "react";
@@ -42,7 +42,10 @@ export default function RootLayout({
           <SidebarProvider>
             <AppSidebar />
             <Suspense fallback={<MoonLoader />}>
-              <main className="w-full p-8">{children}</main>
+              <main className="flex flex-col gap-2 w-full p-8">
+                <SidebarTrigger className="initial md:hidden" />
+                {children}
+              </main>
             </Suspense>
           </SidebarProvider>
           <Toaster />

@@ -1,14 +1,14 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
-import { AssociationEntity } from "../api/associations/entity/association.entity";
+import { AssociationDto } from "../api/associations/dto/association.dto";
 import { localeDateOptions } from "@/lib/utils";
 
 export const columns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void
-): ColumnDef<AssociationEntity>[] => [
+): ColumnDef<AssociationDto>[] => [
   {
     accessorKey: "name",
     header: "Nom",
@@ -18,7 +18,7 @@ export const columns = (
         <div className="flex flex-col">
           <p> {row.name} </p>
           <p className="text-muted-foreground text-xs">
-            {AssociationEntity.typeTxt(row.type)}
+            {AssociationDto.typeTxt(row.type)}
           </p>
         </div>
       );

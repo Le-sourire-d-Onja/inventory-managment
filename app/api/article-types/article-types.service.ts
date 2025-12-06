@@ -1,7 +1,7 @@
 import { prisma } from "../prisma";
-import { ArticleTypeEntity } from "./entity/article-types.entity";
-import { CreateArticleTypeEntity } from "./entity/create-article-type.entity";
-import { UpdateArticleTypeEntity } from "./entity/update-article-type.entity";
+import { ArticleTypeDto } from "./dto/article-types.dto";
+import { CreateArticleTypeDto } from "./dto/create-article-type.dto";
+import { UpdateArticleTypeDto } from "./dto/update-article-type.entity";
 
 export default class ArticleTypesService {
 
@@ -10,9 +10,9 @@ export default class ArticleTypesService {
    * 
    * @returns All the association entity of the database
    */
-  static async findAll(): Promise<ArticleTypeEntity[]> {
+  static async findAll(): Promise<ArticleTypeDto[]> {
     const articleTypes = await prisma.articleType.findMany({});
-    return articleTypes.map((articleType) => ArticleTypeEntity.parse(articleType));
+    return articleTypes.map((articleType) => ArticleTypeDto.parse(articleType));
   }
 
   /**
@@ -21,11 +21,11 @@ export default class ArticleTypesService {
    * @param data The entity to create the articleType
    * @returns The created articleType
    */
-  static async create(data: CreateArticleTypeEntity): Promise<ArticleTypeEntity> {
+  static async create(data: CreateArticleTypeDto): Promise<ArticleTypeDto> {
     const articleType = await prisma.articleType.create({
       data: data,
     });
-    return ArticleTypeEntity.parse(articleType);
+    return ArticleTypeDto.parse(articleType);
   }
 
   /**
@@ -35,12 +35,12 @@ export default class ArticleTypesService {
  * the articleType is included in the object
  * @returns The updated articleType
  */
-  static async update(data: UpdateArticleTypeEntity): Promise<ArticleTypeEntity> {
+  static async update(data: UpdateArticleTypeDto): Promise<ArticleTypeDto> {
     const articleType = await prisma.articleType.update({
       where: { id: data.id },
       data: data,
     });
-    return ArticleTypeEntity.parse(articleType);
+    return ArticleTypeDto.parse(articleType);
   }
 
   /**
@@ -49,11 +49,11 @@ export default class ArticleTypesService {
    * @param id The articleType id to be deleted
    * @returns The deleted articleType  
    */
-  static async delete(id: string): Promise<ArticleTypeEntity> {
+  static async delete(id: string): Promise<ArticleTypeDto> {
     const articleType = await prisma.articleType.delete({
       where: { id: id },
     });
-    return ArticleTypeEntity.parse(articleType);
+    return ArticleTypeDto.parse(articleType);
   }
 
 }

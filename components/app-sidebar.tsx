@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Box,
   Building,
   ChevronDown,
   Folders,
@@ -67,7 +68,7 @@ export default function AppSidebar() {
           <SidebarGroup>
             <SidebarGroupLabel asChild>
               <CollapsibleTrigger>
-                Administratif{" "}
+                Administratif
                 <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
               </CollapsibleTrigger>
             </SidebarGroupLabel>
@@ -90,6 +91,13 @@ export default function AppSidebar() {
                   }
                 >
                   <Folders /> Type d'article
+                </Button>
+                <Button
+                  className="justify-start"
+                  onClick={() => router.push("/containers")}
+                  variant={pathname.includes("containers") ? "default" : "ghost"}
+                >
+                  <Box /> Contenants
                 </Button>
               </CollapsibleContent>
             </SidebarGroupContent>

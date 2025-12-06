@@ -3,7 +3,7 @@
 import { DataTable } from "@/components/data-table";
 import { useEffect, useState } from "react";
 import { columns } from "./columns";
-import { AssociationEntity } from "../api/associations/entity/association.entity";
+import { AssociationDto } from "../api/associations/dto/association.dto";
 import AssociationModal, { Permission } from "./association-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
@@ -16,10 +16,10 @@ enum Modals {
 }
 
 export default function Page() {
-  const [data, setData] = useState<AssociationEntity[]>([]);
+  const [data, setData] = useState<AssociationDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
-  const [selectedData, setSelectedData] = useState<AssociationEntity | null>(
+  const [selectedData, setSelectedData] = useState<AssociationDto | null>(
     null
   );
   const [modalPermission, setModalPermission] = useState<Permission>(
@@ -33,7 +33,7 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => AssociationEntity.parse(obj)))
+      .then((res) => res.map((obj: any) => AssociationDto.parse(obj)))
       .then((data) => setData(data))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));

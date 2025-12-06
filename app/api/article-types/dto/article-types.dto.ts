@@ -1,5 +1,6 @@
+import { ArticleTypeEntity } from "../entity/article-type.entity";
 
-export class ArticleTypeEntity {
+export class ArticleTypeDto {
   id: string;
   name: string;
   weight: number;
@@ -14,6 +15,6 @@ export class ArticleTypeEntity {
   }
 
   static parse(obj: ArticleTypeEntity) {
-    return new ArticleTypeEntity(obj.id, obj.name, obj.weight, obj.volume);
+    return new ArticleTypeDto(obj.id, obj.name, obj.weight, obj.volume);
   }
 }

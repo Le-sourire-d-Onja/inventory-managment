@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import DonationsService from "./donations.service";
-import { createDonationSchema } from "./entity/create-donation.entity";
-import { updateDonationSchema } from "./entity/update-donation.entity";
+import { createDonationDtoSchema } from "./dto/create-donation.dto";
+import { updateDonationDtoSchema } from "./dto/update-donation.entity";
 
 export async function GET(_: NextRequest) {
   const data = await DonationsService.findAll();
@@ -10,7 +10,7 @@ export async function GET(_: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const createDonation = createDonationSchema.safeParse(body);
+  const createDonation = createDonationDtoSchema.safeParse(body);
   if (!createDonation.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
-  const updateDonation = updateDonationSchema.safeParse(body);
+  const updateDonation = updateDonationDtoSchema.safeParse(body);
   if (!updateDonation.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }

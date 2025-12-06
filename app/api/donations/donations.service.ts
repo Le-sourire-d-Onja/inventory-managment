@@ -1,38 +1,33 @@
 import ArticleTypesService from "../article-types/article-types.service";
 import { prisma } from "../prisma";
-import { CreateDonationEntity } from "./entity/create-donation.entity";
-import { DonationEntity } from "./entity/donation.entity";
-import { UpdateDonationEntity } from "./entity/update-donation.entity";
+import { CreateDonationDto } from "./dto/create-donation.dto";
+import { DonationDto } from "./dto/donation.dto";
+import { UpdateDonationDto } from "./dto/update-donation.entity";
+import { donationInclude } from "./entity/donation.entity";
 
 export default class DonationsService {
 
   /**
    * This function is used to retrieve all the donations of the database
-   * 
+   *
    * @returns All the donation entity of the database
    */
-  static async findAll(): Promise<DonationEntity[]> {
+  static async findAll(): Promise<DonationDto[]> {
     const donations = await prisma.donation.findMany({
-      include: {
-        articles: {
-          include: {
-            type: true,
-          }
-        },
-      }
+      include: donationInclude
     });
-    return donations.map((donation) => DonationEntity.parse(
+    return donations.map((donation) => DonationDto.parse(
       donation
     ));
   }
 
   /**
    * This function is used to create a donation in the database
-   * 
+   *
    * @param data The entity to create the donation
    * @returns The created donation
    */
-  static async create(data: CreateDonationEntity): Promise<DonationEntity> {
+  static async create(data: CreateDonationDto): Promise<DonationDto> {
     const donation = await prisma.donation.create({
       data: {
         description: data.description,
@@ -47,15 +42,9 @@ export default class DonationsService {
           })
         }
       },
-      include: {
-        articles: {
-          include: {
-            type: true,
-          }
-        },
-      }
+      include: donationInclude
     });
-    return DonationEntity.parse(donation);
+    return DonationDto.parse(donation);
   }
 
   /**
@@ -65,7 +54,7 @@ export default class DonationsService {
  * the donation is included in the object
  * @returns The updated donation
  */
-  static async update(data: UpdateDonationEntity): Promise<DonationEntity> {
+  static async update(data: UpdateDonationDto): Promise<DonationDto> {
 
     const donation = await prisma.donation.update({
       where: { id: data.id },
@@ -83,15 +72,9 @@ export default class DonationsService {
           })
         }
       },
-      include: {
-        articles: {
-          include: {
-            type: true,
-          }
-        },
-      }
+      include: donationInclude
     });
-    return DonationEntity.parse(donation);
+    return DonationDto.parse(donation);
   }
 
   /**
@@ -100,17 +83,11 @@ export default class DonationsService {
    * @param id The donation id to be deleted
    * @returns The deleted donation  
    */
-  static async delete(id: string): Promise<DonationEntity> {
+  static async delete(id: string): Promise<DonationDto> {
     const donation = await prisma.donation.delete({
       where: { id: id },
-      include: {
-        articles: {
-          include: {
-            type: true,
-          }
-        },
-      }
+      include: donationInclude
     });
-    return DonationEntity.parse(donation);
+    return DonationDto.parse(donation);
   }
 }

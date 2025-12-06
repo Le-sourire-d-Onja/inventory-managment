@@ -20,17 +20,17 @@ import {
 } from "@/components/ui/form";
 import { Permission } from "@/app/demands/demand-modal";
 import z from "zod";
-import { updateDemandSchema } from "@/app/api/demands/entity/update-demand.entity";
+import { updateDemandDtoSchema } from "@/app/api/demands/dto/update-demand.entity";
 import { ArticleType } from "@/lib/generated/prisma";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { useEffect, useState } from "react";
 import { PulseLoader } from "react-spinners";
-import { ArticleTypeEntity } from "../api/article-types/entity/article-types.entity";
+import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
 
 interface ContentSelectorProps {
   prevIndex: number;
   stocks: StockEntity[];
-  form: UseFormReturn<z.infer<typeof updateDemandSchema>>;
+  form: UseFormReturn<z.infer<typeof updateDemandDtoSchema>>;
   permission: Permission;
 }
 
@@ -55,7 +55,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => ArticleTypeEntity.parse(obj)))
+      .then((res) => res.map((obj: any) => ArticleTypeDto.parse(obj)))
       .then((data) => setArticleTypes(data))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));

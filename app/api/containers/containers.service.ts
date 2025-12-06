@@ -1,9 +1,10 @@
 import { ArticleType } from "@/lib/generated/prisma";
 import { prisma } from "../prisma";
-import { ContainerEntity } from "./entity/container.entity";
-import { CreateContainer as CreateContainerEntity } from "./entity/create-container.entity";
-import { UpdateContainerEntity } from "./entity/update-container.entity";
+import { ContainerDto } from "./dto/container.dto";
+import { CreateContainerDto } from "./dto/create-container.dto";
+import { UpdateContainerDto } from "./dto/update-container.dto";
 import ArticleTypesService from "../article-types/article-types.service";
+import { containerInclude } from "./entity/container.entity";
 
 
 export default class ContainersService {
@@ -17,9 +18,9 @@ export default class ContainersService {
     static async findNbContainers() {
       const startOfYear = new Date(new Date().getFullYear(), 0, 1);
       const nbContainers = await prisma.container.count({
-        where: { demand: { created_at: { gte: startOfYear, } } },
+        where: { OR: [{ demand: { created_at: { gte: startOfYear, } } }, { demand_id: null }] },
       });
-      return nbContainers + 1
+      return nbContainers
     }
 
     /**
@@ -68,20 +69,14 @@ export default class ContainersService {
    * @returns The container entity of the database
    * @throws An error if the container doesn't exists
    */
-  static async findOne(id: string): Promise<ContainerEntity> {
+  static async findOne(id: string): Promise<ContainerDto> {
     const container = await prisma.container.findUnique({
       where: { id: id },
-      include: {
-        contents: {
-          include: {
-            type: true,
-          }
-        },
-      },
+      include: containerInclude,
     });
     if (!container)
       throw new Error("Not found");
-    return ContainerEntity.parse(container);
+    return ContainerDto.parse(container);
   }
 
   /**
@@ -90,18 +85,12 @@ export default class ContainersService {
    * @param inDemand Know if the container belongs to a demand
    * @returns All the container entity of the database
    */
-  static async findAll(inDemand: boolean): Promise<ContainerEntity[]> {
+  static async findAll(inDemand: boolean): Promise<ContainerDto[]> {
     const containers = await prisma.container.findMany({
       where: !inDemand ? { demand_id: null } : {},
-      include: {
-        contents: {
-          include: {
-            type: true,
-          }
-        },
-      },
+      include: containerInclude,
     });
-    return containers.map((container) => ContainerEntity.parse(container));
+    return containers.map((container) => ContainerDto.parse(container));
   }
 
   /**
@@ -110,15 +99,17 @@ export default class ContainersService {
    * @param data The entity to create the container
    * @returns The created container
    */
-  static async create(data: CreateContainerEntity): Promise<ContainerEntity> {
+  static async create(data: CreateContainerDto): Promise<ContainerDto> {
     const articleTypes = await ArticleTypesService.findAll();
 
-    let nbContainers = await ContainersService.findNbContainers();
+    const nbContainers = await ContainersService.findNbContainers();
+
+    console.log(nbContainers)
 
     const [weight, volume] = ContainersService.findContainerWeightAndVolume(data, articleTypes);
     const container = await prisma.container.create({
       data: {
-        id: ContainersService.formatContainerID(nbContainers++),
+        id: ContainersService.formatContainerID(nbContainers + 1),
         weight: weight,
         volume: volume,
         packaging: data.packaging,
@@ -131,15 +122,9 @@ export default class ContainersService {
           }))
         }
       },
-      include: {
-        contents: {
-          include: {
-            type: true,
-          }
-        },
-      },
+      include: containerInclude,
     });
-    return ContainerEntity.parse(container);
+    return ContainerDto.parse(container);
   }
 
   /**
@@ -149,7 +134,7 @@ export default class ContainersService {
    * the demand is included in the object
    * @returns The updated demand
    */
-  static async update(data: UpdateContainerEntity): Promise<ContainerEntity> {
+  static async update(data: UpdateContainerDto): Promise<ContainerDto> {
     const articleTypes = await ArticleTypesService.findAll();
 
     const [weight, volume] = ContainersService.findContainerWeightAndVolume(data, articleTypes);
@@ -169,15 +154,9 @@ export default class ContainersService {
           }))
         }
       },
-      include: {
-        contents: {
-          include: {
-            type: true,
-          }
-        },
-      },
+      include: containerInclude,
     });
-    return ContainerEntity.parse(container);  }
+    return ContainerDto.parse(container);  }
 
   /**
    * This function is used to delete a container from the database
@@ -185,18 +164,12 @@ export default class ContainersService {
    * @param id The id of the container
    * @returns The container entity of the database
    */
-  static async delete(id: string): Promise<ContainerEntity> {
+  static async delete(id: string): Promise<ContainerDto> {
     const container = await prisma.container.delete({
       where: { id: id },
-      include: {
-        contents: {
-          include: {
-            type: true,
-          }
-        }
-      }
+      include: containerInclude
     });
-    return ContainerEntity.parse(container);
+    return ContainerDto.parse(container);
   }
 
 

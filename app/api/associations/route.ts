@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import AssociationsService from "./associations.service";
-import { CreateAssociationEntity, createAssociationSchema } from "./entity/create-association.entity";
-import { updateAssociationSchema } from "./entity/update-association.entity";
+import { CreateAssociationDto, createAssociationDtoSchema } from "./dto/create-association.dto";
+import { updateAssociationDtoSchema } from "./dto/update-association.dto";
 
 export async function GET(_: NextRequest) {
   const data = await AssociationsService.findAll();
@@ -10,17 +10,17 @@ export async function GET(_: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const createAssociation = createAssociationSchema.safeParse(body);
+  const createAssociation = createAssociationDtoSchema.safeParse(body);
   if (!createAssociation.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
-  const association = await AssociationsService.create(createAssociation.data as CreateAssociationEntity);
+  const association = await AssociationsService.create(createAssociation.data as CreateAssociationDto);
   return NextResponse.json(association);
 }
 
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
-  const updateAssociation = updateAssociationSchema.safeParse(body);
+  const updateAssociation = updateAssociationDtoSchema.safeParse(body);
   if (!updateAssociation.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }

@@ -18,16 +18,16 @@ import {
 import { ArticleType } from "@/lib/generated/prisma";
 import { Permission } from "@/app/donations/donation-modal";
 import z from "zod";
-import { updateDonationSchema } from "@/app/api/donations/entity/update-donation.entity";
+import { updateDonationDtoSchema } from "@/app/api/donations/dto/update-donation.entity";
 import { useEffect, useState } from "react";
 import { MoonLoader } from "react-spinners";
 import { scrollBar } from "@/constants/tailwind";
-import { DonationEntity } from "../api/donations/entity/donation.entity";
-import { ArticleTypeEntity } from "../api/article-types/entity/article-types.entity";
+import { DonationDto } from "../api/donations/dto/donation.dto";
+import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
 
 interface ArticleSelectorProps {
-  data: DonationEntity | null;
-  form: UseFormReturn<z.infer<typeof updateDonationSchema>>;
+  data: DonationDto | null;
+  form: UseFormReturn<z.infer<typeof updateDonationDtoSchema>>;
   permission: Permission;
 }
 
@@ -49,7 +49,7 @@ export function ArticleSelector(props: ArticleSelectorProps) {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => ArticleTypeEntity.parse(obj)))
+      .then((res) => res.map((obj: any) => ArticleTypeDto.parse(obj)))
       .then((data) => setArticleTypes(data))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
