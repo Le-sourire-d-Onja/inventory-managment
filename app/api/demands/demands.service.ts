@@ -1,4 +1,4 @@
-import { DemandStatus } from "@/lib/generated/prisma";
+import { DemandStatus, PackagingType } from "@/lib/generated/prisma";
 import { prisma } from "../prisma";
 import { CreateDemandDto } from "./dto/create-demand.dto";
 import { DemandDto } from "./dto/demand.dto";
@@ -58,11 +58,11 @@ export default class DemandsService {
         status: DemandStatus.IN_PROGRESS,
         containers: {
           create: data.containers.map((container) => {
-            const [weight, volume] = ContainersService.findContainerWeightAndVolume(container, articleTypes);
+            const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, container.contents);
             return {
               id: ContainersService.formatContainerID(nbContainers++),
-              weight: weight,
-              volume: volume,
+              weight: weight ?? 0,
+              volume: volume ?? 0,
               packaging: container.packaging,
               contents: {
                 create: container.contents.map(content => ({
@@ -73,7 +73,8 @@ export default class DemandsService {
                 }))
               }
             };
-          })
+          }),
+          connect: data.linkedContainers
         }
       },
       include: demandInclude
@@ -113,15 +114,15 @@ export default class DemandsService {
         association_id: data.association_id,
         containers: {
           deleteMany: {},
-          create: data.containers.map(container => {
-            const [weight, volume] = ContainersService.findContainerWeightAndVolume(container, articleTypes);
+          create: data.containers?.map(container => {
+            const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, container.contents);
             return {
               id: container.id ?? ContainersService.formatContainerID(nbContainers++),
-              weight: weight,
-              volume: volume,
-              packaging: container.packaging,
+              weight: weight ?? 0,
+              volume: volume ?? 0,
+              packaging: container.packaging ?? PackagingType.NONE,
               contents: {
-                create: container.contents.map(content => ({
+                create: container.contents?.map(content => ({
                   type: {
                     connect: { id: content.type_id },
                   },
@@ -129,7 +130,8 @@ export default class DemandsService {
                 }))
               }
             };
-          })
+          }),
+          connect: data.linkedContainers,
         }
       },
       include: demandInclude

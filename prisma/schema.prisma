@@ -44,7 +44,7 @@ model Container {
   weight    Float
   volume    Float
   packaging PackagingType
-  demand    Demand?        @relation(fields: [demand_id], references: [id], onDelete: Cascade)
+  demand    Demand?        @relation(fields: [demand_id], references: [id], onDelete: SetNull)
   demand_id String?
   contents  Content[]
 }

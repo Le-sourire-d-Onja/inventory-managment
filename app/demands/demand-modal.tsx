@@ -37,6 +37,7 @@ import ContainerSelector from "./container-selector";
 import { Badge } from "@/components/ui/badge";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { generatePdf } from "@/lib/pdf";
+import { ContainerDto } from "../api/containers/dto/container.dto";
 
 export enum Permission {
   READ,
@@ -47,13 +48,15 @@ type DemandModalProps = {
   data: DemandDto | null;
   stocks: StockEntity[];
   associations: AssociationDto[];
+  containers: ContainerDto[];
   permission: Permission;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  refetch: () => void;
 };
 
 export default function DemandModal(props: DemandModalProps) {
-  const { data, stocks, associations, open, onOpenChange, permission } = props;
+  const { data, stocks, associations, containers, open, onOpenChange, permission, refetch } = props;
   const statusTxt = DemandDto.statusData(data?.status);
   const form = useForm<z.infer<typeof updateDemandDtoSchema>>({
     resolver: zodResolver(updateDemandDtoSchema),
@@ -79,9 +82,13 @@ export default function DemandModal(props: DemandModalProps) {
     resetForm();
   }, [data]);
 
+  useEffect(() => {
+    console.log(form.formState.errors)
+  }, [form.formState.errors])
+
   async function onDownload(id: string) {
     const demand = form.getValues();
-    const container = demand.containers.find(
+    const container = demand.containers?.find(
       (container) => container.id === id
     );
     if (!container) {
@@ -94,12 +101,12 @@ export default function DemandModal(props: DemandModalProps) {
         associations.find(
           (association) => association.id === demand.association_id
         )?.name ?? "Inconnue",
-      contents: container.contents.map((content) => ({
+      contents: container.contents?.map((content) => ({
         name:
           stocks.find((stock) => stock.type.id === content.type_id)?.type.name ??
           "Inconnu",
         quantity: content.quantity,
-      })),
+      })) ?? [],
     };
     const pdfBase64 = await generatePdf([pdfInfos]);
     var link = document.createElement("a"); //Create <a>
@@ -109,7 +116,7 @@ export default function DemandModal(props: DemandModalProps) {
   }
 
   async function onSubmit(values: z.infer<typeof updateDemandDtoSchema>) {
-    const response = await fetch(`/api/demands`, {
+    const response = await fetch("/api/demands", {
       method: data ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(values),
@@ -194,7 +201,8 @@ export default function DemandModal(props: DemandModalProps) {
 
             <ContainerSelector
               data={data?.containers ?? []}
-              stocks={stocks ?? []}
+              stocks={stocks}
+              containers={containers}
               onDownload={onDownload}
               form={form}
               permission={permission}

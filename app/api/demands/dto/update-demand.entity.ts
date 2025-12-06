@@ -6,9 +6,9 @@ import { updateContainerDtoSchema } from "../../containers/dto/update-container.
 
 
 export const updateDemandDtoSchema = createDemandDtoSchema.extend({
-  id: z.string().uuid().optional(),
+  id: z.string().uuid(),
   status: z.nativeEnum(DemandStatus),
   containers: z.array(updateContainerDtoSchema),
-});
+}).partial();
 
 export type UpdateDemandDto = z.infer<typeof updateDemandDtoSchema>;

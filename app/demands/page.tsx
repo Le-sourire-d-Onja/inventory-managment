@@ -17,6 +17,8 @@ import { useDevices } from "@yudiel/react-qr-scanner";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { useStateParam } from "@/lib/utils";
 import { generatePdf } from "@/lib/pdf";
+import { ContainerDto } from "../api/containers/dto/container.dto";
+import { UpdateDemandDto } from "../api/demands/dto/update-demand.entity";
 
 enum Modals {
   SCAN,
@@ -30,6 +32,7 @@ export default function Page() {
   const [data, setData] = useState<DemandDto[]>([]);
   const [stocks, setStocks] = useState<StockEntity[]>([]);
   const [associations, setAssociations] = useState<AssociationDto[]>([]);
+  const [containers, setContainers] = useState<ContainerDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedDataID, setSelectedDataID] = useStateParam("selected-data-id");
@@ -62,6 +65,20 @@ export default function Page() {
       .finally(() => setIsLoading(false));
   }
 
+    async function retrieveContainers() {
+    setIsLoading(true);
+    fetch("/api/containers")
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw res;
+      })
+      .then((res) => res.map((obj: any) => ContainerDto.parse(obj)))
+      .then((data) => setContainers(data))
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
+  }
+
+
   async function retrieveAssociations() {
     setIsLoading(true);
     fetch("/api/associations")
@@ -92,6 +109,7 @@ export default function Page() {
     retrieveDemands();
     retrieveAssociations();
     retrieveStocks();
+    retrieveContainers();
   }
 
   async function deleteDemand(id: string) {
@@ -112,16 +130,17 @@ export default function Page() {
     const { association, ...demand } = foundSelected;
     const body = {
       ...demand,
+      status: DemandStatus.VALIDATED,
       containers: demand.containers.map((container) => ({
         ...container,
         contents: container.contents.map((content) => ({
           ...content,
-          type_id: content.type.id,
-        })),
+          type_id: content.type.id
+        }))
       })),
-      status: DemandStatus.VALIDATED,
       association_id: association.id,
-    } as CreateDemandDto;
+    } as UpdateDemandDto;
+    
     const response = await fetch(`/api/demands`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -218,9 +237,11 @@ export default function Page() {
         data={selectedData}
         stocks={stocks}
         associations={associations}
+        containers={containers}
         open={opennedModal === Modals.DEMAND}
         onOpenChange={closeModal}
         permission={modalPermission}
+        refetch={retrieveDemands}
       />
 
       <ScanModal

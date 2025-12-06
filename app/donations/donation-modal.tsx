@@ -18,7 +18,6 @@ import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArticleSelector } from "@/app/donations/article-selector";
 import { updateDonationDtoSchema } from "../api/donations/dto/update-donation.entity";
@@ -64,7 +63,7 @@ export default function DonationModal(props: DonationModalProps) {
   }, [data]);
 
   async function onSubmit(values: z.infer<typeof updateDonationDtoSchema>) {
-    const response = await fetch(`/api/donations`, {
+    const response = await fetch("/api/donations", {
       method: data ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(values),

@@ -63,7 +63,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
 
   function retrieveCurrentArticleTypes() {
     setCurrArticleTypeIDs(
-      Array.from(new Set(watchedContents.map((c) => c.type_id)))
+      Array.from(new Set(watchedContents?.map((c) => c.type_id)) ?? [])
     );
   }
 
@@ -102,7 +102,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
           .map<string>((c) => c.type_id);
 
         const availableTypes = articleTypes.filter(
-          (type) => !selectedTypes.includes(type.id) || type.id === field.type_id
+          (type) => !selectedTypes?.includes(type.id) || type.id === field.type_id
         );
         return (
           <div key={field.fieldID} className="flex gap-2 ml-4">

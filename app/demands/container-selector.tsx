@@ -32,37 +32,58 @@ import { Separator } from "@radix-ui/react-separator";
 interface ContainerSelectorProps {
   data: ContainerDto[];
   stocks: StockEntity[];
+  containers: ContainerDto[];
   onDownload: (id: string) => void;
   form: UseFormReturn<z.infer<typeof updateDemandDtoSchema>>;
   permission: Permission;
 }
 
 export default function ContainerSelector(props: ContainerSelectorProps) {
-  const { data, stocks, onDownload, form, permission } = props;
+  const { data, stocks, containers, onDownload, form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
     control,
     name: "containers",
     keyName: "fieldID",
   });
+  const { fields: ufields, append: uappend, remove: uremove } = useFieldArray({
+    control,
+    name: "linkedContainers",
+  });
 
-  function onAdd() {
+
+  function onAddManual() {
     append({
       packaging: PackagingType.CARDBOARD,
       contents: [],
     });
   }
 
+  function onAddExisting() {
+    uappend({
+      id: containers?.[0].id,
+    })
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-medium">Contenants</h3>
-        {permission === Permission.WRITE && (
-          <Button type="button" size="sm" variant="outline" onClick={onAdd}>
-            Ajouter un contenant
-          </Button>
-        )}
       </div>
+      {permission === Permission.WRITE && (
+        <div className="flex gap-2 items-center w-full">
+          <p className="text-sm font-medium whitespace-nowrap"> Ajouter un contenant </p>
+          <div className="flex items-center justify-evenly w-full">
+            <Button type="button" size="sm" variant="outline" onClick={onAddManual}>
+              Nouveau
+            </Button>
+            <p className="text-xs"> OU </p>
+            <Button type="button" size="sm" variant="outline" disabled={containers.length === 0} onClick={onAddExisting}>
+              Existant
+            </Button>
+          </div>
+        </div>
+      )}
       <div
         className={`overflow-y-scroll max-h-[450px] space-y-8 pr-2 ${scrollBar}`}
       >
@@ -155,6 +176,52 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
               permission={permission}
             />
             <Separator />
+          </div>
+        ))}
+        {ufields.map((field, index) => (
+          <div className="flex gap-2">
+            <FormField
+              control={control}
+              name={`linkedContainers.${index}.id`}
+              render={({ field: selectField }) => (
+                <FormItem>
+                  {permission !== Permission.WRITE ? (
+                    <Input readOnly {...selectField} />
+                  ) : (
+                    <Select
+                      onValueChange={selectField.onChange}
+                      defaultValue={selectField.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Type de contenant" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {containers.map((container) => (
+                          <SelectItem key={container.id} value={container.id}>
+                            N°{container.id}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {permission === Permission.WRITE && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  uremove(index);
+                }}
+              >
+                <Trash className="h-4 w-4 text-destructive" />
+              </Button>
+            )}
           </div>
         ))}
       </div>

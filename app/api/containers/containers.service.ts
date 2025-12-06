@@ -46,10 +46,11 @@ export default class ContainersService {
      * @returns [weight, volume] of the container
      */
     static findContainerWeightAndVolume(
-      container: { contents: { type_id: string, quantity: number }[] },
-      articleTypes: ArticleType[]
-    ): [number, number] {
-      return container.contents.reduce(
+      articleTypes: ArticleType[],
+      contents?: { type_id: string, quantity: number }[],
+    ): [number?, number?] {
+      if (!contents) return [undefined, undefined]
+      return contents?.reduce(
         ([weightTotal, volumeTotal], content) => {
           const articleType = articleTypes.find((type) => type.id === content.type_id);
           const weight = articleType?.weight ?? 0;
@@ -104,14 +105,13 @@ export default class ContainersService {
 
     const nbContainers = await ContainersService.findNbContainers();
 
-    console.log(nbContainers)
+    const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, data.contents);
 
-    const [weight, volume] = ContainersService.findContainerWeightAndVolume(data, articleTypes);
     const container = await prisma.container.create({
       data: {
         id: ContainersService.formatContainerID(nbContainers + 1),
-        weight: weight,
-        volume: volume,
+        weight: weight ?? 0,
+        volume: volume ?? 0,
         packaging: data.packaging,
         contents: {
           create: data.contents.map(content => ({
@@ -137,7 +137,7 @@ export default class ContainersService {
   static async update(data: UpdateContainerDto): Promise<ContainerDto> {
     const articleTypes = await ArticleTypesService.findAll();
 
-    const [weight, volume] = ContainersService.findContainerWeightAndVolume(data, articleTypes);
+    const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, data.contents);
 
     const container = await prisma.container.update({
       where: { id: data.id },
@@ -146,13 +146,14 @@ export default class ContainersService {
         volume: volume,
         packaging: data.packaging,
         contents: {
-          create: data.contents.map(content => ({
+          create: data.contents?.map(content => ({
             type: {
               connect: { id: content.type_id },
             },
             quantity: content.quantity,
-          }))
-        }
+          })),
+        },
+        demand_id: data.demand_id
       },
       include: containerInclude,
     });
