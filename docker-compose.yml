@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: inventory-management-db
+    env_file:
+      - .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - proxy
+
+  web:
+    build: .
+    container_name: inventory-management
+    env_file:
+      - .env
+    depends_on:
+      - db
+    labels:
+      - "traefik.http.routers.inventory-management.rule=Host(`inventory-management.cooper-host.com`)"
+      - "traefik.http.routers.inventory-management.entrypoints=websecure"
+      - "traefik.http.routers.inventory-management.tls=true"
+    networks:
+      - proxy
+
+volumes:
+  pg_data:
+
+
+networks:
+  proxy:
+    external: true
+    name: "proxy"
