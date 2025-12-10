@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const associations = await AssociationsService.findAll();
-  const exportData = associations.map((association) => association.exportValues());
+  const exportData = associations.map((association) => AssociationDto.exportValues(association));
   const exportHeaders = AssociationDto.exportHeaders();
   const buffer = await ExportsService.export(exportHeaders, exportData);
   return new NextResponse(buffer, {

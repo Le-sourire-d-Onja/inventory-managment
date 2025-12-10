@@ -53,16 +53,16 @@ export class AssociationDto {
     return ["Nom", "Type", "Personne en charge", "Adresse", "E-mail", "Téléphone", "Description", "Créée le"];
   }
 
-  exportValues(): string[] {
+  static exportValues(association: AssociationDto): string[] {
     return [
-      this.name,
-      AssociationDto.typeTxt(this.type),
-      this.person_in_charge,
-      this.address,
-      this.email,
-      this.phone,
-      this.description,
-      this.created_at.toLocaleDateString("fr-FR", { dateStyle: "short" })
+      association.name,
+      AssociationDto.typeTxt(association.type),
+      association.person_in_charge,
+      association.address,
+      association.email,
+      association.phone,
+      association.description,
+      association.created_at.toLocaleDateString("fr-FR", { dateStyle: "short" })
     ];
   }
 
