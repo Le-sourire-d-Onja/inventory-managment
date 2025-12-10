@@ -115,7 +115,7 @@ export default function DonationModal(props: DonationModalProps) {
               )}
             />
 
-            <ArticleSelector data={data} form={form} permission={permission} />
+            <ArticleSelector form={form} permission={permission} />
 
             <Separator />
             {permission === Permission.WRITE && (

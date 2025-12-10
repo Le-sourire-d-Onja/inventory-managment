@@ -31,8 +31,6 @@ export default class StocksService {
 
     const articleTypes = await ArticleTypesService.findAll();
 
-    console.log(type)
-
     // Remove the content quantity from the article quantity to get the stock quantity
     const stocks = articles.map((article) => {
       const content = contents.find((content) => content.type_id === article.type_id);

@@ -82,10 +82,6 @@ export default function DemandModal(props: DemandModalProps) {
     resetForm();
   }, [data]);
 
-  useEffect(() => {
-    console.log(form.formState.errors)
-  }, [form.formState.errors])
-
   async function onDownload(id: string) {
     const demand = form.getValues();
     const container = demand.containers?.find(

@@ -22,11 +22,10 @@ import { updateDonationDtoSchema } from "@/app/api/donations/dto/update-donation
 import { useEffect, useState } from "react";
 import { MoonLoader } from "react-spinners";
 import { scrollBar } from "@/constants/tailwind";
-import { DonationDto } from "../api/donations/dto/donation.dto";
 import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
+import Combobox from "@/components/ui/combobox";
 
 interface ArticleSelectorProps {
-  data: DonationDto | null;
   form: UseFormReturn<z.infer<typeof updateDonationDtoSchema>>;
   permission: Permission;
 }
@@ -34,7 +33,7 @@ interface ArticleSelectorProps {
 export function ArticleSelector(props: ArticleSelectorProps) {
   const [articleTypes, setArticleTypes] = useState<ArticleType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { data, form, permission } = props;
+  const { form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
     control,
@@ -61,7 +60,7 @@ export function ArticleSelector(props: ArticleSelectorProps) {
 
   const addArticle = () => {
     append({
-      type_id: articleTypes[0].id,
+      type_id: "",
       quantity: 1,
     });
   };
@@ -124,30 +123,11 @@ export function ArticleSelector(props: ArticleSelectorProps) {
                         }
                       />
                     ) : (
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="overflow-ellipsis w-[225px]">
-                            <SelectValue placeholder="Type d'article" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {!isLoading ? (
-                            availableTypes.map((type) => (
-                              <SelectItem key={type.id} value={type.id}>
-                                {type.name}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <MoonLoader
-                              size={20}
-                              color="var(--color-foreground)"
-                            />
-                          )}
-                        </SelectContent>
-                      </Select>
+                      <Combobox
+                        items={availableTypes.map((availableType) => ({ key: availableType.id, value: availableType.name }))}
+                        defaultKey={field.value}
+                        onChange={field.onChange}
+                      />
                     )}
                     <FormMessage />
                   </FormItem>
