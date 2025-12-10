@@ -48,4 +48,22 @@ export class AssociationDto {
   static parse(obj: AssociationEntity) {
     return new AssociationDto(obj.id, obj.name, obj.type, obj.person_in_charge, obj.address, obj.email, obj.phone, obj.description, new Date(obj.created_at), new Date(obj.updated_at));
   }
+
+  static exportHeaders() {
+    return ["Nom", "Type", "Personne en charge", "Adresse", "E-mail", "Téléphone", "Description", "Créée le"];
+  }
+
+  exportValues(): string[] {
+    return [
+      this.name,
+      AssociationDto.typeTxt(this.type),
+      this.person_in_charge,
+      this.address,
+      this.email,
+      this.phone,
+      this.description,
+      this.created_at.toLocaleDateString("fr-FR", { dateStyle: "short" })
+    ];
+  }
+
 }

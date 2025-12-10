@@ -7,7 +7,8 @@ import { AssociationDto } from "../api/associations/dto/association.dto";
 import AssociationModal, { Permission } from "./association-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
+import { Workbook } from "exceljs";
 
 enum Modals {
   ASSOCIATION,
@@ -66,6 +67,26 @@ export default function Page() {
     setSelectedData(null);
   }
 
+  async function onExtract() {
+    setIsLoading(true);
+    fetch("/api/associations/export")
+      .then((res) => {
+        if (res.ok) return res.blob();
+        throw res;
+      })
+      .then((res) => {
+          const url = URL.createObjectURL(res);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "export.xlsx";
+          a.click();
+          URL.revokeObjectURL(url);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
+  }
+
   function onView(id: string) {
     setModalPermission(Permission.READ);
     openModal(Modals.ASSOCIATION, id);
@@ -91,10 +112,16 @@ export default function Page() {
         <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
           Associations
         </h1>
-        <Button onClick={() => onCreate()}>
-          <span className="hidden md:flex"> Créer une association </span>
-          <Plus />
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => onExtract()}>
+            <span className="hidden md:flex"> Exporter les associations </span>
+            <Download />
+          </Button>
+          <Button onClick={() => onCreate()}>
+            <span className="hidden md:flex"> Créer une association </span>
+            <Plus />
+          </Button>
+        </div>
       </div>
 
       <AssociationModal
