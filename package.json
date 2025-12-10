@@ -13,6 +13,7 @@
     "@faker-js/faker": "^10.0.0",
     "@hookform/resolvers": "^5.1.1",
     "@next/env": "^15.3.5",
+    "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",

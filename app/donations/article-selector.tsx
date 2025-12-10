@@ -1,13 +1,6 @@
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Trash } from "lucide-react";
 import {
   FormField,
@@ -15,12 +8,10 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { ArticleType } from "@/lib/generated/prisma";
 import { Permission } from "@/app/donations/donation-modal";
 import z from "zod";
 import { updateDonationDtoSchema } from "@/app/api/donations/dto/update-donation.entity";
 import { useEffect, useState } from "react";
-import { MoonLoader } from "react-spinners";
 import { scrollBar } from "@/constants/tailwind";
 import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
 import Combobox from "@/components/ui/combobox";
@@ -31,8 +22,7 @@ interface ArticleSelectorProps {
 }
 
 export function ArticleSelector(props: ArticleSelectorProps) {
-  const [articleTypes, setArticleTypes] = useState<ArticleType[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [articleTypes, setArticleTypes] = useState<ArticleTypeDto[]>([]);
   const { form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({
@@ -42,7 +32,6 @@ export function ArticleSelector(props: ArticleSelectorProps) {
   });
 
   async function retrieveArticleTypes() {
-    setIsLoading(true);
     fetch("/api/article-types")
       .then((res) => {
         if (res.ok) return res.json();
@@ -50,8 +39,7 @@ export function ArticleSelector(props: ArticleSelectorProps) {
       })
       .then((res) => res.map((obj: any) => ArticleTypeDto.parse(obj)))
       .then((data) => setArticleTypes(data))
-      .catch((err) => console.log(err))
-      .finally(() => setIsLoading(false));
+      .catch((err) => console.log(err));
   }
 
   useEffect(() => {

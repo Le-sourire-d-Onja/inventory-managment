@@ -21,7 +21,6 @@ import {
 import { Permission } from "@/app/demands/demand-modal";
 import z from "zod";
 import { updateDemandDtoSchema } from "@/app/api/demands/dto/update-demand.entity";
-import { ArticleType } from "@/lib/generated/prisma";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { useEffect, useState } from "react";
 import { PulseLoader } from "react-spinners";
@@ -36,9 +35,9 @@ interface ContentSelectorProps {
 
 export default function ContentSelector(props: ContentSelectorProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [articleTypes, setArticleTypes] = useState<ArticleType[]>([]);
+  const [articleTypes, setArticleTypes] = useState<ArticleTypeDto[]>([]);
   const [currArticleTypeIDs, setCurrArticleTypeIDs] = useState<string[]>([]);
-  const [filteredTypes, setFilteredTypes] = useState<ArticleType[]>([]);
+  const [filteredTypes, setFilteredTypes] = useState<ArticleTypeDto[]>([]);
   const { stocks, prevIndex, form, permission } = props;
   const control = form.control;
   const { fields, append, remove } = useFieldArray({

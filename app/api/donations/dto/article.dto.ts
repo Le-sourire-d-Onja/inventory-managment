@@ -1,12 +1,12 @@
-import { ArticleType } from "@/lib/generated/prisma";
+import { ArticleTypeDto } from "../../article-types/dto/article-types.dto";
 import { ArticleEntity } from "../entity/article.entity";
 
 export class ArticleDto {
   id: string;
-  type: ArticleType;
+  type: ArticleTypeDto;
   quantity: number;
 
-  constructor(id: string, type: ArticleType, quantity: number) {
+  constructor(id: string, type: ArticleTypeDto, quantity: number) {
     this.id = id;
     this.type = type;
     this.quantity = quantity;

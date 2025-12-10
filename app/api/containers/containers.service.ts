@@ -1,10 +1,10 @@
-import { ArticleType } from "@/lib/generated/prisma";
 import { prisma } from "../prisma";
 import { ContainerDto } from "./dto/container.dto";
 import { CreateContainerDto } from "./dto/create-container.dto";
 import { UpdateContainerDto } from "./dto/update-container.dto";
 import ArticleTypesService from "../article-types/article-types.service";
 import { containerInclude } from "./entity/container.entity";
+import { ArticleTypeDto } from "../article-types/dto/article-types.dto";
 
 
 export default class ContainersService {
@@ -46,7 +46,7 @@ export default class ContainersService {
      * @returns [weight, volume] of the container
      */
     static findContainerWeightAndVolume(
-      articleTypes: ArticleType[],
+      articleTypes: ArticleTypeDto[],
       contents?: { type_id: string, quantity: number }[],
     ): [number?, number?] {
       if (!contents) return [undefined, undefined]

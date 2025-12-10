@@ -6,7 +6,6 @@ import { columns } from "./columns";
 import ArticleTypeModal, { Permission } from "./article-types-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
-import { ArticleType } from "@/lib/generated/prisma";
 import { Plus } from "lucide-react";
 import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
 
@@ -17,10 +16,10 @@ enum Modals {
 }
 
 export default function Page() {
-  const [data, setData] = useState<ArticleType[]>([]);
+  const [data, setData] = useState<ArticleTypeDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
-  const [selectedData, setSelectedData] = useState<ArticleType | null>(null);
+  const [selectedData, setSelectedData] = useState<ArticleTypeDto | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
     Permission.READ
   );

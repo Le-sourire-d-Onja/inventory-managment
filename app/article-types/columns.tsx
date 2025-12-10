@@ -1,13 +1,13 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
-import { ArticleType } from "@/lib/generated/prisma";
+import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
 
 export const columns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void
-): ColumnDef<ArticleType>[] => [
+): ColumnDef<ArticleTypeDto>[] => [
   {
     accessorKey: "name",
     header: "Nom",
