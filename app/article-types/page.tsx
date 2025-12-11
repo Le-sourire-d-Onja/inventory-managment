@@ -6,7 +6,7 @@ import { columns } from "./columns";
 import ArticleTypeModal, { Permission } from "./article-types-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
 
 enum Modals {
@@ -64,6 +64,27 @@ export default function Page() {
     setSelectedData(null);
   }
 
+  async function onExport() {
+    setIsLoading(true);
+    fetch("/api/article-types/export")
+      .then((res) => {
+        if (res.ok) return res.blob();
+        throw res;
+      })
+      .then((res) => {
+          const url = URL.createObjectURL(res);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "export.xlsx";
+          a.click();
+          URL.revokeObjectURL(url);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
+  }
+
+
   function onView(id: string) {
     setModalPermission(Permission.READ);
     openModal(Modals.ARTICLE_TYPES, id);
@@ -89,10 +110,16 @@ export default function Page() {
         <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
           Type d'article
         </h1>
-        <Button onClick={() => onCreate()}>
-          <span className="hidden md:flex"> Créer un type d'article </span>
-          <Plus />
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => onExport()}>
+            <span className="hidden md:flex"> Exporter les types d'article </span>
+            <Download />
+          </Button>
+          <Button onClick={() => onCreate()}>
+            <span className="hidden md:flex"> Créer un type d'article </span>
+            <Plus />
+          </Button>
+        </div>
       </div>
 
       <ArticleTypeModal

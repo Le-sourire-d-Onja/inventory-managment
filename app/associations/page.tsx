@@ -67,7 +67,7 @@ export default function Page() {
     setSelectedData(null);
   }
 
-  async function onExtract() {
+  async function onExport() {
     setIsLoading(true);
     fetch("/api/associations/export")
       .then((res) => {
@@ -113,7 +113,7 @@ export default function Page() {
           Associations
         </h1>
         <div className="flex gap-2">
-          <Button onClick={() => onExtract()}>
+          <Button onClick={() => onExport()}>
             <span className="hidden md:flex"> Exporter les associations </span>
             <Download />
           </Button>

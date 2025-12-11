@@ -17,4 +17,12 @@ export class ArticleTypeDto {
   static parse(obj: ArticleTypeEntity) {
     return new ArticleTypeDto(obj.id, obj.name, obj.weight, obj.volume);
   }
+
+  static exportValues(articleType: ArticleTypeDto): string[] {
+    return [articleType.name, articleType.weight.toFixed(2), articleType.volume.toFixed(2)];
+  }
+
+  static exportHeaders(): string[] {
+    return ["Nom", "Poids (kg)", "Volume (m³)"];
+  }
 }
