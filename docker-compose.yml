@@ -17,15 +17,17 @@ services:
     depends_on:
       - db
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.inventory-management.rule=Host(`inventory-management.cooper-host.com`)"
       - "traefik.http.routers.inventory-management.entrypoints=websecure"
+      - "traefik.http.services.inventory-managemenet.loadbalancer.server.port=3000"
       - "traefik.http.routers.inventory-management.tls=true"
+      - "traefik.http.routers.inventory-management.tls.certresolver=letsencrypt"
     networks:
       - proxy
 
 volumes:
   pg_data:
-
 
 networks:
   proxy:
