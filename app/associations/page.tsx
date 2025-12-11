@@ -107,7 +107,7 @@ export default function Page() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 w-full">
       <div className="flex justify-between">
         <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
           Associations

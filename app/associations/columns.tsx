@@ -2,7 +2,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
 import { AssociationDto } from "../api/associations/dto/association.dto";
-import { localeDateOptions } from "@/lib/utils";
 
 export const columns = (
   onView: (id: string) => void,
@@ -30,17 +29,13 @@ export const columns = (
     cell: (props) => {
       const row = props.row.original;
       return (
-        <div className="flex flex-col w-fit">
-          <p className="flex">
-            <span className="min-w-[110px]"> Responsable: </span>{" "}
-            {row.person_in_charge}
-          </p>
-          <p className="flex">
-            <span className="min-w-[110px]"> Email: </span> {row.email}
-          </p>
-          <p className="flex">
-            <span className="min-w-[110px]">Téléphone: </span> {row.phone}
-          </p>
+        <div className="grid grid-cols-[fit-content(110px)_220px] grid-rows-3 gap-x-2 overflow-ellipsis">
+          <p> Responsable: </p>
+          <p className="overflow-clip"> {/* {row.person_in_charge} */} ReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponseble </p>
+          <p> Email: </p>
+          <p className="overflow-clip"> {row.email} </p>
+          <p> Téléphone: </p>
+          <p className="overflow-clip"> {row.phone} </p>
         </div>
       );
     },
