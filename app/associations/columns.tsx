@@ -31,7 +31,7 @@ export const columns = (
       return (
         <div className="grid grid-cols-[fit-content(110px)_220px] grid-rows-3 gap-x-2 overflow-ellipsis">
           <p> Responsable: </p>
-          <p className="overflow-clip"> {/* {row.person_in_charge} */} ReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponsebleReponseble </p>
+          <p className="overflow-clip"> {row.person_in_charge} </p>
           <p> Email: </p>
           <p className="overflow-clip"> {row.email} </p>
           <p> Téléphone: </p>
