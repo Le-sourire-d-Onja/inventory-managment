@@ -11,7 +11,11 @@ export default class ArticleTypesService {
    * @returns All the association entity of the database
    */
   static async findAll(): Promise<ArticleTypeDto[]> {
-    const articleTypes = await prisma.articleType.findMany({});
+    const articleTypes = await prisma.articleType.findMany({
+      orderBy: {
+        name: "asc",
+      }
+    });
     return articleTypes.map((articleType) => ArticleTypeDto.parse(articleType));
   }
 
