@@ -14,8 +14,12 @@ export async function POST(request: NextRequest) {
   if (!createArticleType.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
-  const articleType = await ArticleTypesService.create(createArticleType.data);
-  return NextResponse.json(articleType);
+  try {
+    const articleType = await ArticleTypesService.create(createArticleType.data);
+    return NextResponse.json(articleType);
+  } catch {
+    return NextResponse.json({ message: "Bad request" }, { status: 400 });
+  }
 }
 
 export async function PATCH(request: NextRequest) {
@@ -24,8 +28,12 @@ export async function PATCH(request: NextRequest) {
   if (!updateArticleType.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
-  const articleType = await ArticleTypesService.update(updateArticleType.data);
-  return NextResponse.json(articleType);
+  try {
+    const articleType = await ArticleTypesService.update(updateArticleType.data);
+    return NextResponse.json(articleType);
+  } catch {
+    return NextResponse.json({ message: "Bad request" }, { status: 400 });
+  }
 }
 
 export async function DELETE(request: NextRequest) {

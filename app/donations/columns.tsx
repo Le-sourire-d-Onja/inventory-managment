@@ -18,7 +18,7 @@ export const columns = (
     cell: (props) => {
       const articles = props.getValue() as ArticleDto[]
       return (
-        <div className="flex gap-1 w-[500px] overflow-x-hidden" >
+        <div className="flex gap-1 overflow-x-hidden" >
           {articles.map((article) => <Badge key={article.id}>{article.type.name}</Badge>)}
         </div>
       )

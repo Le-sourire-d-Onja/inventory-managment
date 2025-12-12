@@ -20,12 +20,30 @@ export default class ArticleTypesService {
   }
 
   /**
-   * This function is used to create a articleType in the database
+   * This function is used to find the articleType
+   * by name
    * 
+   * @param name The article name to find
+   * @returns the article or null
+   */
+  static async findByName(name: string): Promise<ArticleTypeDto | null> {
+    const articleType = await prisma.articleType.findFirst({
+      where: { name: name },
+    });
+    return articleType ? ArticleTypeDto.parse(articleType) : null;
+  }
+
+  /**
+   * This function is used to create a articleType in the database
+   *
    * @param data The entity to create the articleType
    * @returns The created articleType
    */
   static async create(data: CreateArticleTypeDto): Promise<ArticleTypeDto> {
+    const old = ArticleTypesService.findByName(data.name);
+    if (!old) {
+      throw new Error("Article already exists");
+    }
     const articleType = await prisma.articleType.create({
       data: data,
     });
@@ -40,6 +58,10 @@ export default class ArticleTypesService {
  * @returns The updated articleType
  */
   static async update(data: UpdateArticleTypeDto): Promise<ArticleTypeDto> {
+    const old = ArticleTypesService.findByName(data.name);
+    if (!old) {
+      throw new Error("Article already exists");
+    }
     const articleType = await prisma.articleType.update({
       where: { id: data.id },
       data: data,

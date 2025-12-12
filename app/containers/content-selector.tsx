@@ -91,7 +91,7 @@ export default function ContentSelector(props: ContentSelectorProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="overflow-y-scroll max-h-[500px] flex flex-col gap-4">
       {fields.map((field, index) => {
         const stock = stocks.find((stock) => stock.type.id === field.type_id);
         const selectedTypes = form.getValues("contents")
