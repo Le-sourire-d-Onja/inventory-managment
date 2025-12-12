@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { StockEntityShort } from "../api/stocks/dto/stock.dto";
-import { PulseLoader } from "react-spinners";
+import { MoonLoader } from "react-spinners";
 import { Bar, BarChart, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Empty, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
@@ -90,9 +90,11 @@ export default function Page() {
           Dasboard
         </h1>
       </div>
-      <div className="grid grid-cols-2 grid-rows-1 gap-4 w-full h-full">
+      <div className="grid grid-cols-2 gap-4 w-full h-full">
         {isLoading ? (
-          <PulseLoader size={5} color="var(--color-foreground)" />
+          <div className="flex justify-center items-center col-span-2 row-span-4">
+            <MoonLoader size={40} color="var(--color-foreground)" />
+          </div>
         ) : (
           <>
             <Button onClick={() => onExport("stock")}>
@@ -109,7 +111,7 @@ export default function Page() {
                 <CardTitle> Total articles dans le stock </CardTitle>
               </CardHeader>
               <CardContent>
-                {articleInStock} articles ({weightInStock} kg, {volumeInStock} m³)
+                {articleInStock} articles ({weightInStock.toFixed(2)} kg, {volumeInStock.toFixed(2)} m³)
               </CardContent>
             </Card>
             <Card>
@@ -117,7 +119,7 @@ export default function Page() {
                 <CardTitle> Total articles dans le conteneur </CardTitle>
               </CardHeader>
               <CardContent>
-                {articleInContainer} articles ({weightInContainer} kg, {volumeInContainer} m³)
+                {articleInContainer} articles ({weightInContainer.toFixed(2)} kg, {volumeInContainer.toFixed(2)} m³)
               </CardContent>
             </Card>
             <Card>

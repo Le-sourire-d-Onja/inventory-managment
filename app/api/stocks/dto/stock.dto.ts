@@ -15,7 +15,7 @@ export class StockDto {
   }
 
   static parse(obj: StockEntity) {
-    return new StockDto(obj.type, obj._sum.quantity, obj._sum.volume, obj._sum.weight);
+    return new StockDto(obj.type, obj.quantity, obj.volume, obj.weight);
   }
 
   static exportValues(stock: StockDto): string[] {
