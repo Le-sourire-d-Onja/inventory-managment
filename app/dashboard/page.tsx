@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { StockEntityShort } from "../api/stocks/entity/stock.entity";
+import { StockEntityShort } from "../api/stocks/dto/stock.dto";
 import { PulseLoader } from "react-spinners";
 import { Bar, BarChart, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Empty, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 export type StockUnit = {
   value: string;
@@ -25,7 +27,7 @@ export default function Page() {
   const [stocks, setStocks] = useState<StockEntityShort[]>([]);
   const [stockUnit, setStockUnit] = useState<StockUnit>(stockUnits[0]);
   const [stocksInContainer, setStocksInContainer] = useState<StockEntityShort[]>([]);
-  const [stockInContainerUnit, setStockInContainerUnit] = useState<StockUnit>(stockUnits[1]);  
+  const [stockInContainerUnit, setStockInContainerUnit] = useState<StockUnit>(stockUnits[1]);
 
   const articleInStock = stocks.reduce((acc, stock) => acc + stock.quantity, 0);
   const weightInStock = stocks.reduce((acc, stock) => acc + stock.weight, 0);
@@ -53,6 +55,27 @@ export default function Page() {
     retrieveStocks("container", setStocksInContainer);
   }, [])
 
+  async function onExport(type: "stock" | "container") {
+    setIsLoading(true);
+    fetch(`/api/stocks/export?type=${type}`)
+      .then((res) => {
+        if (res.ok) return res.blob();
+        throw res;
+      })
+      .then((res) => {
+          const url = URL.createObjectURL(res);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "export.xlsx";
+          a.click();
+          URL.revokeObjectURL(url);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
+  }
+
+
   const chartConfig = {
     quantity: {
       label: "Articles",
@@ -62,14 +85,25 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-extrabold tracking-tight text-balance">
-        Dashboard
-      </h1>
+      <div className="flex justify-between">
+        <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
+          Dasboard
+        </h1>
+      </div>
       <div className="grid grid-cols-2 grid-rows-1 gap-4 w-full h-full">
         {isLoading ? (
           <PulseLoader size={5} color="var(--color-foreground)" />
         ) : (
           <>
+            <Button onClick={() => onExport("stock")}>
+              <span className="hidden md:flex"> Exporter le stock </span>
+              <Download />
+            </Button>
+            <Button onClick={() => onExport("container")}>
+              <span className="hidden md:flex"> Exporter le stock du conteneur </span>
+              <Download />
+            </Button>
+
             <Card>
               <CardHeader>
                 <CardTitle> Total articles dans le stock </CardTitle>

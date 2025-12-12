@@ -7,7 +7,7 @@ import ContainerModal, { Permission } from "./container-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
 import { Plus } from "lucide-react";
-import { StockEntity } from "../api/stocks/entity/stock.entity";
+import { StockDto } from "../api/stocks/dto/stock.dto";
 import { useStateParam } from "@/lib/utils";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 
@@ -19,7 +19,7 @@ enum Modals {
 
 export default function Page() {
   const [data, setData] = useState<ContainerDto[]>([]);
-  const [stocks, setStocks] = useState<StockEntity[]>([]);
+  const [stocks, setStocks] = useState<StockDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedDataID, setSelectedDataID] = useStateParam("selected-data-id");
@@ -58,7 +58,7 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => StockEntity.parse(obj)))
+      .then((res) => res.map((obj: any) => StockDto.parse(obj)))
       .then((res) => setStocks(res))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));

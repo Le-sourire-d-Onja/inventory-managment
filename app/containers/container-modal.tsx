@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StockEntity } from "../api/stocks/entity/stock.entity";
+import { StockDto } from "../api/stocks/dto/stock.dto";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 import { updateContainerDtoSchema } from "../api/containers/dto/update-container.dto";
 import ContentSelector from "./content-selector";
@@ -43,7 +43,7 @@ export enum Permission {
 
 type ContainerModal = {
   data: ContainerDto | null;
-  stocks: StockEntity[];
+  stocks: StockDto[];
   permission: Permission;
   open: boolean;
   onOpenChange: (open: boolean) => void;

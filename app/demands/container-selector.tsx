@@ -26,12 +26,12 @@ import ContentSelector from "./content-selector";
 import { scrollBar } from "@/constants/tailwind";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 import { DemandDto } from "../api/demands/dto/demand.dto";
-import { StockEntity } from "../api/stocks/entity/stock.entity";
+import { StockDto } from "../api/stocks/dto/stock.dto";
 import { Separator } from "@radix-ui/react-separator";
 
 interface ContainerSelectorProps {
   data: ContainerDto[];
-  stocks: StockEntity[];
+  stocks: StockDto[];
   containers: ContainerDto[];
   onDownload: (id: string) => void;
   form: UseFormReturn<z.infer<typeof updateDemandDtoSchema>>;

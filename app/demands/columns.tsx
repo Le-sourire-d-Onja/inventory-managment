@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { localeDateOptions } from "@/lib/utils";
 import { AssociationDto } from "../api/associations/dto/association.dto";
 import { DemandStatus } from "@/lib/generated/prisma";
-import { StockEntity } from "../api/stocks/entity/stock.entity";
+import { StockDto } from "../api/stocks/dto/stock.dto";
 
 export const columns = (
-  stocks: StockEntity[],
+  stocks: StockDto[],
   onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void,

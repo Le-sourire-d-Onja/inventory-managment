@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import ContainerSelector from "./container-selector";
 import { Badge } from "@/components/ui/badge";
-import { StockEntity } from "../api/stocks/entity/stock.entity";
+import { StockDto } from "../api/stocks/dto/stock.dto";
 import { generatePdf } from "@/lib/pdf";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 
@@ -46,7 +46,7 @@ export enum Permission {
 
 type DemandModalProps = {
   data: DemandDto | null;
-  stocks: StockEntity[];
+  stocks: StockDto[];
   associations: AssociationDto[];
   containers: ContainerDto[];
   permission: Permission;

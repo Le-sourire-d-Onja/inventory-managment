@@ -21,14 +21,14 @@ import {
 import { Permission } from "@/app/demands/demand-modal";
 import z from "zod";
 import { updateDemandDtoSchema } from "@/app/api/demands/dto/update-demand.entity";
-import { StockEntity } from "../api/stocks/entity/stock.entity";
+import { StockDto } from "../api/stocks/dto/stock.dto";
 import { useEffect, useState } from "react";
 import { PulseLoader } from "react-spinners";
 import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
 
 interface ContentSelectorProps {
   prevIndex: number;
-  stocks: StockEntity[];
+  stocks: StockDto[];
   form: UseFormReturn<z.infer<typeof updateDemandDtoSchema>>;
   permission: Permission;
 }

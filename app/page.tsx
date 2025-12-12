@@ -1,3 +1,7 @@
+"use client";
+
+import Page from "./dashboard/page";
+
 export default function Home() {
-  return <></>;
+  return Page();
 }

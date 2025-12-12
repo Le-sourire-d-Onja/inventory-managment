@@ -1,11 +1,11 @@
 import { DemandStatus } from "@/lib/generated/prisma";
 import { prisma } from "../prisma";
-import { StockEntity } from "./entity/stock.entity";
+import { StockDto } from "./dto/stock.dto";
 import ArticleTypesService from "../article-types/article-types.service";
 
 export default class StocksService {
 
-  static async findAll(type: "stock" | "container" | "demand"): Promise<StockEntity[]> {
+  static async findAll(type: "stock" | "container" | "demand"): Promise<StockDto[]> {
     // Get the sum of the quantity of all article by types
     const articles = await prisma.article.groupBy({
       by: ["type_id"],
@@ -43,7 +43,7 @@ export default class StocksService {
       const weight = (articleType.weight ?? 0) * quantity;
       return { type: articleType, _sum: { quantity, volume, weight } }
     })
-    return stocks.map((stock) => new StockEntity(stock.type, stock._sum.quantity ?? 0, stock._sum.volume ?? 0, stock._sum.weight ?? 0));
+    return stocks.map((stock) => StockDto.parse(stock));
   }
 
 }
