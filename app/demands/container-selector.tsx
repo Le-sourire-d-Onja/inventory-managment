@@ -102,7 +102,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                         </FormDescription>
                       )}
                       {permission !== Permission.WRITE ? (
-                        <Input readOnly {...selectField} />
+                        <Input readOnly  {...selectField} value={DemandDto.packagingTxt(selectField.value)} />
                       ) : (
                         <Select
                           onValueChange={selectField.onChange}
@@ -179,7 +179,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
           </div>
         ))}
         {ufields.map((field, index) => (
-          <div className="flex gap-2">
+          <div key={field.id} className="flex gap-2">
             <FormField
               control={control}
               name={`linkedContainers.${index}.id`}

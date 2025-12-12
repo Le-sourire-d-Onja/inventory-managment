@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { CreateDemandDto } from "../api/demands/dto/create-demand.dto";
 import ConfirmModal from "@/components/confirm-modal";
 import ScanModal from "./scan-modal";
-import { Camera, Plus } from "lucide-react";
+import { Camera, Download, Plus } from "lucide-react";
 import { useDevices } from "@yudiel/react-qr-scanner";
 import { StockEntity } from "../api/stocks/entity/stock.entity";
 import { useStateParam } from "@/lib/utils";
@@ -140,7 +140,7 @@ export default function Page() {
       })),
       association_id: association.id,
     } as UpdateDemandDto;
-    
+
     const response = await fetch(`/api/demands`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -184,6 +184,27 @@ export default function Page() {
     setSelectedDataID(null);
   }
 
+  async function onExport() {
+    setIsLoading(true);
+    fetch("/api/demands/export")
+      .then((res) => {
+        if (res.ok) return res.blob();
+        throw res;
+      })
+      .then((res) => {
+          const url = URL.createObjectURL(res);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "export.xlsx";
+          a.click();
+          URL.revokeObjectURL(url);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
+  }
+
+
   function onView(id: string) {
     setModalPermission(Permission.READ);
     openModal(Modals.DEMAND, id);
@@ -226,10 +247,16 @@ export default function Page() {
             </Button>
           )}
 
-          <Button onClick={() => onCreate()}>
-            <span className="hidden md:flex"> Créer une demande </span>
-            <Plus />
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => onExport()}>
+              <span className="hidden md:flex"> Exporter les demandes </span>
+              <Download />
+            </Button>
+            <Button onClick={() => onCreate()}>
+              <span className="hidden md:flex"> Créer une demande </span>
+              <Plus />
+            </Button>
+          </div>
         </div>
       </div>
 

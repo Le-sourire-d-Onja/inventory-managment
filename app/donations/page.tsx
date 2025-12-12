@@ -119,7 +119,6 @@ export default function Page() {
             <Plus />
           </Button>
         </div>
-
       </div>
 
       <DonationModal

@@ -91,4 +91,12 @@ export class DemandDto {
       }))
     }))
   }
+
+  static exportValues(demand: DemandDto): string[] {
+    return [demand.association.name, DemandDto.statusData(demand.status).text, demand.containers.map((container) => `N°${container.id}` ).join(", ")];
+  };
+
+  static exportHeaders(): string[] {
+    return ["Association", "Statut", "Conteneurs"];
+  }
 }
