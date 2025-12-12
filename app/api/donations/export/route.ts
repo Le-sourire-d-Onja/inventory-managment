@@ -1,12 +1,12 @@
 import { ExportsService } from "@/app/api/exports/exports.service";
-import ArticleTypesService from "../article-types.service";
 import { NextResponse } from "next/server";
-import { ArticleTypeDto } from "../dto/article-types.dto";
+import DonationsService from "../donations.service";
+import { ArticleDto } from "../dto/article.dto";
 
 export async function GET() {
-  const articleTypes = await ArticleTypesService.findAll();
-  const exportData = articleTypes.map((association) => ArticleTypeDto.exportValues(association));
-  const exportHeaders = ArticleTypeDto.exportHeaders();
+  const donations = await DonationsService.findAll();
+  const exportData = donations.flatMap((donation) => donation.articles.map((article) => ArticleDto.exportValues(article)));
+  const exportHeaders = ArticleDto.exportHeaders();
   const buffer = await ExportsService.export(exportHeaders, exportData);
   return new NextResponse(buffer, {
     status: 200,

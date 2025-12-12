@@ -26,4 +26,12 @@ export class DonationDto {
       obj.description,
     );
   }
+
+  static exportValues(donation: DonationDto): string[] {
+    return [donation.articles.map((article) => article.type.name).join(", ") , donation.description ?? ""];
+  }
+
+  static exportHeaders(): string[] {
+    return ["Articles", "Description"];
+  }
 }

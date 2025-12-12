@@ -8,7 +8,6 @@ import AssociationModal, { Permission } from "./association-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
 import { Download, Plus } from "lucide-react";
-import { Workbook } from "exceljs";
 
 enum Modals {
   ASSOCIATION,

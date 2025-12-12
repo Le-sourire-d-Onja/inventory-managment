@@ -7,7 +7,7 @@ import { DonationDto } from "../api/donations/dto/donation.dto";
 import DonationModal, { Permission } from "./donation-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 
 enum Modals {
   DONATION,
@@ -63,6 +63,27 @@ export default function Page() {
     setSelectedData(null);
   }
 
+  async function onExport() {
+    setIsLoading(true);
+    fetch("/api/donations/export")
+      .then((res) => {
+        if (res.ok) return res.blob();
+        throw res;
+      })
+      .then((res) => {
+          const url = URL.createObjectURL(res);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "export.xlsx";
+          a.click();
+          URL.revokeObjectURL(url);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
+  }
+
+
   function onView(id: string) {
     setModalPermission(Permission.READ);
     openModal(Modals.DONATION, id);
@@ -88,10 +109,17 @@ export default function Page() {
         <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
           Donations
         </h1>
-        <Button onClick={() => onCreate()}>
-          <span className="hidden md:flex"> Créer une donation </span>
-          <Plus />
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => onExport()}>
+            <span className="hidden md:flex"> Exporter les donations </span>
+            <Download />
+          </Button>
+          <Button onClick={() => onCreate()}>
+            <span className="hidden md:flex"> Créer une donation </span>
+            <Plus />
+          </Button>
+        </div>
+
       </div>
 
       <DonationModal
