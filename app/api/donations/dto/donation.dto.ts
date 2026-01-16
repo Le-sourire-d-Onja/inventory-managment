@@ -28,7 +28,7 @@ export class DonationDto {
   }
 
   static exportValues(donation: DonationDto): string[] {
-    return [donation.articles.map((article) => article.type.name).join(", ") , donation.description ?? ""];
+    return [donation.articles.map((article) => `${article.type.name} (${article.quantity})`).join(", ") , donation.description ?? ""];
   }
 
   static exportHeaders(): string[] {
