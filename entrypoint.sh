@@ -4,5 +4,5 @@
 npx prisma migrate deploy
 
 # Launch nginx
-exec nginx -g "daemon off"
+exec "$@"
 
