@@ -14,21 +14,22 @@ export const columns = (
     header: "Identifiant",
     cell: (props) => {
       const row = props.row.original;
-      return (<p> N°{row.id} </p>)
-    }
+      return <p> N°{row.id} </p>;
+    },
   },
   {
-    accessorFn: (row) =>
-      row.contents.map((content) => content.type.name),
+    accessorFn: (row) => row.contents.map((content) => content.type.name),
     header: "Contenu",
     cell: (props) => {
       const row = props.row.original;
       return (
-        <div className="flex gap-1 w-[500px] overflow-x-hidden" >
-          {row.contents.map((content) => <Badge key={content.id}>{content.type.name}</Badge>)}
+        <div className="flex gap-1 w-[500px] pb-1 overflow-x-scroll">
+          {row.contents.map((content) => (
+            <Badge key={content.id}>{content.type.name}</Badge>
+          ))}
         </div>
-      )
-    }
+      );
+    },
   },
   {
     accessorKey: "association_id",
@@ -48,12 +49,15 @@ export const columns = (
           )}
         </div>
       );
-    }
+    },
   },
   {
     id: "total_weight",
     accessorFn: (row) =>
-      row.contents.reduce((prev, curr) => prev + curr.quantity * curr.type.weight, 0),
+      row.contents.reduce(
+        (prev, curr) => prev + curr.quantity * curr.type.weight,
+        0,
+      ),
     header: "Poids total",
     cell: (props) => {
       const weight = props.getValue() as number;
@@ -63,7 +67,10 @@ export const columns = (
   {
     id: "total_volume",
     accessorFn: (row) =>
-      row.contents.reduce((prev, curr) => prev + curr.quantity * curr.type.volume, 0),
+      row.contents.reduce(
+        (prev, curr) => prev + curr.quantity * curr.type.volume,
+        0,
+      ),
     header: "Volume total",
     cell: (props) => {
       const volume = props.getValue() as number;

@@ -26,7 +26,7 @@ export default function Page() {
   const selectedData =
     data.find((container) => container.id === selectedDataID) ?? null;
   const [modalPermission, setModalPermission] = useState<Permission>(
-    Permission.READ
+    Permission.READ,
   );
 
   useEffect(() => {
@@ -69,14 +69,16 @@ export default function Page() {
     retrieveStocks();
   }
 
-  async function deleteDemand(id: string) {
-    fetch(`/api/demands?id=${id}`, {
+  async function deleteContainer(id: string) {
+    fetch(`/api/containers?id=${id}`, {
       method: "DELETE",
-    }).then(() => {
-      setData((prev) => prev.filter((demand) => demand.id !== id));
-    }).then(() => {
-      retrieveStocks();
-    });
+    })
+      .then(() => {
+        setData((prev) => prev.filter((container) => container.id !== id));
+      })
+      .then(() => {
+        retrieveStocks();
+      });
   }
 
   function openModal(modal: Modals, id?: string) {
@@ -111,7 +113,6 @@ export default function Page() {
 
   function onRemove(id: string) {
     openModal(Modals.REMOVE, id);
-
   }
 
   return (
@@ -139,20 +140,16 @@ export default function Page() {
       <ConfirmModal
         open={opennedModal === Modals.REMOVE}
         onOpenChange={closeModal}
-        onConfirm={() => selectedData && deleteDemand(selectedData.id)}
+        onConfirm={() => selectedData && deleteContainer(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
-        Vous êtes sur le point de supprimer un contenant. Êtes-vous sûr de vouloir
-        continuer ?
+        Vous êtes sur le point de supprimer un contenant. Êtes-vous sûr de
+        vouloir continuer ?
       </ConfirmModal>
 
       <DataTable
         data={data}
-        columns={columns(
-          onView,
-          onEdit,
-          onRemove,
-        )}
+        columns={columns(onView, onEdit, onRemove)}
         isLoading={isLoading}
       />
     </div>

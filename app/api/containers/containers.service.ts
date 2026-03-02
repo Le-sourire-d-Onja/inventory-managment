@@ -6,61 +6,68 @@ import ArticleTypesService from "../article-types/article-types.service";
 import { containerInclude } from "./entity/container.entity";
 import { ArticleTypeDto } from "../article-types/dto/article-types.dto";
 
-
 export default class ContainersService {
+  /**
+   * This function returns the number of containers created in the current year
+   * from the database
+   *
+   * @returns The number of containers
+   */
+  static async findNbContainers() {
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const nbContainers = await prisma.container.count({
+      where: {
+        OR: [
+          { demand: { created_at: { gte: startOfYear } } },
+          { demand_id: null },
+        ],
+      },
+    });
+    return nbContainers;
+  }
 
-   /**
-     * This function returns the number of containers created in the current year
-     * from the database
-     *
-     * @returns The number of containers
-     */
-    static async findNbContainers() {
-      const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-      const nbContainers = await prisma.container.count({
-        where: { OR: [{ demand: { created_at: { gte: startOfYear, } } }, { demand_id: null }] },
-      });
-      return nbContainers
-    }
+  /**
+   * This function format the id of a container from the number
+   * of container in the database
+   *
+   * format: YYNbContainer
+   *
+   * @param nbContainers The number of container in the database
+   * @returns the formatted id
+   */
+  static formatContainerID(nbContainers: number) {
+    const year = new Date().getFullYear() % 100;
+    return `${year}${String(nbContainers).padStart(4, "0")}`;
+  }
 
-    /**
-     * This function format the id of a container from the number
-     * of container in the database
-     *
-     * format: YYNbContainer
-     *
-     * @param nbContainers The number of container in the database
-     * @returns the formatted id
-     */
-    static formatContainerID(nbContainers: number) {
-      const year = new Date().getFullYear() % 100;
-      return `${year}${String(nbContainers).padStart(4, '0')}`
-    }
+  /**
+   * This function will compute all weight and volume of all
+   * contents and total them for the container
+   *
+   * @param container The container to reduce all weight and volume
+   * @param articleTypes All the types available in the container
+   * @returns [weight, volume] of the container
+   */
+  static findContainerWeightAndVolume(
+    articleTypes: ArticleTypeDto[],
+    contents?: { type_id: string; quantity: number }[],
+  ): [number?, number?] {
+    if (!contents) return [undefined, undefined];
+    return contents?.reduce(
+      ([weightTotal, volumeTotal], content) => {
+        const articleType = articleTypes.find(
+          (type) => type.id === content.type_id,
+        );
+        const weight = articleType?.weight ?? 0;
+        const volume = articleType?.volume ?? 0;
 
-    /**
-     * This function will compute all weight and volume of all
-     * contents and total them for the container
-     *
-     * @param container The container to reduce all weight and volume
-     * @param articleTypes All the types available in the container
-     * @returns [weight, volume] of the container
-     */
-    static findContainerWeightAndVolume(
-      articleTypes: ArticleTypeDto[],
-      contents?: { type_id: string, quantity: number }[],
-    ): [number?, number?] {
-      if (!contents) return [undefined, undefined]
-      return contents?.reduce(
-        ([weightTotal, volumeTotal], content) => {
-          const articleType = articleTypes.find((type) => type.id === content.type_id);
-          const weight = articleType?.weight ?? 0;
-          const volume = articleType?.volume ?? 0;
-
-          return [
-            weightTotal + content.quantity * weight,
-            volumeTotal + content.quantity * volume,
-          ];
-      }, [0, 0]);
+        return [
+          weightTotal + content.quantity * weight,
+          volumeTotal + content.quantity * volume,
+        ];
+      },
+      [0, 0],
+    );
   }
 
   /**
@@ -75,8 +82,7 @@ export default class ContainersService {
       where: { id: id },
       include: containerInclude,
     });
-    if (!container)
-      throw new Error("Not found");
+    if (!container) throw new Error("Not found");
     return ContainerDto.parse(container);
   }
 
@@ -105,7 +111,10 @@ export default class ContainersService {
 
     const nbContainers = await ContainersService.findNbContainers();
 
-    const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, data.contents);
+    const [weight, volume] = ContainersService.findContainerWeightAndVolume(
+      articleTypes,
+      data.contents,
+    );
 
     const container = await prisma.container.create({
       data: {
@@ -114,13 +123,13 @@ export default class ContainersService {
         volume: volume ?? 0,
         packaging: data.packaging,
         contents: {
-          create: data.contents.map(content => ({
+          create: data.contents.map((content) => ({
             type: {
               connect: { id: content.type_id },
             },
             quantity: content.quantity,
-          }))
-        }
+          })),
+        },
       },
       include: containerInclude,
     });
@@ -137,7 +146,10 @@ export default class ContainersService {
   static async update(data: UpdateContainerDto): Promise<ContainerDto> {
     const articleTypes = await ArticleTypesService.findAll();
 
-    const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, data.contents);
+    const [weight, volume] = ContainersService.findContainerWeightAndVolume(
+      articleTypes,
+      data.contents,
+    );
 
     const container = await prisma.container.update({
       where: { id: data.id },
@@ -146,18 +158,20 @@ export default class ContainersService {
         volume: volume,
         packaging: data.packaging,
         contents: {
-          create: data.contents?.map(content => ({
+          deleteMany: {},
+          create: data.contents?.map((content) => ({
             type: {
               connect: { id: content.type_id },
             },
             quantity: content.quantity,
           })),
         },
-        demand_id: data.demand_id
+        demand_id: data.demand_id,
       },
       include: containerInclude,
     });
-    return ContainerDto.parse(container);  }
+    return ContainerDto.parse(container);
+  }
 
   /**
    * This function is used to delete a container from the database
@@ -168,10 +182,8 @@ export default class ContainersService {
   static async delete(id: string): Promise<ContainerDto> {
     const container = await prisma.container.delete({
       where: { id: id },
-      include: containerInclude
+      include: containerInclude,
     });
     return ContainerDto.parse(container);
   }
-
-
 }
