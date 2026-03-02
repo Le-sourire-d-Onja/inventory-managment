@@ -6,9 +6,10 @@ import { AssociationDto } from "../api/associations/dto/association.dto";
 export const columns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
-  onRemove: (id: string) => void
+  onRemove: (id: string) => void,
 ): ColumnDef<AssociationDto>[] => [
   {
+    id: "name",
     accessorKey: "name",
     header: "Nom",
     cell: (props) => {

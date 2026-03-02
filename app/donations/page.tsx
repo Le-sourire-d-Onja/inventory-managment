@@ -21,7 +21,7 @@ export default function Page() {
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedData, setSelectedData] = useState<DonationDto | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
-    Permission.READ
+    Permission.READ,
   );
 
   async function retrieveDonations() {
@@ -71,18 +71,17 @@ export default function Page() {
         throw res;
       })
       .then((res) => {
-          const url = URL.createObjectURL(res);
+        const url = URL.createObjectURL(res);
 
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "export.xlsx";
-          a.click();
-          URL.revokeObjectURL(url);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "export.xlsx";
+        a.click();
+        URL.revokeObjectURL(url);
       })
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
   }
-
 
   function onView(id: string) {
     setModalPermission(Permission.READ);
@@ -134,13 +133,15 @@ export default function Page() {
         onConfirm={() => selectedData && deleteDonation(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
-        Vous êtes sur le point de supprimer une donation. Êtes-vous sûr de vouloir continuer ?
+        Vous êtes sur le point de supprimer une donation. Êtes-vous sûr de
+        vouloir continuer ?
       </ConfirmModal>
 
       <DataTable
         data={data}
         columns={columns(onView, onEdit, onRemove)}
         isLoading={isLoading}
+        searchColumnId="articles"
       />
     </div>
   );

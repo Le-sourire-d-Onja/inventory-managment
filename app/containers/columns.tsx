@@ -32,7 +32,8 @@ export const columns = (
     },
   },
   {
-    accessorKey: "association_id",
+    id: "status",
+    accessorFn: (row) => ContainerDto.containerState(row).text,
     header: "Statut",
     cell: (props) => {
       const row = props.row.original;

@@ -19,11 +19,9 @@ export default function Page() {
   const [data, setData] = useState<AssociationDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
-  const [selectedData, setSelectedData] = useState<AssociationDto | null>(
-    null
-  );
+  const [selectedData, setSelectedData] = useState<AssociationDto | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
-    Permission.READ
+    Permission.READ,
   );
 
   async function retrieveAssociations() {
@@ -74,13 +72,13 @@ export default function Page() {
         throw res;
       })
       .then((res) => {
-          const url = URL.createObjectURL(res);
+        const url = URL.createObjectURL(res);
 
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "export.xlsx";
-          a.click();
-          URL.revokeObjectURL(url);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "export.xlsx";
+        a.click();
+        URL.revokeObjectURL(url);
       })
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
@@ -143,6 +141,7 @@ export default function Page() {
       <DataTable
         data={data}
         columns={columns(onView, onEdit, onRemove)}
+        searchColumnId="name"
         isLoading={isLoading}
       />
     </div>

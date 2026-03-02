@@ -14,10 +14,11 @@ export const columns = (
   onEdit: (id: string) => void,
   onRemove: (id: string) => void,
   onValidate: (id: string) => void,
-  onDownload: (id: string) => void
+  onDownload: (id: string) => void,
 ): ColumnDef<DemandDto>[] => [
   {
-    accessorKey: "name",
+    id: "name",
+    accessorFn: (row) => row.association.name,
     header: "Nom",
     cell: (props) => {
       const row = props.row.original;
@@ -32,6 +33,7 @@ export const columns = (
     },
   },
   {
+    id: "status",
     accessorKey: "status",
     header: "Statut",
     cell: (props) => {
@@ -78,7 +80,7 @@ export const columns = (
     cell: (props) => {
       const row = props.row.original;
       const contents = row.containers.flatMap(
-        (container) => container.contents
+        (container) => container.contents,
       );
       const hasStock = contents.every((content) => {
         const stock = stocks.find((stock) => stock.type.id === content.type.id);

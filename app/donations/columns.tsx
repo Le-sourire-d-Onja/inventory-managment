@@ -2,27 +2,28 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
 import { DonationDto } from "../api/donations/dto/donation.dto";
-import { localeDateOptions } from "@/lib/utils";
-import { ArticleDto } from "../api/donations/dto/article.dto";
 import { Badge } from "@/components/ui/badge";
 
 export const columns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
-  onRemove: (id: string) => void
+  onRemove: (id: string) => void,
 ): ColumnDef<DonationDto>[] => [
   {
     id: "articles",
-    accessorFn: (row) => row.articles,
+    accessorFn: (row) =>
+      row.articles.map((article) => article.type.name).join(" "),
     header: "Articles",
     cell: (props) => {
-      const articles = props.getValue() as ArticleDto[]
+      const articles = props.row.original.articles;
       return (
-        <div className="flex gap-1 overflow-x-hidden" >
-          {articles.map((article) => <Badge key={article.id}>{article.type.name}</Badge>)}
+        <div className="flex gap-1 overflow-x-hidden">
+          {articles.map((article) => (
+            <Badge key={article.id}>{article.type.name}</Badge>
+          ))}
         </div>
-      )
-    }
+      );
+    },
   },
   {
     id: "total_quantity",

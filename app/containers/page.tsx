@@ -10,6 +10,8 @@ import { Plus } from "lucide-react";
 import { StockDto } from "../api/stocks/dto/stock.dto";
 import { useStateParam } from "@/lib/utils";
 import { ContainerDto } from "../api/containers/dto/container.dto";
+import { DemandStatus } from "../../lib/generated/prisma";
+import { DemandDto } from "../api/demands/dto/demand.dto";
 
 enum Modals {
   CONTAINER,
@@ -150,6 +152,7 @@ export default function Page() {
       <DataTable
         data={data}
         columns={columns(onView, onEdit, onRemove)}
+        searchColumnId="id"
         isLoading={isLoading}
       />
     </div>

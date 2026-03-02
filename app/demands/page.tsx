@@ -39,7 +39,7 @@ export default function Page() {
   const selectedData =
     data.find((demand) => demand.id === selectedDataID) ?? null;
   const [modalPermission, setModalPermission] = useState<Permission>(
-    Permission.READ
+    Permission.READ,
   );
   const devices = useDevices();
 
@@ -65,7 +65,7 @@ export default function Page() {
       .finally(() => setIsLoading(false));
   }
 
-    async function retrieveContainers() {
+  async function retrieveContainers() {
     setIsLoading(true);
     fetch("/api/containers")
       .then((res) => {
@@ -77,7 +77,6 @@ export default function Page() {
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
   }
-
 
   async function retrieveAssociations() {
     setIsLoading(true);
@@ -115,11 +114,13 @@ export default function Page() {
   async function deleteDemand(id: string) {
     fetch(`/api/demands?id=${id}`, {
       method: "DELETE",
-    }).then(() => {
-      setData((prev) => prev.filter((demand) => demand.id !== id));
-    }).then(() => {
-      retrieveStocks();
-    });
+    })
+      .then(() => {
+        setData((prev) => prev.filter((demand) => demand.id !== id));
+      })
+      .then(() => {
+        retrieveStocks();
+      });
   }
 
   async function validateDemand(id: string) {
@@ -135,8 +136,8 @@ export default function Page() {
         ...container,
         contents: container.contents.map((content) => ({
           ...content,
-          type_id: content.type.id
-        }))
+          type_id: content.type.id,
+        })),
       })),
       association_id: association.id,
     } as UpdateDemandDto;
@@ -192,18 +193,17 @@ export default function Page() {
         throw res;
       })
       .then((res) => {
-          const url = URL.createObjectURL(res);
+        const url = URL.createObjectURL(res);
 
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "export.xlsx";
-          a.click();
-          URL.revokeObjectURL(url);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "export.xlsx";
+        a.click();
+        URL.revokeObjectURL(url);
       })
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
   }
-
 
   function onView(id: string) {
     setModalPermission(Permission.READ);
@@ -230,7 +230,6 @@ export default function Page() {
 
   function onRemove(id: string) {
     openModal(Modals.REMOVE, id);
-
   }
 
   return (
@@ -306,8 +305,19 @@ export default function Page() {
           onEdit,
           onRemove,
           onValidate,
-          downloadDemand
+          downloadDemand,
         )}
+        searchColumnId="name"
+        filters={[
+          {
+            columnId: "status",
+            label: "Statut",
+            options: Object.values(DemandStatus).map((status) => ({
+              label: DemandDto.statusData(status).text,
+              value: status,
+            })),
+          },
+        ]}
         isLoading={isLoading}
       />
     </div>
