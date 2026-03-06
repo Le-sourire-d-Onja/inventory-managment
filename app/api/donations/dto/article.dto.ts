@@ -16,12 +16,16 @@ export class ArticleDto {
     return new ArticleDto(obj.id, obj.type, obj.quantity);
   }
 
-  static exportValues(article: ArticleDto): string[] {
-    return [article.type.name, article.quantity.toFixed(2), (article.quantity * article.type.weight).toFixed(2), (article.quantity * article.type.volume).toFixed(2)];
+  static exportValues(article: ArticleDto): (string | number)[] {
+    return [
+      article.type.name,
+      article.quantity,
+      article.quantity * article.type.weight,
+      article.quantity * article.type.volume,
+    ];
   }
 
   static exportHeaders(): string[] {
     return ["Nom", "Quantité", "Poids (kg)", "Volume (m³)"];
   }
-
 }

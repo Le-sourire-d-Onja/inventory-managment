@@ -6,7 +6,7 @@ import { columns } from "./columns";
 import ContainerModal, { Permission } from "./container-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { StockDto } from "../api/stocks/dto/stock.dto";
 import { useStateParam } from "@/lib/utils";
 import { ContainerDto } from "../api/containers/dto/container.dto";
@@ -25,11 +25,8 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedDataID, setSelectedDataID] = useStateParam("selected-data-id");
-  const selectedData =
-    data.find((container) => container.id === selectedDataID) ?? null;
-  const [modalPermission, setModalPermission] = useState<Permission>(
-    Permission.READ,
-  );
+  const selectedData = data.find((container) => container.id === selectedDataID) ?? null;
+  const [modalPermission, setModalPermission] = useState<Permission>(Permission.READ);
 
   useEffect(() => {
     retrieveData();
@@ -98,6 +95,26 @@ export default function Page() {
     setSelectedDataID(null);
   }
 
+  async function onExport() {
+    setIsLoading(true);
+    fetch("/api/containers/export")
+      .then((res) => {
+        if (res.ok) return res.blob();
+        throw res;
+      })
+      .then((res) => {
+        const url = URL.createObjectURL(res);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "export.xlsx";
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setIsLoading(false));
+  }
+
   function onView(id: string) {
     setModalPermission(Permission.READ);
     openModal(Modals.CONTAINER, id);
@@ -120,10 +137,13 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between">
-        <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
-          Contenants
-        </h1>
+        <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">Contenants</h1>
         <div className="flex gap-2">
+          <Button onClick={() => onExport()}>
+            <span className="hidden md:flex"> Exporter les contenants </span>
+            <Download />
+          </Button>
+
           <Button onClick={() => onCreate()}>
             <span className="hidden md:flex"> Créer un contenant </span>
             <Plus />
@@ -145,16 +165,10 @@ export default function Page() {
         onConfirm={() => selectedData && deleteContainer(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
-        Vous êtes sur le point de supprimer un contenant. Êtes-vous sûr de
-        vouloir continuer ?
+        Vous êtes sur le point de supprimer un contenant. Êtes-vous sûr de vouloir continuer ?
       </ConfirmModal>
 
-      <DataTable
-        data={data}
-        columns={columns(onView, onEdit, onRemove)}
-        searchColumnId="id"
-        isLoading={isLoading}
-      />
+      <DataTable data={data} columns={columns(onView, onEdit, onRemove)} searchColumnId="id" isLoading={isLoading} />
     </div>
   );
 }

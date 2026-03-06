@@ -7,7 +7,7 @@ export class StockDto {
   volume: number;
   weight: number;
 
-  constructor(type: ArticleTypeDto, quantity: number, volume: number, weight: number ) {
+  constructor(type: ArticleTypeDto, quantity: number, volume: number, weight: number) {
     this.type = type;
     this.quantity = quantity;
     this.volume = volume;
@@ -18,8 +18,8 @@ export class StockDto {
     return new StockDto(obj.type, obj.quantity, obj.volume, obj.weight);
   }
 
-  static exportValues(stock: StockDto): string[] {
-    return [stock.type.name, stock.quantity.toFixed(2), stock.volume.toFixed(2), stock.weight.toFixed(2)];
+  static exportValues(stock: StockDto): (string | number)[] {
+    return [stock.type.name, stock.quantity, stock.volume, stock.weight];
   }
 
   static exportHeaders(): string[] {

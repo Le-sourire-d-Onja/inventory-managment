@@ -6,7 +6,6 @@ export class ArticleTypeDto {
   weight: number;
   volume: number;
 
-
   constructor(id: string, name: string, weight: number, volume: number) {
     this.id = id;
     this.name = name;
@@ -18,8 +17,8 @@ export class ArticleTypeDto {
     return new ArticleTypeDto(obj.id, obj.name, obj.weight, obj.volume);
   }
 
-  static exportValues(articleType: ArticleTypeDto): string[] {
-    return [articleType.name, articleType.weight.toFixed(2), articleType.volume.toFixed(2)];
+  static exportValues(articleType: ArticleTypeDto): (string | number)[] {
+    return [articleType.name, articleType.weight, articleType.volume];
   }
 
   static exportHeaders(): string[] {

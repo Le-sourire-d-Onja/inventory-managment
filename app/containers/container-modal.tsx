@@ -1,19 +1,6 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,13 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { PackagingType } from "@/lib/generated/prisma";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StockDto } from "../api/stocks/dto/stock.dto";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 import { updateContainerDtoSchema } from "../api/containers/dto/update-container.dto";
@@ -59,10 +40,11 @@ export default function ContainerModal(props: ContainerModal) {
     form.reset({
       id: data?.id ?? undefined,
       packaging: data?.packaging ?? PackagingType.NONE,
-      contents: data?.contents.map((content) => ({
-        ...content,
-        type_id: content.type.id,
-      })) ?? [],
+      contents:
+        data?.contents.map((content) => ({
+          ...content,
+          type_id: content.type.id,
+        })) ?? [],
     });
   }
 
@@ -71,7 +53,7 @@ export default function ContainerModal(props: ContainerModal) {
   }, [data]);
 
   async function onSubmit(values: z.infer<typeof updateContainerDtoSchema>) {
-    const response = await fetch((`/api/containers`), {
+    const response = await fetch(`/api/containers`, {
       method: data ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(values),
@@ -91,14 +73,11 @@ export default function ContainerModal(props: ContainerModal) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {!data ? "Nouveau contenant" : (`Contenant N°${data.id}`)}
+            {!data ? "Nouveau contenant" : `Contenant N°${data.id}`}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col gap-6"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <div className="flex gap-2 items-end">
                 <FormField
@@ -107,12 +86,9 @@ export default function ContainerModal(props: ContainerModal) {
                   render={({ field: selectField }) => (
                     <FormItem>
                       {permission !== Permission.WRITE ? (
-                        <Input readOnly {...selectField} />
+                        <Input readOnly {...selectField} value={DemandDto.packagingTxt(selectField.value)} />
                       ) : (
-                        <Select
-                          onValueChange={selectField.onChange}
-                          defaultValue={selectField.value}
-                        >
+                        <Select onValueChange={selectField.onChange} defaultValue={selectField.value}>
                           <FormControl>
                             <SelectTrigger className="min-w-[150px]">
                               <SelectValue placeholder="Type de contenant" />
@@ -152,11 +128,7 @@ export default function ContainerModal(props: ContainerModal) {
                 </div>
               </div>
 
-              <ContentSelector
-                stocks={stocks}
-                form={form}
-                permission={permission}
-              />
+              <ContentSelector stocks={stocks} form={form} permission={permission} />
             </div>
 
             <Separator />
@@ -172,11 +144,7 @@ export default function ContainerModal(props: ContainerModal) {
                   Réinitialiser
                 </Button>
                 <div className="flex gap-4 justify-end">
-                  <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={() => onOpenChange(false)}
-                  >
+                  <Button variant="secondary" type="button" onClick={() => onOpenChange(false)}>
                     Annuler
                   </Button>
                   <Button variant="default" type="submit">
