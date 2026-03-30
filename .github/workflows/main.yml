@@ -36,12 +36,26 @@ jobs:
           echo "${{ secrets.OVH_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.OVH_SSH_HOST }} >> ~/.ssh/known_hosts
-
+          
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_CLIENT_SECRET }}
+          installation-id: ${{ secrets.GH_APP_CLIENT_ID }}
+    
       - name: Deploy
         run: |
-          ssh ${{ secrets.OVH_SSH_USER }}@${{ secrets.OVH_SSH_HOST }} << 'EOF'
-            cd /srv/inventory-managment
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+      
+            echo "${{ steps.app-token.outputs.token }}" | \
+              docker login ghcr.io \
+              -u x-access-token \
+              --password-stdin
+      
+            cd /opt/app
             docker compose pull
             docker compose up -d
-            docker image prune -f
+      
           EOF
