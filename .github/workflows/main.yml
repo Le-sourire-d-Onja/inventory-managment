@@ -18,12 +18,12 @@ jobs:
 
       - name: Push image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/inventory-managment:latest
+          docker push ghcr.io/le-sourire-d-onja/inventory-managment:latest
       
       - name: Build image
         run: |
           docker build \
-            -t ghcr.io/${{ github.repository_owner }}/myapp:latest \
+            -t ghcr.io/le-sourire-d-onja/inventory-managment:latest \
             .
 
       - name: Setup SSH
