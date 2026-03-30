@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read
       packages: write 
@@ -32,7 +33,7 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.OVH_SSH_SECRET_KEY }}" > ~/.ssh/id_ed25519
+          echo "${{ secrets.OVH_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.OVH_SSH_HOST }} >> ~/.ssh/known_hosts
 
