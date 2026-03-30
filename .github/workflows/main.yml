@@ -41,13 +41,12 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_APP_CLIENT_SECRET }}
           installation-id: ${{ secrets.GH_APP_CLIENT_ID }}
     
       - name: Deploy
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          ssh ${{ secrets.OVH_SSH_USER }}@${{ secrets.OVH_SSH_HOST }} << EOF
       
             echo "${{ steps.app-token.outputs.token }}" | \
               docker login ghcr.io \
