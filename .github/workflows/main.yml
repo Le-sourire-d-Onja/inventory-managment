@@ -53,7 +53,7 @@ jobs:
               -u x-access-token \
               --password-stdin
       
-            cd /opt/app
+            cd /srv/inventory-managment
             docker compose pull
             docker compose up -d
       
