@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import AppSidebar from "@/components/app-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import AppShell from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
-import { Suspense } from "react";
-import { MoonLoader } from "react-spinners";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,15 +36,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SidebarProvider>
-            <AppSidebar />
-            <Suspense fallback={<MoonLoader />}>
-              <main className="flex flex-col gap-2 w-full p-8">
-                <SidebarTrigger className="initial md:hidden" />
-                {children}
-              </main>
-            </Suspense>
-          </SidebarProvider>
+          <AppShell>{children}</AppShell>
           <Toaster />
         </ThemeProvider>
       </body>

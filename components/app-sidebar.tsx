@@ -8,6 +8,7 @@ import {
   Gift,
   Inbox,
   LayoutDashboard,
+  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
@@ -103,6 +104,19 @@ export default function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         </Collapsible>
+        <Button
+          className="justify-start mt-4"
+          variant="outline"
+          onClick={async () => {
+            await fetch("/api/auth/logout", {
+              method: "POST",
+              credentials: "same-origin",
+            });
+            router.push("/auth/login");
+          }}
+        >
+          <LogOut /> Déconnexion
+        </Button>
       </SidebarContent>
     </Sidebar>
   );
