@@ -21,7 +21,7 @@ export default function Page() {
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedData, setSelectedData] = useState<ArticleTypeDto | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
-    Permission.READ
+    Permission.READ,
   );
 
   async function retrieveArticleTypes() {
@@ -72,18 +72,17 @@ export default function Page() {
         throw res;
       })
       .then((res) => {
-          const url = URL.createObjectURL(res);
+        const url = URL.createObjectURL(res);
 
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "export.xlsx";
-          a.click();
-          URL.revokeObjectURL(url);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "export.xlsx";
+        a.click();
+        URL.revokeObjectURL(url);
       })
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
   }
-
 
   function onView(id: string) {
     setModalPermission(Permission.READ);
@@ -112,7 +111,10 @@ export default function Page() {
         </h1>
         <div className="flex gap-2">
           <Button onClick={() => onExport()}>
-            <span className="hidden md:flex"> Exporter les types d'article </span>
+            <span className="hidden md:flex">
+              {" "}
+              Exporter les types d'article{" "}
+            </span>
             <Download />
           </Button>
           <Button onClick={() => onCreate()}>
@@ -142,6 +144,7 @@ export default function Page() {
       <DataTable
         data={data}
         columns={columns(onView, onEdit, onRemove)}
+        searchColumnId="name"
         isLoading={isLoading}
       />
     </div>
