@@ -56,7 +56,7 @@ jobs:
             docker compose up -d db
 
             # Run migrations
-            docker compose run --rm app npx prisma migrate deploy
+            docker compose run --rm web npx prisma migrate deploy
 
             # Démarrage final
             docker compose up -d
