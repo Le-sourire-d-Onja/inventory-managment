@@ -53,7 +53,7 @@ jobs:
             docker compose pull
 
             # Lance uniquement la DB si besoin
-            docker compose up -d postgres
+            docker compose up -d db
 
             # Run migrations
             docker compose run --rm app npx prisma migrate deploy
