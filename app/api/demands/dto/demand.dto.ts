@@ -110,7 +110,7 @@ export class DemandDto {
     const validated_at = !!obj.validated_at ? new Date(obj.validated_at) : null;
     const containerized_at = !!obj.containerized_at ? new Date(obj.containerized_at) : null;
     const distributed_at = !!obj.distributed_at ? new Date(obj.distributed_at) : null;
-    const documentUrl = obj.documentUrl || (obj.document ? await FilesService.getDownloadUrl(obj.document) : null);
+    const documentUrl = obj.documentUrl ?? (obj.document ? await FilesService.getDownloadUrl(obj.document) : null);
     return new DemandDto(
       obj.id,
       obj.status,

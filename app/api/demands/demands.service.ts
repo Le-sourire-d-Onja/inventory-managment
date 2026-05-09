@@ -64,11 +64,7 @@ export default class DemandsService {
         document: documentKey,
         containers: {
           create: data.containers.map((container) => {
-            const [weight, volume] =
-              ContainersService.findContainerWeightAndVolume(
-                articleTypes,
-                container.contents,
-              );
+            const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, container.contents);
             return {
               id: ContainersService.formatContainerID(nextContainerNumber++),
               weight: weight ?? 0,
@@ -101,8 +97,7 @@ export default class DemandsService {
    * @returns The updated demand
    */
   static async update(data: UpdateDemandDto, file?: File | null): Promise<DemandDto> {
-    const validated_at =
-      data.status === DemandStatus.VALIDATED ? new Date() : undefined;
+    const validated_at = data.status === DemandStatus.VALIDATED ? new Date() : undefined;
 
     const articleTypes = await ArticleTypesService.findAll();
 
@@ -140,16 +135,10 @@ export default class DemandsService {
         document: documentKey,
         containers: {
           deleteMany: {},
-          create: data.containers?.map((container) => {
-            const [weight, volume] =
-              ContainersService.findContainerWeightAndVolume(
-                articleTypes,
-                container.contents,
-              );
+          create: (data.containers ?? []).map((container) => {
+            const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, container.contents);
             return {
-              id:
-                container.id ??
-                ContainersService.formatContainerID(nextContainerNumber++),
+              id: container.id ?? ContainersService.formatContainerID(nextContainerNumber++),
               weight: weight ?? 0,
               volume: volume ?? 0,
               packaging: container.packaging ?? PackagingType.NONE,
@@ -187,6 +176,10 @@ export default class DemandsService {
       where: { id: id },
       include: demandInclude,
     });
+    if (demand.document) {
+      FilesService.deleteByKey(demand.document).catch(console.error);
+    }
+
     return DemandDto.parseWithDocumentUrl(demand);
   }
 }

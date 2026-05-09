@@ -36,11 +36,10 @@ export default function Page() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(values),
+      credentials: "same-origin",
     });
 
     if (response.ok) {
-      const { token } = await response.json();
-      document.cookie = `token=${token}; path=/`;
       router.push("/dashboard");
     } else {
       form.setError("password", { message: "Mot de passe incorrect." });

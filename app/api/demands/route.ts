@@ -5,13 +5,13 @@ import { updateDemandDtoSchema } from "./dto/update-demand.entity";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const id = searchParams.get('id');
+  const id = searchParams.get("id");
   let data;
   if (id) {
     try {
       data = await DemandsService.findOne(id);
     } catch {
-      return NextResponse.json({ message: "Not found" }, { status: 404 })
+      return NextResponse.json({ message: "Not found" }, { status: 404 });
     }
   } else {
     data = await DemandsService.findAll();
@@ -27,10 +27,21 @@ export async function POST(request: NextRequest) {
 
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
-    file = formData.get("file") as File | null;
-    const bodyStr = formData.get("body") as string;
-    if (bodyStr) {
-      body = JSON.parse(bodyStr);
+    const fileEntry = formData.get("file");
+    const bodyEntry = formData.get("body");
+
+    if (fileEntry && fileEntry instanceof File) {
+      file = fileEntry;
+    }
+
+    if (bodyEntry && typeof bodyEntry === "string") {
+      try {
+        body = JSON.parse(bodyEntry);
+      } catch {
+        return NextResponse.json({ message: "Bad request" }, { status: 400 });
+      }
+    } else {
+      body = {};
     }
   } else {
     body = await request.json();
@@ -73,7 +84,7 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const id = searchParams.get('id');
+  const id = searchParams.get("id");
   if (!id) {
     return NextResponse.json({ message: "Not found" }, { status: 404 });
   }

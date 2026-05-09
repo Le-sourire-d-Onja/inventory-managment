@@ -17,7 +17,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { MoonLoader } from "react-spinners";
 
 interface DataTableFilterOption {
@@ -59,7 +66,13 @@ export function DataTable<TData, TValue>({
   const searchParams = useSearchParams();
   const filterableColumnIds = useMemo(
     () =>
-      Array.from(new Set([searchColumnId, ...filters.map((filter) => filter.columnId)].filter(Boolean) as string[])),
+      Array.from(
+        new Set(
+          [searchColumnId, ...filters.map((filter) => filter.columnId)].filter(
+            Boolean,
+          ) as string[],
+        ),
+      ),
     [filters, searchColumnId],
   );
 
@@ -104,9 +117,14 @@ export function DataTable<TData, TValue>({
   const pageSize = table.getState().pagination.pageSize;
   const currentStart = filteredRowsCount === 0 ? 0 : pageIndex * pageSize + 1;
   const currentEnd = Math.min((pageIndex + 1) * pageSize, filteredRowsCount);
-  const activeFilterCount = columnFilters.filter((filter) => filter.value !== undefined && filter.value !== "").length;
+  const activeFilterCount = columnFilters.filter(
+    (filter) => filter.value !== undefined && filter.value !== "",
+  ).length;
 
-  const hasFilters = useMemo(() => Boolean(searchColumnId) || filters.length > 0, [filters.length, searchColumnId]);
+  const hasFilters = useMemo(
+    () => Boolean(searchColumnId) || filters.length > 0,
+    [filters.length, searchColumnId],
+  );
 
   useEffect(() => {
     if (!syncWithUrl || filterableColumnIds.length === 0) {
@@ -129,7 +147,10 @@ export function DataTable<TData, TValue>({
     const nextParams = new URLSearchParams(searchParams.toString());
     const currentById = new Map<string, string>();
     for (const filter of columnFilters) {
-      if (filterableColumnIds.includes(filter.id) && typeof filter.value === "string") {
+      if (
+        filterableColumnIds.includes(filter.id) &&
+        typeof filter.value === "string"
+      ) {
         const normalizedValue = filter.value.trim();
         if (normalizedValue.length > 0) {
           currentById.set(filter.id, normalizedValue);
@@ -151,7 +172,15 @@ export function DataTable<TData, TValue>({
       const nextUrl = nextUrlParams ? `${pathname}?${nextUrlParams}` : pathname;
       router.replace(nextUrl, { scroll: false });
     }
-  }, [columnFilters, filterableColumnIds, pathname, router, searchParams, syncWithUrl, urlParamsPrefix]);
+  }, [
+    columnFilters,
+    filterableColumnIds,
+    pathname,
+    router,
+    searchParams,
+    syncWithUrl,
+    urlParamsPrefix,
+  ]);
 
   return (
     <div className="space-y-4">
@@ -161,8 +190,16 @@ export function DataTable<TData, TValue>({
             {searchColumnId && (
               <Input
                 placeholder={searchPlaceholder}
-                value={(table.getColumn(searchColumnId)?.getFilterValue() as string) ?? ""}
-                onChange={(event) => table.getColumn(searchColumnId)?.setFilterValue(event.target.value)}
+                value={
+                  (table
+                    .getColumn(searchColumnId)
+                    ?.getFilterValue() as string) ?? ""
+                }
+                onChange={(event) =>
+                  table
+                    .getColumn(searchColumnId)
+                    ?.setFilterValue(event.target.value)
+                }
                 className="w-full sm:max-w-sm"
               />
             )}
@@ -177,7 +214,11 @@ export function DataTable<TData, TValue>({
                   key={filter.columnId}
                   value={(column.getFilterValue() as string) ?? "all"}
                   onChange={(event) =>
-                    column.setFilterValue(event.target.value === "all" ? undefined : event.target.value)
+                    column.setFilterValue(
+                      event.target.value === "all"
+                        ? undefined
+                        : event.target.value,
+                    )
                   }
                   className="border-input h-9 rounded-md border bg-background px-3 text-sm"
                 >
@@ -213,7 +254,25 @@ export function DataTable<TData, TValue>({
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                      {header.column.getCanSort() && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {header.column.getIsSorted() === "asc"
+                            ? "↑"
+                            : header.column.getIsSorted() === "desc"
+                              ? "↓"
+                              : "-"}
+                        </Button>
+                      )}
                     </TableHead>
                   );
                 })}
@@ -223,16 +282,27 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {!isLoading ? (
               table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                table.getSortedRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
                     Aucun résultat.
                   </TableCell>
                 </TableRow>
@@ -277,7 +347,12 @@ export function DataTable<TData, TValue>({
           >
             Précédent
           </Button>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
             Suivant
           </Button>
         </div>
