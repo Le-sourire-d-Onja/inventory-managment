@@ -6,9 +6,9 @@ import { UpdateDemandDto } from "./dto/update-demand.entity";
 import ArticleTypesService from "../article-types/article-types.service";
 import ContainersService from "../containers/containers.service";
 import { demandInclude } from "./entity/demand.entity";
+import FilesService from "../files/files.service";
 
 export default class DemandsService {
-
   /**
    * This function is used to retrieve one demand from the database
    *
@@ -21,90 +21,110 @@ export default class DemandsService {
       where: { id: id },
       include: demandInclude,
     });
-    if (!demand)
-      throw new Error("Not found");
-    return DemandDto.parse(demand);
+    if (!demand) throw new Error("Not found");
+    return DemandDto.parseWithDocumentUrl(demand);
   }
 
   /**
    * This function is used to retrieve all demands from the database
-   * 
+   *
    * @returns All the demand entity of the database
    */
   static async findAll(): Promise<DemandDto[]> {
     const demands = await prisma.demand.findMany({
       include: demandInclude,
     });
-    return demands.map((demand) => DemandDto.parse(
-      demand
-    ));
+    return Promise.all(demands.map((demand) => DemandDto.parseWithDocumentUrl(demand)));
   }
 
   /**
    * This function is used to create a demand in the database
-   * 
+   *
    * @param data The entity to create the demand
+   * @param file Optional file to upload as document
    * @returns The created demand
    */
-  static async create(data: CreateDemandDto): Promise<DemandDto> {
-
+  static async create(data: CreateDemandDto, file?: File | null): Promise<DemandDto> {
     const articleTypes = await ArticleTypesService.findAll();
 
-    let nbContainers = await ContainersService.findNbContainers();
+    let nextContainerNumber = await ContainersService.findNextContainerNumber();
+
+    let documentKey: string | undefined;
+    if (file && file.size > 0) {
+      const bucket = process.env.S3_BUCKET;
+      if (bucket) {
+        documentKey = await FilesService.upload(file, bucket);
+      }
+    }
 
     const demand = await prisma.demand.create({
       data: {
         association_id: data.association_id,
         status: DemandStatus.IN_PROGRESS,
+        document: documentKey,
         containers: {
           create: data.containers.map((container) => {
             const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, container.contents);
             return {
-              id: ContainersService.formatContainerID(nbContainers++),
+              id: ContainersService.formatContainerID(nextContainerNumber++),
               weight: weight ?? 0,
               volume: volume ?? 0,
               packaging: container.packaging,
               contents: {
-                create: container.contents.map(content => ({
+                create: container.contents.map((content) => ({
                   type: {
                     connect: { id: content.type_id },
                   },
                   quantity: content.quantity,
-                }))
-              }
+                })),
+              },
             };
           }),
-          connect: data.linkedContainers
-        }
+          connect: data.linkedContainers,
+        },
       },
-      include: demandInclude
+      include: demandInclude,
     });
-    return DemandDto.parse(demand);
+    return DemandDto.parseWithDocumentUrl(demand);
   }
 
   /**
-   * This function is used to create a container in the database
-   * that will not be link to a demand
-   * 
-   * @param data The entity to create the container
-   * @returns The created container
+   * This function is used to update a demand in the database
+   *
+   * @param data The entity to update the demand, the id to update
+   * the demand is included in the object
+   * @param file Optional file to upload as document
+   * @returns The updated demand
    */
-
-
-  /**
- * This function is used to update a demand in the database
- *
- * @param data The entity to update the demand, the id to update
- * the demand is included in the object
- * @returns The updated demand
- */
-  static async update(data: UpdateDemandDto): Promise<DemandDto> {
-
+  static async update(data: UpdateDemandDto, file?: File | null): Promise<DemandDto> {
     const validated_at = data.status === DemandStatus.VALIDATED ? new Date() : undefined;
 
     const articleTypes = await ArticleTypesService.findAll();
 
-    let nbContainers = await ContainersService.findNbContainers();
+    let nextContainerNumber = await ContainersService.findNextContainerNumber();
+
+    let documentKey: string | null | undefined;
+    let oldDocumentKey: string | undefined;
+    if (file && file.size > 0) {
+      const existingDemand = await prisma.demand.findUnique({
+        where: { id: data.id },
+        select: { document: true },
+      });
+      oldDocumentKey = existingDemand?.document ?? undefined;
+      const bucket = process.env.S3_BUCKET;
+      if (bucket) {
+        documentKey = await FilesService.upload(file, bucket);
+      }
+    } else if (data.document !== undefined) {
+      const existingDemand = await prisma.demand.findUnique({
+        where: { id: data.id },
+        select: { document: true },
+      });
+      if (data.document === null && existingDemand?.document) {
+        oldDocumentKey = existingDemand.document;
+      }
+      documentKey = data.document;
+    }
 
     const demand = await prisma.demand.update({
       where: { id: data.id },
@@ -112,31 +132,37 @@ export default class DemandsService {
         status: data.status,
         validated_at: validated_at,
         association_id: data.association_id,
+        document: documentKey,
         containers: {
           deleteMany: {},
-          create: data.containers?.map(container => {
+          create: (data.containers ?? []).map((container) => {
             const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, container.contents);
             return {
-              id: container.id ?? ContainersService.formatContainerID(nbContainers++),
+              id: container.id ?? ContainersService.formatContainerID(nextContainerNumber++),
               weight: weight ?? 0,
               volume: volume ?? 0,
               packaging: container.packaging ?? PackagingType.NONE,
               contents: {
-                create: container.contents?.map(content => ({
+                create: container.contents?.map((content) => ({
                   type: {
                     connect: { id: content.type_id },
                   },
                   quantity: content.quantity,
-                }))
-              }
+                })),
+              },
             };
           }),
           connect: data.linkedContainers,
-        }
+        },
       },
-      include: demandInclude
+      include: demandInclude,
     });
-    return DemandDto.parse(demand);
+
+    if (oldDocumentKey) {
+      FilesService.deleteByKey(oldDocumentKey).catch(console.error);
+    }
+
+    return DemandDto.parseWithDocumentUrl(demand);
   }
 
   /**
@@ -148,8 +174,12 @@ export default class DemandsService {
   static async delete(id: string): Promise<DemandDto> {
     const demand = await prisma.demand.delete({
       where: { id: id },
-      include: demandInclude
+      include: demandInclude,
     });
-    return DemandDto.parse(demand);
+    if (demand.document) {
+      FilesService.deleteByKey(demand.document).catch(console.error);
+    }
+
+    return DemandDto.parseWithDocumentUrl(demand);
   }
 }

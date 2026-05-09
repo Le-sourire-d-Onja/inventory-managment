@@ -9,6 +9,7 @@ export const updateDemandDtoSchema = createDemandDtoSchema.extend({
   id: z.string().uuid(),
   status: z.nativeEnum(DemandStatus),
   containers: z.array(updateContainerDtoSchema),
+  document: z.string().nullable(),
 }).partial();
 
 export type UpdateDemandDto = z.infer<typeof updateDemandDtoSchema>;

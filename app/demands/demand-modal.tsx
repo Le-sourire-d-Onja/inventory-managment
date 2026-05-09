@@ -1,38 +1,20 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DemandDto } from "../api/demands/dto/demand.dto";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateDemandDtoSchema } from "../api/demands/dto/update-demand.entity";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { DemandStatus } from "@/lib/generated/prisma";
 import { AssociationDto } from "../api/associations/dto/association.dto";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ContainerSelector from "./container-selector";
 import { Badge } from "@/components/ui/badge";
 import { StockDto } from "../api/stocks/dto/stock.dto";
@@ -58,6 +40,7 @@ type DemandModalProps = {
 export default function DemandModal(props: DemandModalProps) {
   const { data, stocks, associations, containers, open, onOpenChange, permission, refetch } = props;
   const statusTxt = DemandDto.statusData(data?.status);
+  const [file, setFile] = useState<File | null>(null);
   const form = useForm<z.infer<typeof updateDemandDtoSchema>>({
     resolver: zodResolver(updateDemandDtoSchema),
   });
@@ -76,6 +59,7 @@ export default function DemandModal(props: DemandModalProps) {
           })),
         })) ?? [],
     });
+    setFile(null);
   }
 
   useEffect(() => {
@@ -84,25 +68,19 @@ export default function DemandModal(props: DemandModalProps) {
 
   async function onDownload(id: string) {
     const demand = form.getValues();
-    const container = demand.containers?.find(
-      (container) => container.id === id
-    );
+    const container = demand.containers?.find((container) => container.id === id);
     if (!container) {
       throw new Error("Container not found");
     }
     const pdfInfos = {
       demand_id: data?.id ?? "",
       container_id: container.id ?? "",
-      associationName:
-        associations.find(
-          (association) => association.id === demand.association_id
-        )?.name ?? "Inconnue",
-      contents: container.contents?.map((content) => ({
-        name:
-          stocks.find((stock) => stock.type.id === content.type_id)?.type.name ??
-          "Inconnu",
-        quantity: content.quantity,
-      })) ?? [],
+      associationName: associations.find((association) => association.id === demand.association_id)?.name ?? "Inconnue",
+      contents:
+        container.contents?.map((content) => ({
+          name: stocks.find((stock) => stock.type.id === content.type_id)?.type.name ?? "Inconnu",
+          quantity: content.quantity,
+        })) ?? [],
     };
     const pdfBase64 = await generatePdf([pdfInfos]);
     var link = document.createElement("a"); //Create <a>
@@ -112,10 +90,15 @@ export default function DemandModal(props: DemandModalProps) {
   }
 
   async function onSubmit(values: z.infer<typeof updateDemandDtoSchema>) {
+    const formData = new FormData();
+    formData.append("body", JSON.stringify(values));
+    if (file && file.size > 0) {
+      formData.append("file", file);
+    }
+
     const response = await fetch("/api/demands", {
       method: data ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
+      body: formData,
     });
 
     if (response.ok) {
@@ -132,9 +115,7 @@ export default function DemandModal(props: DemandModalProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {!data
-              ? "Nouvelle demande"
-              : (`Demande pour ${data.association.name}`)}
+            {!data ? "Nouvelle demande" : `Demande pour ${data.association.name}`}
             {data?.status === DemandStatus.VALIDATED && (
               <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
             )}
@@ -147,10 +128,7 @@ export default function DemandModal(props: DemandModalProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col gap-6"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
             <FormField
               control={form.control}
               name="association_id"
@@ -161,18 +139,9 @@ export default function DemandModal(props: DemandModalProps) {
                     <span className="text-red-700"> * </span>
                   </FormLabel>
                   {permission !== Permission.WRITE ? (
-                    <Input
-                      readOnly
-                      value={
-                        associations.find((a) => a.id === field.value)?.name ??
-                        ""
-                      }
-                    />
+                    <Input readOnly value={associations.find((a) => a.id === field.value)?.name ?? ""} />
                   ) : (
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Association" />
@@ -180,10 +149,7 @@ export default function DemandModal(props: DemandModalProps) {
                       </FormControl>
                       <SelectContent>
                         {associations.map((association) => (
-                          <SelectItem
-                            key={association.id}
-                            value={association.id}
-                          >
+                          <SelectItem key={association.id} value={association.id}>
                             {association.name}
                           </SelectItem>
                         ))}
@@ -204,6 +170,58 @@ export default function DemandModal(props: DemandModalProps) {
               permission={permission}
             />
 
+            {permission === Permission.WRITE && (
+              <FormField
+                control={form.control}
+                name="document"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Document (PDF, max 10 Mo)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        onChange={(e) => {
+                          const selectedFile = e.target.files?.[0] || null;
+                          if (selectedFile) {
+                            if (selectedFile.size > 10 * 1024 * 1024) {
+                              toast("Le fichier est trop volumineux (max 10 Mo)");
+                              e.target.value = "";
+                              setFile(null);
+                              return;
+                            }
+                            if (selectedFile.type !== "application/pdf") {
+                              toast("Le fichier doit être un PDF");
+                              e.target.value = "";
+                              setFile(null);
+                              return;
+                            }
+                          }
+                          setFile(selectedFile);
+                          field.onChange(selectedFile ? "placeholder" : undefined);
+                        }}
+                      />
+                    </FormControl>
+                    {file && <p className="text-sm text-muted-foreground">Fichier sélectionné: {file.name}</p>}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            {data?.documentUrl && (
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                <span className="text-sm font-medium">Document :</span>
+                <a
+                  href={data.documentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm hover:underline flex items-center gap-1"
+                >
+                  Télécharger le document
+                </a>
+              </div>
+            )}
+
             <Separator />
             {permission === Permission.WRITE && (
               <div className="flex justify-between">
@@ -217,11 +235,7 @@ export default function DemandModal(props: DemandModalProps) {
                   Réinitialiser
                 </Button>
                 <div className="flex gap-4 justify-end">
-                  <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={() => onOpenChange(false)}
-                  >
+                  <Button variant="secondary" type="button" onClick={() => onOpenChange(false)}>
                     Annuler
                   </Button>
                   <Button variant="default" type="submit">

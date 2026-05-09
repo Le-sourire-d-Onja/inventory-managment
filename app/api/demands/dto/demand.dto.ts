@@ -1,9 +1,9 @@
-
 import { DemandStatus, PackagingType } from "@/lib/generated/prisma";
 import { ContainerDto } from "../../containers/dto/container.dto";
 import { LabelInfos } from "@/lib/pdf";
 import { DemandEntity } from "../entity/demand.entity";
 import { AssociationDto } from "../../associations/dto/association.dto";
+import FilesService from "../../files/files.service";
 
 export class DemandDto {
   id: string;
@@ -13,10 +13,22 @@ export class DemandDto {
   validated_at: Date | null;
   containerized_at: Date | null;
   distributed_at: Date | null;
+  documentUrl: string | null;
   created_at: Date;
   updated_at: Date;
 
-  constructor(id: string, status: DemandStatus, containers: ContainerDto[], association: AssociationDto, validated_at: Date | null, containerized_at: Date | null, distributed_at: Date | null, created_at: Date, updated_at: Date) {
+  constructor(
+    id: string,
+    status: DemandStatus,
+    containers: ContainerDto[],
+    association: AssociationDto,
+    validated_at: Date | null,
+    containerized_at: Date | null,
+    distributed_at: Date | null,
+    documentUrl: string | null,
+    created_at: Date,
+    updated_at: Date,
+  ) {
     this.id = id;
     this.status = status;
     this.containers = containers;
@@ -24,6 +36,7 @@ export class DemandDto {
     this.validated_at = validated_at;
     this.containerized_at = containerized_at;
     this.distributed_at = distributed_at;
+    this.documentUrl = documentUrl;
     this.created_at = created_at;
     this.updated_at = updated_at;
   }
@@ -77,7 +90,39 @@ export class DemandDto {
     const validated_at = !!obj.validated_at ? new Date(obj.validated_at) : null;
     const containerized_at = !!obj.containerized_at ? new Date(obj.containerized_at) : null;
     const distributed_at = !!obj.distributed_at ? new Date(obj.distributed_at) : null;
-    return new DemandDto(obj.id, obj.status, obj.containers.map((container) => ContainerDto.parse(container)), AssociationDto.parse(obj.association), validated_at, containerized_at, distributed_at, new Date(obj.created_at), new Date(obj.updated_at));
+    return new DemandDto(
+      obj.id,
+      obj.status,
+      obj.containers.map((container) => ContainerDto.parse(container)),
+      AssociationDto.parse(obj.association),
+      validated_at,
+      containerized_at,
+      distributed_at,
+      null,
+      new Date(obj.created_at),
+      new Date(obj.updated_at),
+    );
+  }
+
+  static async parseWithDocumentUrl(
+    obj: DemandEntity & { document?: string | null; documentUrl?: string | null },
+  ): Promise<DemandDto> {
+    const validated_at = !!obj.validated_at ? new Date(obj.validated_at) : null;
+    const containerized_at = !!obj.containerized_at ? new Date(obj.containerized_at) : null;
+    const distributed_at = !!obj.distributed_at ? new Date(obj.distributed_at) : null;
+    const documentUrl = obj.documentUrl ?? (obj.document ? await FilesService.getDownloadUrl(obj.document) : null);
+    return new DemandDto(
+      obj.id,
+      obj.status,
+      obj.containers.map((container) => ContainerDto.parse(container)),
+      AssociationDto.parse(obj.association),
+      validated_at,
+      containerized_at,
+      distributed_at,
+      documentUrl,
+      new Date(obj.created_at),
+      new Date(obj.updated_at),
+    );
   }
 
   static toLabelInfos(obj: DemandDto): LabelInfos[] {
@@ -88,13 +133,17 @@ export class DemandDto {
       contents: container.contents.map((content) => ({
         name: content.type.name,
         quantity: content.quantity,
-      }))
-    }))
+      })),
+    }));
   }
 
   static exportValues(demand: DemandDto): string[] {
-    return [demand.association.name, DemandDto.statusData(demand.status).text, demand.containers.map((container) => `N°${container.id}` ).join(", ")];
-  };
+    return [
+      demand.association.name,
+      DemandDto.statusData(demand.status).text,
+      demand.containers.map((container) => `N°${container.id}`).join(", "),
+    ];
+  }
 
   static exportHeaders(): string[] {
     return ["Association", "Statut", "Conteneurs"];
