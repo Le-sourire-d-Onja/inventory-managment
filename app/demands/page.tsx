@@ -36,11 +36,8 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedDataID, setSelectedDataID] = useStateParam("selected-data-id");
-  const selectedData =
-    data.find((demand) => demand.id === selectedDataID) ?? null;
-  const [modalPermission, setModalPermission] = useState<Permission>(
-    Permission.READ,
-  );
+  const selectedData = data.find((demand) => demand.id === selectedDataID) ?? null;
+  const [modalPermission, setModalPermission] = useState<Permission>(Permission.READ);
   const devices = useDevices();
 
   useEffect(() => {
@@ -59,8 +56,10 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => DemandDto.parse(obj)))
-      .then((data) => setData(data))
+      .then(async (res) => {
+        const data = await Promise.all(res.map((obj: any) => DemandDto.parseWithDocumentUrl(obj)));
+        setData(data);
+      })
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
   }
@@ -235,9 +234,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between">
-        <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
-          Demandes
-        </h1>
+        <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">Demandes</h1>
         <div className="flex gap-2">
           {devices.length !== 0 && (
             <Button onClick={() => onScan()}>
@@ -270,10 +267,7 @@ export default function Page() {
         refetch={retrieveDemands}
       />
 
-      <ScanModal
-        open={opennedModal === Modals.SCAN}
-        onOpenChange={closeModal}
-      />
+      <ScanModal open={opennedModal === Modals.SCAN} onOpenChange={closeModal} />
 
       <ConfirmModal
         open={opennedModal === Modals.REMOVE}
@@ -281,9 +275,8 @@ export default function Page() {
         onConfirm={() => selectedData && deleteDemand(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
-        Vous êtes sur le point de supprimer la demande pour l'association{" "}
-        {selectedData?.association.name ?? "Inconnue"}. Êtes-vous sûr de vouloir
-        continuer ?
+        Vous êtes sur le point de supprimer la demande pour l'association {selectedData?.association.name ?? "Inconnue"}
+        . Êtes-vous sûr de vouloir continuer ?
       </ConfirmModal>
 
       <ConfirmModal
@@ -292,21 +285,13 @@ export default function Page() {
         onConfirm={() => selectedData && validateDemand(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
-        Vous êtes sur le point de valider la demande pour l'association{" "}
-        {selectedData?.association.name ?? "Inconnue"}. Êtes-vous sûr de vouloir
-        continuer ?
+        Vous êtes sur le point de valider la demande pour l'association {selectedData?.association.name ?? "Inconnue"}.
+        Êtes-vous sûr de vouloir continuer ?
       </ConfirmModal>
 
       <DataTable
         data={data}
-        columns={columns(
-          stocks,
-          onView,
-          onEdit,
-          onRemove,
-          onValidate,
-          downloadDemand,
-        )}
+        columns={columns(stocks, onView, onEdit, onRemove, onValidate, downloadDemand)}
         searchColumnId="name"
         filters={[
           {

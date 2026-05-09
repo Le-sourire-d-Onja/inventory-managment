@@ -20,22 +20,54 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  let file: File | null = null;
+  let body: unknown;
+
+  const contentType = request.headers.get("content-type") || "";
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    file = formData.get("file") as File | null;
+    const bodyStr = formData.get("body") as string;
+    if (bodyStr) {
+      body = JSON.parse(bodyStr);
+    }
+  } else {
+    body = await request.json();
+  }
+
   const createDemand = createDemandDtoSchema.safeParse(body);
   if (!createDemand.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
-  const demand = await DemandsService.create(createDemand.data);
+
+  const demand = await DemandsService.create(createDemand.data, file);
   return NextResponse.json(demand);
 }
 
 export async function PATCH(request: NextRequest) {
-  const body = await request.json();
+  let file: File | null = null;
+  let body: unknown;
+
+  const contentType = request.headers.get("content-type") || "";
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    file = formData.get("file") as File | null;
+    const bodyStr = formData.get("body") as string;
+    if (bodyStr) {
+      body = JSON.parse(bodyStr);
+    }
+  } else {
+    body = await request.json();
+  }
+
   const updateDemand = updateDemandDtoSchema.safeParse(body);
   if (!updateDemand.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
-  const demand = await DemandsService.update(updateDemand.data);
+
+  const demand = await DemandsService.update(updateDemand.data, file);
   return NextResponse.json(demand);
 }
 

@@ -8,22 +8,39 @@ import { ArticleTypeDto } from "../article-types/dto/article-types.dto";
 
 export default class ContainersService {
   /**
-   * This function returns the number of containers created in the current year
+   * This function returns the next container number for the current year
    * from the database
    *
-   * @returns The number of containers
+   * @returns The next container number
    */
-  static async findNbContainers() {
+  static async findNextContainerNumber() {
+    const currentYear = new Date().getFullYear() % 100;
     const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-    const nbContainers = await prisma.container.count({
+
+    const containers = await prisma.container.findMany({
       where: {
         OR: [
           { demand: { created_at: { gte: startOfYear } } },
           { demand_id: null },
         ],
       },
+      orderBy: { id: "desc" },
+      take: 1,
     });
-    return nbContainers;
+
+    if (containers.length === 0) {
+      return 1;
+    }
+
+    const lastId = containers[0].id;
+    const lastYear = parseInt(lastId.substring(0, 2), 10);
+
+    if (lastYear === currentYear) {
+      const lastNumber = parseInt(lastId.substring(2), 10);
+      return lastNumber + 1;
+    }
+
+    return 1;
   }
 
   /**
@@ -109,7 +126,7 @@ export default class ContainersService {
   static async create(data: CreateContainerDto): Promise<ContainerDto> {
     const articleTypes = await ArticleTypesService.findAll();
 
-    const nbContainers = await ContainersService.findNbContainers();
+    const nextNumber = await ContainersService.findNextContainerNumber();
 
     const [weight, volume] = ContainersService.findContainerWeightAndVolume(
       articleTypes,
@@ -118,7 +135,7 @@ export default class ContainersService {
 
     const container = await prisma.container.create({
       data: {
-        id: ContainersService.formatContainerID(nbContainers + 1),
+        id: ContainersService.formatContainerID(nextNumber),
         weight: weight ?? 0,
         volume: volume ?? 0,
         packaging: data.packaging,

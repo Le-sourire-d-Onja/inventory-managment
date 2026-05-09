@@ -58,6 +58,7 @@ model Demand {
   validated_at     DateTime?
   containerized_at DateTime?
   distributed_at   DateTime?
+  document         String?
   created_at       DateTime     @default(now())
   updated_at       DateTime     @updatedAt
 }

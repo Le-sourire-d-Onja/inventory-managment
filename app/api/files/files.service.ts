@@ -1,8 +1,5 @@
-import {
-  DeleteObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export default class FilesService {
   private static readonly client = new S3Client({
@@ -72,12 +69,6 @@ export default class FilesService {
     if (!endpoint) {
       throw new Error("S3_ENDPOINT is not configured");
     }
-    const baseUrl = endpoint.endsWith("/") ? endpoint.slice(0, -1) : endpoint;
-    const encodedKey = key
-      .split("/")
-      .map((part) => encodeURIComponent(part))
-      .join("/");
-
-    return `${baseUrl}/${this.defaultBucket}/${encodedKey}`;
+    return getSignedUrl(this.client, new GetObjectCommand({ Bucket: this.defaultBucket, Key: key }));
   }
 }
