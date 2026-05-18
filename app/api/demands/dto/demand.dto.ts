@@ -141,11 +141,12 @@ export class DemandDto {
     return [
       demand.association.name,
       DemandDto.statusData(demand.status).text,
+      demand.documentUrl ?? "",
       demand.containers.map((container) => `N°${container.id}`).join(", "),
     ];
   }
 
   static exportHeaders(): string[] {
-    return ["Association", "Statut", "Conteneurs"];
+    return ["Association", "Statut", "Document", "Conteneurs"];
   }
 }
