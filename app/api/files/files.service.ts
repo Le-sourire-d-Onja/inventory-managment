@@ -5,10 +5,10 @@ export default class FilesService {
   private static readonly client = new S3Client({
     region: process.env.S3_REGION ?? "us-east-1",
     endpoint: process.env.S3_ENDPOINT,
-    forcePathStyle: process.env.S3_FORCE_PATH_STYLE !== "false",
+    forcePathStyle: true,
     credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.S3_ACCESS_KEY!,
+      secretAccessKey: process.env.S3_SECRET_KEY!,
     },
   });
 
