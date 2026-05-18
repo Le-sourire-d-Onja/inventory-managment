@@ -12,6 +12,16 @@ export default class FilesService {
     },
   });
 
+  private static publicClient = new S3Client({
+    endpoint: process.env.S3_PUBLIC_ENDPOINT,
+    forcePathStyle: true,
+    region: process.env.S3_REGION ?? "us-east-1",
+    credentials: {
+      accessKeyId: process.env.S3_ACCESS_KEY!,
+      secretAccessKey: process.env.S3_SECRET_KEY!,
+    },
+  });
+
   private static get defaultBucket(): string {
     const bucket = process.env.S3_BUCKET;
     if (!bucket) {
@@ -69,6 +79,6 @@ export default class FilesService {
     if (!endpoint) {
       throw new Error("S3_ENDPOINT is not configured");
     }
-    return getSignedUrl(this.client, new GetObjectCommand({ Bucket: this.defaultBucket, Key: key }));
+    return getSignedUrl(this.publicClient, new GetObjectCommand({ Bucket: this.defaultBucket, Key: key }));
   }
 }
