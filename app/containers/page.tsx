@@ -42,7 +42,7 @@ export default function Page() {
 
   async function retrieveContainers() {
     setIsLoading(true);
-    fetch("/api/containers")
+    fetch("/api/containers?scope=all")
       .then((res) => {
         if (res.ok) return res.json();
         throw res;

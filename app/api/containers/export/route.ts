@@ -4,8 +4,8 @@ import ContainersService from "../containers.service";
 import { ContainerDto } from "../dto/container.dto";
 
 export async function GET() {
-  const containers = await ContainersService.findAll(false);
-  const exportData = containers.map((association) => ContainerDto.exportValues(association));
+  const containers = await ContainersService.findByScope("all");
+  const exportData = containers.map((container) => ContainerDto.exportValues(container));
   const exportHeaders = ContainerDto.exportHeaders();
   const buffer = await ExportsService.export(exportHeaders, exportData);
   return new NextResponse(buffer, {

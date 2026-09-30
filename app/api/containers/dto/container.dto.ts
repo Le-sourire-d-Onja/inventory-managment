@@ -47,7 +47,15 @@ export class ContainerDto {
   }
 
   static exportHeaders() {
-    return ["Identifiant", "Poids (kg)", "Volume (m³)", "Type d'empaquetage", "Contenu"];
+    return [
+      "Identifiant",
+      "Poids (kg)",
+      "Volume (m³)",
+      "Type d'empaquetage",
+      "Contenu",
+      "Statut",
+      "Association",
+    ];
   }
 
   static exportValues(container: ContainerDto): (string | number)[] {
@@ -56,7 +64,11 @@ export class ContainerDto {
       container.weight,
       container.volume,
       DemandDto.packagingTxt(container.packaging),
-      container.contents.map((content) => content.type.name + " (" + content.quantity + ")").join(", "),
+      container.contents
+        .map((content) => content.type.name + " (" + content.quantity + ")")
+        .join(", "),
+      ContainerDto.containerState(container).text,
+      container.association?.name ?? "",
     ];
   }
 }

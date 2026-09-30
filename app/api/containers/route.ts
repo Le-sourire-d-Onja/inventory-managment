@@ -14,8 +14,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "Not found" }, { status: 404 })
     }
   } else {
-    const inDemand = Boolean(searchParams.get('inDemand'));
-    data = await ContainersService.findAll(inDemand);
+    const scope = searchParams.get("scope") === "all" ? "all" : "free";
+    data = await ContainersService.findByScope(scope);
   }
   return NextResponse.json(data);
 }

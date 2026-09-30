@@ -104,15 +104,17 @@ export default class ContainersService {
   }
 
   /**
-   * This function is used to retrieve all containers from the database
+   * This function is used to retrieve containers from the database
    *
-   * @param inDemand Know if the container belongs to a demand
-   * @returns All the container entity of the database
+   * @param scope "free" returns only containers not linked to a demand,
+   * "all" returns every container
+   * @returns The matching container entities of the database
    */
-  static async findAll(inDemand: boolean): Promise<ContainerDto[]> {
+  static async findByScope(scope: "free" | "all"): Promise<ContainerDto[]> {
     const containers = await prisma.container.findMany({
-      where: !inDemand ? { demand_id: null } : {},
+      where: scope === "free" ? { demand_id: null } : {},
       include: containerInclude,
+      orderBy: { id: "asc" },
     });
     return containers.map((container) => ContainerDto.parse(container));
   }
