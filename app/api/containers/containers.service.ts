@@ -19,10 +19,7 @@ export default class ContainersService {
 
     const containers = await prisma.container.findMany({
       where: {
-        OR: [
-          { demand: { created_at: { gte: startOfYear } } },
-          { demand_id: null },
-        ],
+        OR: [{ demand: { created_at: { gte: startOfYear } } }, { demand_id: null }],
       },
       orderBy: { id: "desc" },
       take: 1,
@@ -72,16 +69,11 @@ export default class ContainersService {
     if (!contents) return [undefined, undefined];
     return contents?.reduce(
       ([weightTotal, volumeTotal], content) => {
-        const articleType = articleTypes.find(
-          (type) => type.id === content.type_id,
-        );
+        const articleType = articleTypes.find((type) => type.id === content.type_id);
         const weight = articleType?.weight ?? 0;
         const volume = articleType?.volume ?? 0;
 
-        return [
-          weightTotal + content.quantity * weight,
-          volumeTotal + content.quantity * volume,
-        ];
+        return [weightTotal + content.quantity * weight, volumeTotal + content.quantity * volume];
       },
       [0, 0],
     );
@@ -130,10 +122,7 @@ export default class ContainersService {
 
     const nextNumber = await ContainersService.findNextContainerNumber();
 
-    const [weight, volume] = ContainersService.findContainerWeightAndVolume(
-      articleTypes,
-      data.contents,
-    );
+    const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, data.contents);
 
     const container = await prisma.container.create({
       data: {
@@ -165,10 +154,7 @@ export default class ContainersService {
   static async update(data: UpdateContainerDto): Promise<ContainerDto> {
     const articleTypes = await ArticleTypesService.findAll();
 
-    const [weight, volume] = ContainersService.findContainerWeightAndVolume(
-      articleTypes,
-      data.contents,
-    );
+    const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, data.contents);
 
     const container = await prisma.container.update({
       where: { id: data.id },

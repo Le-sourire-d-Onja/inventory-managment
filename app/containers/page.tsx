@@ -25,11 +25,8 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedDataID, setSelectedDataID] = useStateParam("selected-data-id");
-  const selectedData =
-    data.find((container) => container.id === selectedDataID) ?? null;
-  const [modalPermission, setModalPermission] = useState<Permission>(
-    Permission.READ,
-  );
+  const selectedData = data.find((container) => container.id === selectedDataID) ?? null;
+  const [modalPermission, setModalPermission] = useState<Permission>(Permission.READ);
 
   useEffect(() => {
     retrieveData();
@@ -47,7 +44,6 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => ContainerDto.parse(obj)))
       .then((data) => setData(data))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
@@ -60,7 +56,6 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => StockDto.parse(obj)))
       .then((res) => setStocks(res))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
@@ -140,9 +135,7 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between">
-        <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
-          Contenants
-        </h1>
+        <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">Contenants</h1>
         <div className="flex gap-2">
           <Button onClick={() => onExport()}>
             <span className="hidden md:flex"> Exporter les contenants </span>
@@ -170,16 +163,10 @@ export default function Page() {
         onConfirm={() => selectedData && deleteContainer(selectedData.id)}
         onCancel={() => closeModal(false)}
       >
-        Vous êtes sur le point de supprimer un contenant. Êtes-vous sûr de
-        vouloir continuer ?
+        Vous êtes sur le point de supprimer un contenant. Êtes-vous sûr de vouloir continuer ?
       </ConfirmModal>
 
-      <DataTable
-        data={data}
-        columns={columns(onView, onEdit, onRemove)}
-        searchColumnId="id"
-        isLoading={isLoading}
-      />
+      <DataTable data={data} columns={columns(onView, onEdit, onRemove)} searchColumnId="id" isLoading={isLoading} />
     </div>
   );
 }

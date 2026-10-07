@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { StockEntityShort } from "../api/stocks/dto/stock.dto";
 import { MoonLoader } from "react-spinners";
-import { Bar, BarChart, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Empty, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,7 +44,6 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
-      .then((res) => res.map((obj: any) => StockEntityShort.parse(obj)))
       .then((res) => setStocks(res))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
@@ -53,7 +52,7 @@ export default function Page() {
   useEffect(() => {
     retrieveStocks("stock", setStocks);
     retrieveStocks("container", setStocksInContainer);
-  }, [])
+  }, []);
 
   async function onExport(type: "stock" | "container") {
     setIsLoading(true);
@@ -63,32 +62,29 @@ export default function Page() {
         throw res;
       })
       .then((res) => {
-          const url = URL.createObjectURL(res);
+        const url = URL.createObjectURL(res);
 
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "export.xlsx";
-          a.click();
-          URL.revokeObjectURL(url);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "export.xlsx";
+        a.click();
+        URL.revokeObjectURL(url);
       })
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
   }
-
 
   const chartConfig = {
     quantity: {
       label: "Articles",
       color: "#2563eb",
     },
-  } satisfies ChartConfig
+  } satisfies ChartConfig;
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-between">
-        <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">
-          Dasboard
-        </h1>
+        <h1 className="scroll-m-20 text-xl font-extrabold tracking-tight text-balance">Dasboard</h1>
       </div>
       <div className="grid grid-cols-2 gap-4 w-full h-full">
         {isLoading ? (
@@ -126,7 +122,9 @@ export default function Page() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle> Stock overview </CardTitle>
                 <Select
-                  onValueChange={(value) => setStockUnit(stockUnits.find((unit) => unit.value === value) || stockUnits[0])}
+                  onValueChange={(value) =>
+                    setStockUnit(stockUnits.find((unit) => unit.value === value) || stockUnits[0])
+                  }
                   defaultValue={stockUnits[0].value}
                 >
                   <SelectTrigger>
@@ -150,18 +148,8 @@ export default function Page() {
                 ) : (
                   <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
                     <BarChart accessibilityLayer data={stocks}>
-                      <XAxis
-                        dataKey="type"
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
-                        unit={" " + stockUnit.unit}
-                      />
+                      <XAxis dataKey="type" tickLine={false} tickMargin={10} axisLine={false} />
+                      <YAxis tickLine={false} tickMargin={10} axisLine={false} unit={" " + stockUnit.unit} />
                       <Bar dataKey={stockUnit.value} fill="var(--color-quantity)" radius={4} />
                     </BarChart>
                   </ChartContainer>
@@ -172,7 +160,9 @@ export default function Page() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle> Container overview </CardTitle>
                 <Select
-                  onValueChange={(value) => setStockInContainerUnit(stockUnits.find((unit) => unit.value === value) || stockUnits[1])}
+                  onValueChange={(value) =>
+                    setStockInContainerUnit(stockUnits.find((unit) => unit.value === value) || stockUnits[1])
+                  }
                   defaultValue={stockUnits[1].value}
                 >
                   <SelectTrigger>
@@ -194,15 +184,9 @@ export default function Page() {
                     <EmptyDescription>Aucun article n'est présent dans le conteneur.</EmptyDescription>
                   </Empty>
                 ) : (
-                  <ChartContainer config={chartConfig} className="min-h-[200px] w-full">                      
+                  <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
                     <BarChart accessibilityLayer data={stocksInContainer}>
-                      <XAxis
-                        dataKey="type"
-                        tickLine={false}
-                        tickMargin={5}
-                        tickCount={10}
-                        axisLine={false}
-                      />
+                      <XAxis dataKey="type" tickLine={false} tickMargin={5} tickCount={10} axisLine={false} />
                       <YAxis
                         tickLine={false}
                         tickMargin={5}
@@ -216,7 +200,6 @@ export default function Page() {
                 )}
               </CardContent>
             </Card>
-            
           </>
         )}
       </div>

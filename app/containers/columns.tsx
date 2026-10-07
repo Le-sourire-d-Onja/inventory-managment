@@ -23,7 +23,7 @@ export const columns = (
     cell: (props) => {
       const row = props.row.original;
       return (
-        <div className="flex gap-1 w-[500px] pb-1 overflow-x-scroll">
+        <div className="flex gap-1 w-125 pb-1 overflow-x-scroll">
           {row.contents.map((content) => (
             <Badge key={content.id}>{content.type.name}</Badge>
           ))}
@@ -32,33 +32,28 @@ export const columns = (
     },
   },
   {
+    id: "association",
+    accessorFn: (row) => row.association?.name,
+    header: "Association",
+    cell: (props) => {
+      const association = props.getValue() as string;
+      return <> {association ?? "-"} </>;
+    },
+  },
+
+  {
     id: "status",
     accessorFn: (row) => ContainerDto.containerState(row).text,
     header: "Statut",
     cell: (props) => {
       const row = props.row.original;
       const state = ContainerDto.containerState(row);
-      return (
-        <div className="flex flex-col gap-1.5">
-          <Badge className={state.color}>{state.text}</Badge>
-          {row.association ? (
-            <p className="text-muted-foreground text-xs">
-              À {row.association.name}
-            </p>
-          ) : (
-            <></>
-          )}
-        </div>
-      );
+      return <Badge className={state.color}>{state.text}</Badge>;
     },
   },
   {
     id: "total_weight",
-    accessorFn: (row) =>
-      row.contents.reduce(
-        (prev, curr) => prev + curr.quantity * curr.type.weight,
-        0,
-      ),
+    accessorFn: (row) => row.contents.reduce((prev, curr) => prev + curr.quantity * curr.type.weight, 0),
     header: "Poids total",
     cell: (props) => {
       const weight = props.getValue() as number;
@@ -67,11 +62,7 @@ export const columns = (
   },
   {
     id: "total_volume",
-    accessorFn: (row) =>
-      row.contents.reduce(
-        (prev, curr) => prev + curr.quantity * curr.type.volume,
-        0,
-      ),
+    accessorFn: (row) => row.contents.reduce((prev, curr) => prev + curr.quantity * curr.type.volume, 0),
     header: "Volume total",
     cell: (props) => {
       const volume = props.getValue() as number;
