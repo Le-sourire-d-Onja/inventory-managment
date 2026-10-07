@@ -147,6 +147,6 @@ export class DemandDto {
   }
 
   static exportHeaders(): string[] {
-    return ["Association", "Statut", "Document", "Conteneurs"];
+    return ["Association", "Statut", "Document", "Contenants"];
   }
 }

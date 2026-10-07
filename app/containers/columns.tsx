@@ -24,7 +24,7 @@ export const columns = (
     cell: (props) => {
       const row = props.row.original;
       return (
-        <div className="flex gap-1 w-125 pb-1 overflow-x-scroll">
+        <div className="flex gap-1 w-95 pb-1 overflow-x-scroll">
           {row.contents.map((content) => (
             <Badge key={content.id}>{content.type.name}</Badge>
           ))}
@@ -38,7 +38,7 @@ export const columns = (
     header: "Association",
     cell: (props) => {
       const association = props.getValue() as string;
-      return <> {association ?? "-"} </>;
+      return <p className="w-50 text-ellipsis overflow-clip"> {association ?? "-"} </p>;
     },
   },
 

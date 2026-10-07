@@ -16,10 +16,8 @@ export const columns = (
       const row = props.row.original;
       return (
         <div className="flex flex-col">
-          <p> {row.name} </p>
-          <p className="text-muted-foreground text-xs">
-            {AssociationDto.typeTxt(row.type)}
-          </p>
+          <p className="w-70 overflow-clip text-ellipsis"> {row.name} </p>
+          <p className="text-muted-foreground text-xs">{AssociationDto.typeTxt(row.type)}</p>
         </div>
       );
     },

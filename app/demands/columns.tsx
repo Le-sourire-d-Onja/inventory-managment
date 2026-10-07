@@ -24,10 +24,26 @@ export const columns = (
       const row = props.row.original;
       return (
         <div className="flex flex-col">
-          <p> {row.association.name} </p>
-          <p className="text-muted-foreground text-xs">
-            {AssociationDto.typeTxt(row.association.type)}
-          </p>
+          <p className="w-70 overflow-clip text-ellipsis"> {row.association.name} </p>
+          <p className="text-muted-foreground text-xs">{AssociationDto.typeTxt(row.association.type)}</p>
+        </div>
+      );
+    },
+  },
+  {
+    id: "containers",
+    accessorFn: (row) => row.containers.map((container) => container.id),
+    header: "Contenants",
+    cell: (props) => {
+      const row = props.row.original;
+      if (row.containers.length === 0) {
+        return <> - </>;
+      }
+      return (
+        <div className="flex gap-1 w-95 pb-1 overflow-x-scroll">
+          {row.containers.map((container) => (
+            <Badge key={container.id}>N°{container.id}</Badge>
+          ))}
         </div>
       );
     },
@@ -45,8 +61,7 @@ export const columns = (
           <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
           {statusDate ? (
             <p className="text-muted-foreground text-xs">
-              Depuis le{" "}
-              {statusDate.toLocaleDateString("fr-FR", localeDateOptions)}{" "}
+              Depuis le {statusDate.toLocaleDateString("fr-FR", localeDateOptions)}{" "}
             </p>
           ) : (
             <></>
@@ -57,8 +72,7 @@ export const columns = (
   },
   {
     id: "total_weight",
-    accessorFn: (row) =>
-      row.containers.reduce((prev, curr) => prev + curr.weight, 0),
+    accessorFn: (row) => row.containers.reduce((prev, curr) => prev + curr.weight, 0),
     header: "Poids total",
     cell: (props) => {
       const weight = props.getValue() as number;
@@ -67,8 +81,7 @@ export const columns = (
   },
   {
     id: "total_volume",
-    accessorFn: (row) =>
-      row.containers.reduce((prev, curr) => prev + curr.volume, 0),
+    accessorFn: (row) => row.containers.reduce((prev, curr) => prev + curr.volume, 0),
     header: "Volume total",
     cell: (props) => {
       const volume = props.getValue() as number;
@@ -77,8 +90,7 @@ export const columns = (
   },
   {
     id: "total_value",
-    accessorFn: (row) =>
-      row.containers.reduce((prev, curr) => prev + curr.value, 0),
+    accessorFn: (row) => row.containers.reduce((prev, curr) => prev + curr.value, 0),
     header: "Valeur totale",
     cell: (props) => {
       const value = props.getValue() as number;
@@ -89,9 +101,7 @@ export const columns = (
     id: "actions",
     cell: (props) => {
       const row = props.row.original;
-      const contents = row.containers.flatMap(
-        (container) => container.contents,
-      );
+      const contents = row.containers.flatMap((container) => container.contents);
       const hasStock = contents.every((content) => {
         const stock = stocks.find((stock) => stock.type.id === content.type.id);
         return stock && stock.quantity >= content.quantity;
