@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@/lib/generated/prisma";
 import AssociationsService from "./associations.service";
 import { CreateAssociationDto, createAssociationDtoSchema } from "./dto/create-association.dto";
 import { updateAssociationDtoSchema } from "./dto/update-association.dto";
@@ -14,8 +15,15 @@ export async function POST(request: NextRequest) {
   if (!createAssociation.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
-  const association = await AssociationsService.create(createAssociation.data as CreateAssociationDto);
-  return NextResponse.json(association);
+  try {
+    const association = await AssociationsService.create(createAssociation.data as CreateAssociationDto);
+    return NextResponse.json(association);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ message: "Conflict" }, { status: 409 });
+    }
+    throw error;
+  }
 }
 
 export async function PATCH(request: NextRequest) {
@@ -24,8 +32,15 @@ export async function PATCH(request: NextRequest) {
   if (!updateAssociation.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
-  const association = await AssociationsService.update(updateAssociation.data);
-  return NextResponse.json(association);
+  try {
+    const association = await AssociationsService.update(updateAssociation.data);
+    return NextResponse.json(association);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ message: "Conflict" }, { status: 409 });
+    }
+    throw error;
+  }
 }
 
 export async function DELETE(request: NextRequest) {

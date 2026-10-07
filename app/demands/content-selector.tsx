@@ -94,7 +94,9 @@ export default function ContentSelector(props: ContentSelectorProps) {
   return (
     <div className="flex flex-col gap-4">
       {fields.map((field, index) => {
-        const stock = stocks.find((stock) => stock.type.id === field.type_id);
+        const stock = stocks.find(
+          (stock) => stock.type.id === watchedContents?.[index]?.type_id
+        );
         const selectedTypes = form
           .getValues(`containers.${prevIndex}.contents`)
           ?.filter((_, i) => i !== index)

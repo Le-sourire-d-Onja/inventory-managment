@@ -79,6 +79,10 @@ export default function AssociationModal(props: AssociationModalProps) {
 
     if (response.ok) {
       onOpenChange(false);
+    } else if (response.status === 409) {
+      toast("Ce nom d'association est déjà utilisé.", {
+        description: "Merci de choisir un autre nom.",
+      });
     } else {
       toast("Une erreur à s'est produite.", {
         description: response.status,
