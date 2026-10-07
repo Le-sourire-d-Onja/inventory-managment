@@ -28,6 +28,7 @@ import { ContainerDto } from "../api/containers/dto/container.dto";
 import { DemandDto } from "../api/demands/dto/demand.dto";
 import { StockDto } from "../api/stocks/dto/stock.dto";
 import { Separator } from "@radix-ui/react-separator";
+import { formatEuro } from "@/lib/utils";
 
 interface ContainerSelectorProps {
   data: ContainerDto[];
@@ -143,6 +144,9 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                   >
                     m³
                   </span>
+                </div>
+                <div className="relative min-w-[90px]">
+                  <Input disabled value={formatEuro(data[index]?.value ?? 0)} />
                 </div>
                 {field.id && (
                   <Button

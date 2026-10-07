@@ -8,6 +8,7 @@ export class ContainerDto {
   id: string;
   weight: number;
   volume: number;
+  value: number;
   packaging: PackagingType;
   contents: ContentDto[];
   association: AssociationDto | null;
@@ -16,6 +17,7 @@ export class ContainerDto {
     id: string,
     weight: number,
     volume: number,
+    value: number,
     packaging: PackagingType,
     contents: ContentDto[],
     association: AssociationDto | null,
@@ -23,6 +25,7 @@ export class ContainerDto {
     this.id = id;
     this.weight = weight;
     this.volume = volume;
+    this.value = value;
     this.packaging = packaging;
     this.contents = contents;
     this.association = association;
@@ -40,6 +43,7 @@ export class ContainerDto {
       obj.id,
       obj.weight,
       obj.volume,
+      obj.value,
       obj.packaging,
       obj.contents.map((content) => ContentDto.parse(content)),
       obj.demand?.association ?? null,
@@ -47,7 +51,7 @@ export class ContainerDto {
   }
 
   static exportHeaders() {
-    return ["Identifiant", "Poids (kg)", "Volume (m³)", "Type d'empaquetage", "Contenu", "Statut", "Association"];
+    return ["Identifiant", "Poids (kg)", "Volume (m³)", "Valeur (€)", "Type d'empaquetage", "Contenu", "Statut", "Association"];
   }
 
   static exportValues(container: ContainerDto): (string | number)[] {
@@ -55,6 +59,7 @@ export class ContainerDto {
       `N°${container.id}`,
       container.weight,
       container.volume,
+      container.value,
       DemandDto.packagingTxt(container.packaging),
       container.contents.map((content) => content.type.name + " (" + content.quantity + ")").join(", "),
       ContainerDto.containerState(container).text,

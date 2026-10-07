@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Download, Eye, Pen, Trash } from "lucide-react";
 import { DemandDto } from "../api/demands/dto/demand.dto";
 import { Badge } from "@/components/ui/badge";
-import { localeDateOptions } from "@/lib/utils";
+import { localeDateOptions, formatEuro } from "@/lib/utils";
 import { AssociationDto } from "../api/associations/dto/association.dto";
 import { DemandStatus } from "@/lib/generated/prisma";
 import { StockDto } from "../api/stocks/dto/stock.dto";
@@ -73,6 +73,16 @@ export const columns = (
     cell: (props) => {
       const volume = props.getValue() as number;
       return <> {volume} m³ </>;
+    },
+  },
+  {
+    id: "total_value",
+    accessorFn: (row) =>
+      row.containers.reduce((prev, curr) => prev + curr.value, 0),
+    header: "Valeur totale",
+    cell: (props) => {
+      const value = props.getValue() as number;
+      return <> {formatEuro(value)} </>;
     },
   },
   {

@@ -22,10 +22,11 @@ export class ArticleDto {
       article.quantity,
       article.quantity * article.type.weight,
       article.quantity * article.type.volume,
+      article.quantity * article.type.value,
     ];
   }
 
   static exportHeaders(): string[] {
-    return ["Nom", "Quantité", "Poids (kg)", "Volume (m³)"];
+    return ["Nom", "Quantité", "Poids (kg)", "Volume (m³)", "Valeur (€)"];
   }
 }

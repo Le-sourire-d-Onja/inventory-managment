@@ -16,6 +16,7 @@ import { updateContainerDtoSchema } from "../api/containers/dto/update-container
 import ContentSelector from "./content-selector";
 import { DemandDto } from "../api/demands/dto/demand.dto";
 import { Separator } from "@/components/ui/separator";
+import { formatEuro } from "@/lib/utils";
 
 export enum Permission {
   READ,
@@ -125,6 +126,10 @@ export default function ContainerModal(props: ContainerModal) {
                   >
                     m³
                   </span>
+                </div>
+
+                <div className="relative min-w-[90px]">
+                  <Input disabled value={formatEuro(data?.value ?? 0)} />
                 </div>
               </div>
 

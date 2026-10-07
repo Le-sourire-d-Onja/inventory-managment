@@ -11,6 +11,15 @@ export const localeDateOptions: Intl.DateTimeFormatOptions = {
   year: "numeric",
 }
 
+const euroFormatter = new Intl.NumberFormat("fr-FR", {
+  style: "currency",
+  currency: "EUR",
+})
+
+export function formatEuro(value: number) {
+  return euroFormatter.format(value)
+}
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 

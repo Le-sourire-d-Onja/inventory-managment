@@ -49,6 +49,7 @@ export default function ArticleTypeModal(props: ArticleTypeModalProps) {
       name: data?.name ?? "",
       weight: data?.weight ?? 0,
       volume: data?.volume ?? 0,
+      value: data?.value ?? 0,
     });
   }
 
@@ -153,6 +154,34 @@ export default function ArticleTypeModal(props: ArticleTypeModalProps) {
                      translate-[-50%]"
                       >
                         m³
+                      </span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="value"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Valeur <span className="text-red-700"> * </span>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <FloatInput
+                        readOnly={permission !== Permission.WRITE}
+                        placeholder="0.0"
+                        field={field}
+                      />
+                      <span
+                        className="absolute top-[18px] right-1.5
+                     translate-[-50%]"
+                      >
+                        €
                       </span>
                     </div>
                   </FormControl>

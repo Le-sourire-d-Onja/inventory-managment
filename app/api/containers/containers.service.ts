@@ -55,27 +55,32 @@ export default class ContainersService {
   }
 
   /**
-   * This function will compute all weight and volume of all
+   * This function will compute all weight, volume and value of all
    * contents and total them for the container
    *
-   * @param container The container to reduce all weight and volume
+   * @param container The container to reduce all weight, volume and value
    * @param articleTypes All the types available in the container
-   * @returns [weight, volume] of the container
+   * @returns [weight, volume, value] of the container
    */
-  static findContainerWeightAndVolume(
+  static findContainerWeightVolumeAndValue(
     articleTypes: ArticleTypeDto[],
     contents?: { type_id: string; quantity: number }[],
-  ): [number?, number?] {
-    if (!contents) return [undefined, undefined];
+  ): [number?, number?, number?] {
+    if (!contents) return [undefined, undefined, undefined];
     return contents?.reduce(
-      ([weightTotal, volumeTotal], content) => {
+      ([weightTotal, volumeTotal, valueTotal], content) => {
         const articleType = articleTypes.find((type) => type.id === content.type_id);
         const weight = articleType?.weight ?? 0;
         const volume = articleType?.volume ?? 0;
+        const value = articleType?.value ?? 0;
 
-        return [weightTotal + content.quantity * weight, volumeTotal + content.quantity * volume];
+        return [
+          weightTotal + content.quantity * weight,
+          volumeTotal + content.quantity * volume,
+          valueTotal + content.quantity * value,
+        ];
       },
-      [0, 0],
+      [0, 0, 0],
     );
   }
 
@@ -122,13 +127,14 @@ export default class ContainersService {
 
     const nextNumber = await ContainersService.findNextContainerNumber();
 
-    const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, data.contents);
+    const [weight, volume, value] = ContainersService.findContainerWeightVolumeAndValue(articleTypes, data.contents);
 
     const container = await prisma.container.create({
       data: {
         id: ContainersService.formatContainerID(nextNumber),
         weight: weight ?? 0,
         volume: volume ?? 0,
+        value: value ?? 0,
         packaging: data.packaging,
         contents: {
           create: data.contents.map((content) => ({
@@ -154,13 +160,14 @@ export default class ContainersService {
   static async update(data: UpdateContainerDto): Promise<ContainerDto> {
     const articleTypes = await ArticleTypesService.findAll();
 
-    const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, data.contents);
+    const [weight, volume, value] = ContainersService.findContainerWeightVolumeAndValue(articleTypes, data.contents);
 
     const container = await prisma.container.update({
       where: { id: data.id },
       data: {
         weight: weight,
         volume: volume,
+        value: value,
         packaging: data.packaging,
         contents: {
           deleteMany: {},

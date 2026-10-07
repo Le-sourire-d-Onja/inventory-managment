@@ -43,6 +43,7 @@ model Container {
   id        String        @id
   weight    Float
   volume    Float
+  value     Float         @default(0)
   packaging PackagingType
   demand    Demand?        @relation(fields: [demand_id], references: [id], onDelete: SetNull)
   demand_id String?
@@ -82,6 +83,7 @@ model ArticleType {
   name   String @unique
   weight Float
   volume Float
+  value  Float  @default(0)
 
   articles Article[]
   contents Content[]

@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "ArticleType" ADD COLUMN     "value" DOUBLE PRECISION NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "Container" ADD COLUMN     "value" DOUBLE PRECISION NOT NULL DEFAULT 0;

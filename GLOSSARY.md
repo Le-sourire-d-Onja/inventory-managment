@@ -11,9 +11,14 @@ Un ensemble de dons matériels reçus, décrits librement et composés de plusie
 Articles.
 
 **Type d'article** (ArticleType):
-Une catégorie de matériel (nom, poids, volume unitaires) ; sert à compter les
-Articles et les Contenus.
+Une catégorie de matériel (nom, poids, volume et valeur unitaires) ; sert à
+compter les Articles et les Contenus.
 _Avoid_: Article, catégorie, matériel
+
+**Valeur**:
+La valeur monétaire unitaire d'un Type d'article, exprimée en euros (€). Elle est
+indicative : elle sert à estimer un Stock ou un Contenant, pas à facturer.
+_Avoid_: Prix, price, montant, coût, tarif
 
 **Contenant** (Container):
 Une unité physique qui regroupe des Contenus et porte un identifiant annuel

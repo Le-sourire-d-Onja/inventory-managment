@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
 import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
+import { formatEuro } from "@/lib/utils";
 
 export const columns = (
   onView: (id: string) => void,
@@ -23,10 +24,18 @@ export const columns = (
   },
   {
     accessorKey: "volume",
-    header: "Poids",
+    header: "Volume",
     cell: (props) => {
       const row = props.row.original;
       return <> {row.volume} m³ </>;
+    },
+  },
+  {
+    accessorKey: "value",
+    header: "Valeur",
+    cell: (props) => {
+      const row = props.row.original;
+      return <> {formatEuro(row.value)} </>;
     },
   },
   {

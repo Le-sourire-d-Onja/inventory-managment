@@ -64,11 +64,12 @@ export default class DemandsService {
         document: documentKey,
         containers: {
           create: data.containers.map((container) => {
-            const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, container.contents);
+            const [weight, volume, value] = ContainersService.findContainerWeightVolumeAndValue(articleTypes, container.contents);
             return {
               id: ContainersService.formatContainerID(nextContainerNumber++),
               weight: weight ?? 0,
               volume: volume ?? 0,
+              value: value ?? 0,
               packaging: container.packaging,
               contents: {
                 create: container.contents.map((content) => ({
@@ -136,11 +137,12 @@ export default class DemandsService {
         containers: {
           deleteMany: {},
           create: (data.containers ?? []).map((container) => {
-            const [weight, volume] = ContainersService.findContainerWeightAndVolume(articleTypes, container.contents);
+            const [weight, volume, value] = ContainersService.findContainerWeightVolumeAndValue(articleTypes, container.contents);
             return {
               id: container.id ?? ContainersService.formatContainerID(nextContainerNumber++),
               weight: weight ?? 0,
               volume: volume ?? 0,
+              value: value ?? 0,
               packaging: container.packaging ?? PackagingType.NONE,
               contents: {
                 create: container.contents?.map((content) => ({

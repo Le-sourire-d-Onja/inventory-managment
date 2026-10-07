@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ContainerDto } from "../api/containers/dto/container.dto";
+import { formatEuro } from "@/lib/utils";
 
 export const columns = (
   onView: (id: string) => void,
@@ -67,6 +68,15 @@ export const columns = (
     cell: (props) => {
       const volume = props.getValue() as number;
       return <> {volume.toFixed(2)} m³ </>;
+    },
+  },
+  {
+    id: "total_value",
+    accessorFn: (row) => row.contents.reduce((prev, curr) => prev + curr.quantity * curr.type.value, 0),
+    header: "Valeur totale",
+    cell: (props) => {
+      const value = props.getValue() as number;
+      return <> {formatEuro(value)} </>;
     },
   },
   {

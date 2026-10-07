@@ -41,7 +41,8 @@ export default class StocksService {
       }
       const volume = (articleType.volume ?? 0) * quantity;
       const weight = (articleType.weight ?? 0) * quantity;
-      return { type: articleType, _sum: { quantity, volume, weight } }
+      const value = (articleType.value ?? 0) * quantity;
+      return { type: articleType, _sum: { quantity, volume, weight, value } }
     })
     return stocks.map(({ type, _sum }) => StockDto.parse({ type, ..._sum }));
   }

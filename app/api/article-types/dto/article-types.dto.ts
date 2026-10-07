@@ -5,23 +5,25 @@ export class ArticleTypeDto {
   name: string;
   weight: number;
   volume: number;
+  value: number;
 
-  constructor(id: string, name: string, weight: number, volume: number) {
+  constructor(id: string, name: string, weight: number, volume: number, value: number) {
     this.id = id;
     this.name = name;
     this.weight = weight;
     this.volume = volume;
+    this.value = value;
   }
 
   static parse(obj: ArticleTypeEntity) {
-    return new ArticleTypeDto(obj.id, obj.name, obj.weight, obj.volume);
+    return new ArticleTypeDto(obj.id, obj.name, obj.weight, obj.volume, obj.value);
   }
 
   static exportValues(articleType: ArticleTypeDto): (string | number)[] {
-    return [articleType.name, articleType.weight, articleType.volume];
+    return [articleType.name, articleType.weight, articleType.volume, articleType.value];
   }
 
   static exportHeaders(): string[] {
-    return ["Nom", "Poids (kg)", "Volume (m³)"];
+    return ["Nom", "Poids (kg)", "Volume (m³)", "Valeur (€)"];
   }
 }

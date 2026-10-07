@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { formatEuro } from "@/lib/utils";
 
 export type StockUnit = {
   value: string;
@@ -20,6 +21,7 @@ const stockUnits: StockUnit[] = [
   { value: "quantity", unit: "#" },
   { value: "volume", unit: "m³" },
   { value: "weight", unit: "kg" },
+  { value: "value", unit: "€" },
 ];
 
 export default function Page() {
@@ -32,10 +34,12 @@ export default function Page() {
   const articleInStock = stocks.reduce((acc, stock) => acc + stock.quantity, 0);
   const weightInStock = stocks.reduce((acc, stock) => acc + stock.weight, 0);
   const volumeInStock = stocks.reduce((acc, stock) => acc + stock.volume, 0);
+  const valueInStock = stocks.reduce((acc, stock) => acc + stock.value, 0);
 
   const articleInContainer = stocksInContainer.reduce((acc, stock) => acc + stock.quantity, 0);
   const weightInContainer = stocksInContainer.reduce((acc, stock) => acc + stock.weight, 0);
   const volumeInContainer = stocksInContainer.reduce((acc, stock) => acc + stock.volume, 0);
+  const valueInContainer = stocksInContainer.reduce((acc, stock) => acc + stock.value, 0);
 
   async function retrieveStocks(type: "stock" | "container", setStocks: (stocks: StockEntityShort[]) => void) {
     setIsLoading(true);
@@ -107,7 +111,7 @@ export default function Page() {
                 <CardTitle> Total articles dans le stock </CardTitle>
               </CardHeader>
               <CardContent>
-                {articleInStock} articles ({weightInStock.toFixed(2)} kg, {volumeInStock.toFixed(2)} m³)
+                {articleInStock} articles ({weightInStock.toFixed(2)} kg, {volumeInStock.toFixed(2)} m³, {formatEuro(valueInStock)})
               </CardContent>
             </Card>
             <Card>
@@ -115,7 +119,7 @@ export default function Page() {
                 <CardTitle> Total articles dans le conteneur </CardTitle>
               </CardHeader>
               <CardContent>
-                {articleInContainer} articles ({weightInContainer.toFixed(2)} kg, {volumeInContainer.toFixed(2)} m³)
+                {articleInContainer} articles ({weightInContainer.toFixed(2)} kg, {volumeInContainer.toFixed(2)} m³, {formatEuro(valueInContainer)})
               </CardContent>
             </Card>
             <Card>

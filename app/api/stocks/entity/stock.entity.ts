@@ -5,5 +5,6 @@ export type StockEntity = {
   type: ArticleTypeDto,
   quantity: number,
   volume: number,
-  weight: number
+  weight: number,
+  value: number,
 };
