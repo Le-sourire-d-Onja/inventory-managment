@@ -25,6 +25,11 @@ Une unité physique qui regroupe des Contenus et porte un identifiant annuel
 (ex. `250001`).
 _Avoid_: Conteneur, colis, carton, boîte
 
+**Conteneur** (hors application):
+Le conteneur physique réel, livré, dans lequel les Contenants *Empotés* sont
+physiquement déplacés. Non modélisé par l'application : à ne pas confondre avec
+Contenant.
+
 **Contenu** (Content):
 Une quantité d'un Type d'article placée dans un Contenant.
 
