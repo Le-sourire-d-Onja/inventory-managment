@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ContainerDto } from "../api/containers/dto/container.dto";
-import { formatEuro } from "@/lib/utils";
+import { formatEuro, formatVolume, formatWeight } from "@/lib/utils";
 
 export const columns = (
   onView: (id: string) => void,
@@ -59,7 +59,7 @@ export const columns = (
     header: "Poids total",
     cell: (props) => {
       const weight = props.getValue() as number;
-      return <> {weight.toFixed(2)} kg </>;
+      return <> {formatWeight(weight)} kg </>;
     },
   },
   {
@@ -68,7 +68,7 @@ export const columns = (
     header: "Volume total",
     cell: (props) => {
       const volume = props.getValue() as number;
-      return <> {volume.toFixed(2)} m³ </>;
+      return <> {formatVolume(volume)} m³ </>;
     },
   },
   {

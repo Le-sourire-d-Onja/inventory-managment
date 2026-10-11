@@ -20,6 +20,18 @@ export function formatEuro(value: number) {
   return euroFormatter.format(value)
 }
 
+const wholeNumberFormatter = new Intl.NumberFormat("fr-FR", {
+  maximumFractionDigits: 0,
+})
+
+export function formatWeight(value: number) {
+  return wholeNumberFormatter.format(value)
+}
+
+export function formatVolume(value: number) {
+  return wholeNumberFormatter.format(value)
+}
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
