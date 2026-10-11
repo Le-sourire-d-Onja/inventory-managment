@@ -89,7 +89,14 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
       <div
         className={`overflow-y-scroll max-h-[450px] space-y-8 pr-2 ${scrollBar}`}
       >
-        {fields.map((field, index) => (
+        {fields.map((field, index) => {
+          // A linked Container is reloaded by its id: looking it up (rather than
+          // by index) keeps its badge and its locked state correct even after
+          // adding or removing other Containers.
+          const linkedContainer = data.find((container) => container.id === field.id);
+          const linkedState = linkedContainer ? ContainerDto.containerState(linkedContainer) : null;
+          const isLocked = linkedState?.text === "Empoté" || linkedState?.text === "Distribué";
+          return (
           <div key={field.fieldID} className="flex flex-col gap-4 ">
             <div className="flex flex-col gap-2">
               <div className="flex gap-2 items-end">
@@ -103,9 +110,9 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                           <FormDescription className="text-sm text-muted-foreground">
                             N°{field.id}
                           </FormDescription>
-                          {data[index] && (
-                            <Badge className={ContainerDto.containerState(data[index]).color}>
-                              {ContainerDto.containerState(data[index]).text}
+                          {linkedState && (
+                            <Badge className={linkedState.color}>
+                              {linkedState.text}
                             </Badge>
                           )}
                         </div>
@@ -136,7 +143,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                   )}
                 />
                 <div className="relative min-w-[50px]">
-                  <Input disabled value={formatWeight(data[index]?.weight ?? 0)} />
+                  <Input disabled value={formatWeight(linkedContainer?.weight ?? 0)} />
                   <span
                     className="opacity-25 absolute top-[18px] right-1.5
                      translate-[-50%]"
@@ -145,7 +152,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                   </span>
                 </div>
                 <div className="relative min-w-[50px]">
-                  <Input disabled value={formatVolume(data[index]?.volume ?? 0)} />
+                  <Input disabled value={formatVolume(linkedContainer?.volume ?? 0)} />
                   <span
                     className="opacity-25 absolute top-[18px] right-1.5
                      translate-[-50%]"
@@ -154,7 +161,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                   </span>
                 </div>
                 <div className="relative min-w-[90px]">
-                  <Input disabled value={formatEuro(data[index]?.value ?? 0)} />
+                  <Input disabled value={formatEuro(linkedContainer?.value ?? 0)} />
                 </div>
                 {field.id && (
                   <Button
@@ -166,7 +173,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                     <Download size={30} />
                   </Button>
                 )}
-                {permission === Permission.WRITE && (
+                {permission === Permission.WRITE && !isLocked && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -189,7 +196,8 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
             />
             <Separator />
           </div>
-        ))}
+          );
+        })}
         {ufields.map((field, index) => (
           <div key={field.id} className="flex gap-2">
             <FormField
