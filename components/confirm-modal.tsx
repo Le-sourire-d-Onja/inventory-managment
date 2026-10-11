@@ -19,7 +19,7 @@ export default function ConfirmModal(props: ConfirmModalProps) {
 
   return (
     <Dialog {...dialogProps}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Confirmation d'action
