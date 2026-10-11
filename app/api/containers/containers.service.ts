@@ -117,6 +117,43 @@ export default class ContainersService {
   }
 
   /**
+   * This function is used to recompute the stored weight, volume and value
+   * of every container that contains an article of the given type.
+   *
+   * It must be called whenever an article type is updated, because the
+   * container aggregates are denormalized snapshots derived from the article
+   * type and would otherwise become stale.
+   *
+   * @param typeId The id of the updated article type
+   */
+  static async recomputeAggregatesForArticleType(typeId: string): Promise<void> {
+    const containers = await prisma.container.findMany({
+      where: { contents: { some: { type_id: typeId } } },
+      include: { contents: true },
+    });
+    if (containers.length === 0) return;
+
+    const articleTypes = await ArticleTypesService.findAll();
+
+    await prisma.$transaction(
+      containers.map((container) => {
+        const [weight, volume, value] = ContainersService.findContainerWeightVolumeAndValue(
+          articleTypes,
+          container.contents,
+        );
+        return prisma.container.update({
+          where: { id: container.id },
+          data: {
+            weight: weight ?? 0,
+            volume: volume ?? 0,
+            value: value ?? 0,
+          },
+        });
+      }),
+    );
+  }
+
+  /**
    * This function is used to create a container in the database
    *
    * @param data The entity to create the container

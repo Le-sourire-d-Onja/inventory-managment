@@ -2,6 +2,7 @@ import { prisma } from "../prisma";
 import { ArticleTypeDto } from "./dto/article-types.dto";
 import { CreateArticleTypeDto } from "./dto/create-article-type.dto";
 import { UpdateArticleTypeDto } from "./dto/update-article-type.entity";
+import ContainersService from "../containers/containers.service";
 
 export default class ArticleTypesService {
 
@@ -66,6 +67,7 @@ export default class ArticleTypesService {
       where: { id: data.id },
       data: data,
     });
+    await ContainersService.recomputeAggregatesForArticleType(articleType.id);
     return ArticleTypeDto.parse(articleType);
   }
 
