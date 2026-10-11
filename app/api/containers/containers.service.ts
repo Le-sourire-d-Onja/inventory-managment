@@ -2,9 +2,16 @@ import { prisma } from "../prisma";
 import { ContainerDto } from "./dto/container.dto";
 import { CreateContainerDto } from "./dto/create-container.dto";
 import { UpdateContainerDto } from "./dto/update-container.dto";
+import { ContainerActionDto } from "./dto/container-action.dto";
 import ArticleTypesService from "../article-types/article-types.service";
 import { containerInclude } from "./entity/container.entity";
 import { ArticleTypeDto } from "../article-types/dto/article-types.dto";
+
+/**
+ * Raised when a Container transition is not allowed from its current state
+ * (illegal transition or backward move). The route maps it to a 4xx response.
+ */
+export class ContainerTransitionError extends Error {}
 
 export default class ContainersService {
   /**
@@ -220,6 +227,43 @@ export default class ContainersService {
       include: containerInclude,
     });
     return ContainerDto.parse(container);
+  }
+
+  /**
+   * This function is used to advance a container's lifecycle with a server
+   * timestamp: "containerize" is only allowed from Attribué (demand linked,
+   * no dates) and "distribute" only from Empoté (containerized, not yet
+   * distributed). Any other transition, or a backward move, is refused.
+   *
+   * @param data The id of the container and the action to perform
+   * @returns The updated container entity
+   * @throws Error if the container doesn't exist
+   * @throws ContainerTransitionError if the transition is not allowed
+   */
+  static async transition(data: ContainerActionDto): Promise<ContainerDto> {
+    const container = await prisma.container.findUnique({
+      where: { id: data.id },
+      include: containerInclude,
+    });
+    if (!container) throw new Error("Not found");
+
+    if (data.action === "containerize") {
+      const allowed = !!container.demand_id && !container.containerized_at && !container.distributed_at;
+      if (!allowed) throw new ContainerTransitionError("Cannot containerize");
+    } else {
+      const allowed = !!container.containerized_at && !container.distributed_at;
+      if (!allowed) throw new ContainerTransitionError("Cannot distribute");
+    }
+
+    const updated = await prisma.container.update({
+      where: { id: data.id },
+      data:
+        data.action === "containerize"
+          ? { containerized_at: new Date() }
+          : { distributed_at: new Date() },
+      include: containerInclude,
+    });
+    return ContainerDto.parse(updated);
   }
 
   /**

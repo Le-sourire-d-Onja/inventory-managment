@@ -29,6 +29,7 @@ import { DemandDto } from "../api/demands/dto/demand.dto";
 import { StockDto } from "../api/stocks/dto/stock.dto";
 import { Separator } from "@radix-ui/react-separator";
 import { formatEuro } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface ContainerSelectorProps {
   data: ContainerDto[];
@@ -98,9 +99,16 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                   render={({ field: selectField }) => (
                     <FormItem>
                       {field.id && (
-                        <FormDescription className="ml-2 text-sm text-muted-foreground">
-                          N°{field.id}
-                        </FormDescription>
+                        <div className="ml-2 flex items-center gap-2">
+                          <FormDescription className="text-sm text-muted-foreground">
+                            N°{field.id}
+                          </FormDescription>
+                          {data[index] && (
+                            <Badge className={ContainerDto.containerState(data[index]).color}>
+                              {ContainerDto.containerState(data[index]).text}
+                            </Badge>
+                          )}
+                        </div>
                       )}
                       {permission !== Permission.WRITE ? (
                         <Input readOnly  {...selectField} value={DemandDto.packagingTxt(selectField.value)} />
