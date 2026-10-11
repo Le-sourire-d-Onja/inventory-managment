@@ -16,7 +16,7 @@ import { updateContainerDtoSchema } from "../api/containers/dto/update-container
 import ContentSelector from "./content-selector";
 import { DemandDto } from "../api/demands/dto/demand.dto";
 import { Separator } from "@/components/ui/separator";
-import { formatEuro } from "@/lib/utils";
+import { formatEuro, formatVolume, formatWeight } from "@/lib/utils";
 
 export enum Permission {
   READ,
@@ -109,7 +109,7 @@ export default function ContainerModal(props: ContainerModal) {
                   )}
                 />
                 <div className="relative min-w-[50px]">
-                  <Input disabled value={data?.weight ?? 0} />
+                  <Input disabled value={formatWeight(data?.weight ?? 0)} />
                   <span
                     className="opacity-25 absolute top-[18px] right-1.5
                       translate-[-50%]"
@@ -119,7 +119,7 @@ export default function ContainerModal(props: ContainerModal) {
                 </div>
 
                 <div className="relative min-w-[50px]">
-                  <Input disabled value={data?.volume ?? 0} />
+                  <Input disabled value={formatVolume(data?.volume ?? 0)} />
                   <span
                     className="opacity-25 absolute top-[18px] right-1.5
                       translate-[-50%]"

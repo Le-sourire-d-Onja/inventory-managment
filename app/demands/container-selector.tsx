@@ -28,7 +28,7 @@ import { ContainerDto } from "../api/containers/dto/container.dto";
 import { DemandDto } from "../api/demands/dto/demand.dto";
 import { StockDto } from "../api/stocks/dto/stock.dto";
 import { Separator } from "@radix-ui/react-separator";
-import { formatEuro } from "@/lib/utils";
+import { formatEuro, formatVolume, formatWeight } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 interface ContainerSelectorProps {
@@ -136,7 +136,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                   )}
                 />
                 <div className="relative min-w-[50px]">
-                  <Input disabled value={data[index]?.weight ?? 0} />
+                  <Input disabled value={formatWeight(data[index]?.weight ?? 0)} />
                   <span
                     className="opacity-25 absolute top-[18px] right-1.5
                      translate-[-50%]"
@@ -145,7 +145,7 @@ export default function ContainerSelector(props: ContainerSelectorProps) {
                   </span>
                 </div>
                 <div className="relative min-w-[50px]">
-                  <Input disabled value={data[index]?.volume ?? 0} />
+                  <Input disabled value={formatVolume(data[index]?.volume ?? 0)} />
                   <span
                     className="opacity-25 absolute top-[18px] right-1.5
                      translate-[-50%]"

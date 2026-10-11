@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { formatEuro } from "@/lib/utils";
+import { formatEuro, formatVolume, formatWeight } from "@/lib/utils";
 
 export type StockUnit = {
   value: string;
@@ -111,7 +111,7 @@ export default function Page() {
                 <CardTitle> Total articles dans le stock </CardTitle>
               </CardHeader>
               <CardContent>
-                {articleInStock} articles ({weightInStock.toFixed(2)} kg, {volumeInStock.toFixed(2)} m³, {formatEuro(valueInStock)})
+                {articleInStock} articles ({formatWeight(weightInStock)} kg, {formatVolume(volumeInStock)} m³, {formatEuro(valueInStock)})
               </CardContent>
             </Card>
             <Card>
@@ -119,7 +119,7 @@ export default function Page() {
                 <CardTitle> Total articles dans le conteneur </CardTitle>
               </CardHeader>
               <CardContent>
-                {articleInContainer} articles ({weightInContainer.toFixed(2)} kg, {volumeInContainer.toFixed(2)} m³, {formatEuro(valueInContainer)})
+                {articleInContainer} articles ({formatWeight(weightInContainer)} kg, {formatVolume(volumeInContainer)} m³, {formatEuro(valueInContainer)})
               </CardContent>
             </Card>
             <Card>
