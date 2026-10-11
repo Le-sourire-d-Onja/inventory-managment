@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Eye, Pen, Trash } from "lucide-react";
+import { Eye, Package, Pen, Trash, Truck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 import { formatEuro } from "@/lib/utils";
@@ -9,6 +9,8 @@ export const columns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void,
+  onContainerize: (id: string) => void,
+  onDistribute: (id: string) => void,
 ): ColumnDef<ContainerDto>[] => [
   {
     id: "id",
@@ -84,6 +86,7 @@ export const columns = (
     id: "actions",
     cell: (props) => {
       const row = props.row.original;
+      const state = ContainerDto.containerState(row);
       return (
         <div className="flex justify-end gap-1">
           <Button variant="ghost" onClick={() => onView(row.id)}>
@@ -95,6 +98,18 @@ export const columns = (
           <Button variant="ghost" onClick={() => onRemove(row.id)}>
             <Trash className="text-destructive" />
           </Button>
+          {state.text === "Attribué" && (
+            <Button variant="ghost" onClick={() => onContainerize(row.id)}>
+              <span className="hidden md:flex"> Empoter </span>
+              <Package />
+            </Button>
+          )}
+          {state.text === "Empoté" && (
+            <Button variant="ghost" onClick={() => onDistribute(row.id)}>
+              <span className="hidden md:flex"> Distribuer </span>
+              <Truck />
+            </Button>
+          )}
         </div>
       );
     },

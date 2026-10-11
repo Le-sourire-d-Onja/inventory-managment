@@ -78,6 +78,22 @@ export default function Page() {
       });
   }
 
+  async function transitionContainer(id: string, action: "containerize" | "distribute") {
+    fetch("/api/containers", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, action }),
+    })
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw res;
+      })
+      .then((updated: ContainerDto) => {
+        setData((prev) => prev.map((container) => (container.id === updated.id ? updated : container)));
+      })
+      .catch((err) => console.log(err));
+  }
+
   function openModal(modal: Modals, id?: string) {
     setSelectedDataID(id ?? null);
     setOpennedModal(modal);
@@ -166,7 +182,7 @@ export default function Page() {
         Vous êtes sur le point de supprimer un contenant. Êtes-vous sûr de vouloir continuer ?
       </ConfirmModal>
 
-      <DataTable data={data} columns={columns(onView, onEdit, onRemove)} searchColumnId="id" isLoading={isLoading} />
+      <DataTable data={data} columns={columns(onView, onEdit, onRemove, (id) => transitionContainer(id, "containerize"), (id) => transitionContainer(id, "distribute"))} searchColumnId="id" isLoading={isLoading} />
     </div>
   );
 }
