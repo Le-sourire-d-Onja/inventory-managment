@@ -40,7 +40,7 @@ export const columns = (
         return <> - </>;
       }
       return (
-        <div className="flex gap-1 w-95 pb-1">
+        <div className="flex flex-wrap gap-1 pb-1">
           {row.containers.map((container) => (
             <Badge key={container.id}>N°{container.id}</Badge>
           ))}
