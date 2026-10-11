@@ -60,6 +60,7 @@ export default function DemandModal(props: DemandModalProps) {
             type_id: content.type.id,
           })),
         })) ?? [],
+      linkedContainers: [],
     });
     setFile(null);
     setDocumentRemoved(false);
