@@ -13,6 +13,13 @@ import { ArticleTypeDto } from "../article-types/dto/article-types.dto";
  */
 export class ContainerTransitionError extends Error {}
 
+/**
+ * Raised when deleting a Container would erase a physical act: an Empoté or
+ * Distribué Container must not be deleted, by symmetry with the detach guard.
+ * The route maps it to a 4xx response.
+ */
+export class ContainerDeletionError extends Error {}
+
 export default class ContainersService {
   /**
    * This function returns the next container number for the current year
@@ -265,12 +272,22 @@ export default class ContainersService {
   }
 
   /**
-   * This function is used to delete a container from the database
+   * This function is used to delete a container from the database. A Container
+   * that is already Empoté or Distribué cannot be deleted: doing so would erase
+   * a physical act and falsify the aggregate status of its Demand.
    *
    * @param id The id of the container
    * @returns The container entity of the database
+   * @throws Error if the container doesn't exist
+   * @throws ContainerDeletionError if the container is Empoté or Distribué
    */
   static async delete(id: string): Promise<ContainerDto> {
+    const existing = await prisma.container.findUnique({ where: { id: id } });
+    if (!existing) throw new Error("Not found");
+    if (existing.containerized_at || existing.distributed_at) {
+      throw new ContainerDeletionError("Impossible de supprimer un contenant empoté ou distribué");
+    }
+
     const container = await prisma.container.delete({
       where: { id: id },
       include: containerInclude,

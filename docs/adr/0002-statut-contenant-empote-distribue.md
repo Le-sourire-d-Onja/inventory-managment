@@ -1,5 +1,8 @@
 # Empoté et Distribué portés par le Contenant, dérivés de dates
 
+Statut : partiellement remplacé par ADR-0003 (le Statut de la Demande est
+désormais dérivé de ses Contenants, sans validation manuelle).
+
 Le statut d'un Contenant est **dérivé, jamais stocké** : pas de rattachement →
 En attente ; rattaché à une Demande → Attribué ; `containerized_at` renseigné →
 Empoté ; `distributed_at` renseigné → Distribué (précédence dans cet ordre). On
@@ -30,5 +33,9 @@ de la Demande, qui n'est pas utilisée pour l'instant.
 - Le Stock est consommé dès l'**attribution** (un Contenant rattaché à une
   Demande sort du stock), plus à la validation ; l'empotage et la distribution
   ne modifient plus le Stock.
+- Le « Stock empoté » du tableau de bord agrège les Contenus des Contenants au
+  **statut Empoté** (`containerized_at` renseigné, `distributed_at` nul), quel
+  que soit le statut de leur Demande, et non plus les Contenus des Demandes
+  validées. C'est la même dérivation que les badges de statut des Contenants.
 - Le glossaire est mis à jour (Statut du contenant dérivé, Empotage/Attribution/
   Distribution redéfinis, Stock redéfini).

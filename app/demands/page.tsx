@@ -3,13 +3,10 @@
 import { DataTable } from "@/components/data-table";
 import { useEffect, useState } from "react";
 import { columns } from "./columns";
-import { DemandDto } from "../api/demands/dto/demand.dto";
+import { DemandDto, DEMAND_STATUSES } from "../api/demands/dto/demand.dto";
 import DemandModal, { Permission } from "./demand-modal";
 import { Button } from "@/components/ui/button";
 import { AssociationDto } from "../api/associations/dto/association.dto";
-import { DemandStatus } from "@/lib/generated/prisma";
-import { toast } from "sonner";
-import { CreateDemandDto } from "../api/demands/dto/create-demand.dto";
 import ConfirmModal from "@/components/confirm-modal";
 import ScanModal from "./scan-modal";
 import { Camera, Download, Plus } from "lucide-react";
@@ -18,13 +15,11 @@ import { StockDto } from "../api/stocks/dto/stock.dto";
 import { useStateParam } from "@/lib/utils";
 import { generatePdf } from "@/lib/pdf";
 import { ContainerDto } from "../api/containers/dto/container.dto";
-import { UpdateDemandDto } from "../api/demands/dto/update-demand.entity";
 
 enum Modals {
   SCAN,
   DEMAND,
   REMOVE,
-  VALIDATE,
   NONE,
 }
 
@@ -122,40 +117,6 @@ export default function Page() {
       });
   }
 
-  async function validateDemand(id: string) {
-    const foundSelected = data.find((demand) => demand.id === id);
-    if (!foundSelected) {
-      return;
-    }
-    const { association, ...demand } = foundSelected;
-    const body = {
-      ...demand,
-      status: DemandStatus.VALIDATED,
-      containers: demand.containers.map((container) => ({
-        ...container,
-        contents: container.contents.map((content) => ({
-          ...content,
-          type_id: content.type.id,
-        })),
-      })),
-      association_id: association.id,
-    } as UpdateDemandDto;
-
-    const response = await fetch(`/api/demands`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-
-    if (response.ok) {
-      retrieveData();
-    } else {
-      toast("Une erreur s'est produite.", {
-        description: response.status,
-      });
-    }
-  }
-
   async function downloadDemand(id: string) {
     const demand = data.find((demand) => demand.id === id);
     if (!demand) {
@@ -223,10 +184,6 @@ export default function Page() {
     openModal(Modals.SCAN);
   }
 
-  function onValidate(id: string) {
-    openModal(Modals.VALIDATE, id);
-  }
-
   function onRemove(id: string) {
     openModal(Modals.REMOVE, id);
   }
@@ -279,25 +236,15 @@ export default function Page() {
         . Êtes-vous sûr de vouloir continuer ?
       </ConfirmModal>
 
-      <ConfirmModal
-        open={opennedModal === Modals.VALIDATE}
-        onOpenChange={closeModal}
-        onConfirm={() => selectedData && validateDemand(selectedData.id)}
-        onCancel={() => closeModal(false)}
-      >
-        Vous êtes sur le point de valider la demande pour l'association {selectedData?.association.name ?? "Inconnue"}.
-        Êtes-vous sûr de vouloir continuer ?
-      </ConfirmModal>
-
       <DataTable
         data={data}
-        columns={columns(stocks, onView, onEdit, onRemove, onValidate, downloadDemand)}
+        columns={columns(onView, onEdit, onRemove, downloadDemand)}
         searchColumnId="name"
         filters={[
           {
             columnId: "status",
             label: "Statut",
-            options: Object.values(DemandStatus).map((status) => ({
+            options: DEMAND_STATUSES.map((status) => ({
               label: DemandDto.statusData(status).text,
               value: status,
             })),

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it } from "vitest";
-import { GET, PATCH } from "@/app/api/containers/route";
+import { DELETE, GET, PATCH } from "@/app/api/containers/route";
 import { prisma } from "@/app/api/prisma";
 import { PackagingType } from "@/lib/generated/prisma";
 import {
@@ -18,6 +18,10 @@ function getContainer(id: string) {
 
 function patchContainer(body: unknown) {
   return PATCH(jsonRequest("http://localhost/api/containers", "PATCH", body));
+}
+
+function deleteContainer(id: string) {
+  return DELETE(new NextRequest(`http://localhost/api/containers?id=${id}`, { method: "DELETE" }));
 }
 
 describe("Container status derivation and transitions", () => {
@@ -202,10 +206,9 @@ describe("Container status derivation and transitions", () => {
     expect(response.status).toBeLessThan(500);
   });
 
-  it("allows containerizing while the demand is still IN_PROGRESS", async () => {
+  it("allows containerizing while the demand is still En attente", async () => {
     const { association } = await seed();
     const demand = await createDemand(association.id);
-    expect(demand.status).toBe("IN_PROGRESS");
     await createContainer({
       id: "240010",
       packaging: PackagingType.CARDBOARD,
@@ -240,5 +243,50 @@ describe("Container status derivation and transitions", () => {
     expect(body.packaging).toBe("FILM");
     expect(body.state.text).toBe("Attribué");
     expect(body.contents).toHaveLength(1);
+  });
+
+  it("refuses to delete an Empoté container", async () => {
+    const { association } = await seed();
+    const demand = await createDemand(association.id);
+    await createContainer({
+      id: "240020",
+      packaging: PackagingType.CARDBOARD,
+      demand: { connect: { id: demand.id } },
+      containerized_at: new Date(),
+    });
+
+    const response = await deleteContainer("240020");
+
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.status).toBeLessThan(500);
+    expect(await prisma.container.findUnique({ where: { id: "240020" } })).not.toBeNull();
+  });
+
+  it("refuses to delete a Distribué container", async () => {
+    const { association } = await seed();
+    const demand = await createDemand(association.id);
+    await createContainer({
+      id: "240021",
+      packaging: PackagingType.CARDBOARD,
+      demand: { connect: { id: demand.id } },
+      containerized_at: new Date(),
+      distributed_at: new Date(),
+    });
+
+    const response = await deleteContainer("240021");
+
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.status).toBeLessThan(500);
+    expect(await prisma.container.findUnique({ where: { id: "240021" } })).not.toBeNull();
+  });
+
+  it("deletes a free (En attente) container", async () => {
+    await seed();
+    await createContainer({ id: "240022", packaging: PackagingType.CARDBOARD });
+
+    const response = await deleteContainer("240022");
+
+    expect(response.status).toBe(200);
+    expect(await prisma.container.findUnique({ where: { id: "240022" } })).toBeNull();
   });
 });

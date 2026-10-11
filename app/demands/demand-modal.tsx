@@ -12,7 +12,6 @@ import { useEffect, useState } from "react";
 import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import { DemandStatus } from "@/lib/generated/prisma";
 import { AssociationDto } from "../api/associations/dto/association.dto";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ContainerSelector from "./container-selector";
@@ -50,7 +49,6 @@ export default function DemandModal(props: DemandModalProps) {
   function resetForm() {
     form.reset({
       id: data?.id ?? undefined,
-      status: data?.status ?? DemandStatus.IN_PROGRESS,
       association_id: data?.association.id ?? undefined,
       containers:
         data?.containers.map((container) => ({
@@ -120,9 +118,7 @@ export default function DemandModal(props: DemandModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {!data ? "Nouvelle demande" : `Demande pour ${data.association.name}`}
-            {data?.status === DemandStatus.VALIDATED && (
-              <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
-            )}
+            {data && <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>}
           </DialogTitle>
           <DialogDescription className="text-left text-muted-foreground text-sm">
             Créée le{" "}

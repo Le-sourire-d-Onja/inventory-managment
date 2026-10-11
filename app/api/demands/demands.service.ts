@@ -1,11 +1,10 @@
-import { DemandStatus, PackagingType } from "@/lib/generated/prisma";
+import { PackagingType } from "@/lib/generated/prisma";
 import { prisma } from "../prisma";
 import { CreateDemandDto } from "./dto/create-demand.dto";
 import { DemandDto } from "./dto/demand.dto";
 import { UpdateDemandDto } from "./dto/update-demand.entity";
 import ArticleTypesService from "../article-types/article-types.service";
 import ContainersService from "../containers/containers.service";
-import StocksService from "../stocks/stocks.service";
 import { demandInclude } from "./entity/demand.entity";
 import FilesService from "../files/files.service";
 
@@ -73,7 +72,6 @@ export default class DemandsService {
     const demand = await prisma.demand.create({
       data: {
         association_id: data.association_id,
-        status: DemandStatus.IN_PROGRESS,
         document: documentKey,
         containers: {
           create: data.containers.map((container) => {
@@ -114,7 +112,6 @@ export default class DemandsService {
     if (!data.id) throw new Error("Demand id is required");
 
     const demandId = data.id;
-    const validated_at = data.status === DemandStatus.VALIDATED ? new Date() : undefined;
 
     const articleTypes = await ArticleTypesService.findAll();
 
@@ -161,33 +158,9 @@ export default class DemandsService {
       }
     }
 
-    // Stock availability is only checked when validating a Demand. The stock
-    // already excludes every attributed Container, so the Demand's own
-    // consumption is added back to avoid blocking itself; only a genuine
-    // over-allocation (e.g. a concurrent Demand) is refused. The requested
-    // consumption is the incoming Contents (plus the linked Containers) when
-    // the update also touches them, and the Demand's current consumption
-    // otherwise.
-    if (data.status === DemandStatus.VALIDATED) {
-      const stock = await StocksService.stockByType();
-      const ownConsumption = await StocksService.demandConsumption(demandId);
-      const requested = reconcileContainers
-        ? await StocksService.consumptionOf(
-            incoming.map((container) => ({
-              contents:
-                container.contents ??
-                (container.id
-                  ? existingById
-                      .get(container.id)
-                      ?.contents.map((content) => ({ type_id: content.type_id, quantity: content.quantity }))
-                  : undefined),
-            })),
-            linkedIds,
-          )
-        : new Map(ownConsumption);
-      StocksService.assertAvailability(stock, ownConsumption, requested);
-    }
-
+    // Stock availability is never checked: attributing a Container consumes
+    // the stock, and the field is allowed to over-allocate (a genuine shortage
+    // surfaces as a negative stock figure, not as a refused save).
     let nextContainerNumber = await ContainersService.findNextContainerNumber();
 
     let documentKey: string | null | undefined;
@@ -303,8 +276,6 @@ export default class DemandsService {
       return tx.demand.update({
         where: { id: demandId },
         data: {
-          status: data.status,
-          validated_at: validated_at,
           association_id: data.association_id,
           document: documentKey,
         },

@@ -16,7 +16,7 @@ describe("container numbering", () => {
     const yy = String(new Date().getFullYear() % 100);
     const lastYearStart = new Date(new Date().getFullYear() - 1, 0, 1);
     const oldDemand = await prisma.demand.create({
-      data: { status: "IN_PROGRESS", association_id: association.id, created_at: lastYearStart },
+      data: { association_id: association.id, created_at: lastYearStart },
     });
     await prisma.container.create({
       data: {

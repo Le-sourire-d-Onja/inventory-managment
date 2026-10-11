@@ -75,8 +75,8 @@ export class ContainerDto {
       obj.contents.map((content) => ContentDto.parse(content)),
       obj.demand?.association ?? null,
       obj.demand_id,
-      obj.containerized_at,
-      obj.distributed_at,
+      obj.containerized_at ? new Date(obj.containerized_at) : null,
+      obj.distributed_at ? new Date(obj.distributed_at) : null,
     );
   }
 

@@ -44,10 +44,11 @@ laquelle des Contenants peuvent être rattachés.
 L'organisation ou la personne destinataire d'une Demande.
 
 **Statut de la demande**:
-L'avancement d'une Demande : En attente, Validée. Les valeurs Empotée et
-Distribuée existent mais ne sont pas utilisées : l'empotage et la distribution
-sont portés par le Contenant (voir Statut du contenant).
-_Avoid_: confondre ce statut avec celui du Contenant.
+L'avancement d'une Demande, **dérivé** de ses Contenants : En attente, Empotée
+ou Distribuée. Une Demande est Empotée quand tous ses Contenants ont atteint
+l'Empotage, Distribuée quand tous sont Distribués, sinon En attente ; une
+Demande à 0 Contenant reste En attente. Distinct du Statut du contenant.
+_Avoid_: confondre ce statut avec celui du Contenant ; « Validée ».
 
 **Statut du contenant**:
 L'état d'un Contenant envers les Demandes : En attente (libre), Attribué (rattaché
@@ -76,4 +77,6 @@ distribué est au statut Distribué.
 
 **Stock**:
 La quantité d'un Type d'article disponible, c'est-à-dire non encore rattachée à
-un Contenant attribué.
+un Contenant attribué. À distinguer du **Stock empoté** : la somme des Contenus
+des Contenants au statut Empoté, qui ne fait donc plus partie du Stock au sens
+ci-dessus.

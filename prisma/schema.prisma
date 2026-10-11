@@ -53,17 +53,13 @@ model Container {
 }
 
 model Demand {
-  id               String       @id @default(uuid())
-  status           DemandStatus
-  containers       Container[]
-  association      Association  @relation(fields: [association_id], references: [id], onDelete: Cascade)
-  association_id   String
-  validated_at     DateTime?
-  containerized_at DateTime?
-  distributed_at   DateTime?
-  document         String?
-  created_at       DateTime     @default(now())
-  updated_at       DateTime     @updatedAt
+  id             String      @id @default(uuid())
+  containers     Container[]
+  association    Association @relation(fields: [association_id], references: [id], onDelete: Cascade)
+  association_id String
+  document       String?
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @updatedAt
 }
 
 model Association {
@@ -97,13 +93,6 @@ enum PackagingType {
   TIED_STRING
   NAKED
   NONE
-}
-
-enum DemandStatus {
-  IN_PROGRESS
-  VALIDATED
-  CONTAINERIZED
-  DISTRIBUTED
 }
 
 enum AssociationType {

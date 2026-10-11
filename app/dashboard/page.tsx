@@ -3,45 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ComponentType } from "react";
 import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Building2,
-  ClipboardList,
-  Clock,
-  Download,
-  Gift,
-  Inbox,
-  Package,
-  PackageOpen,
-} from "lucide-react";
+import { Building2, ClipboardList, Clock, Download, Gift, Inbox, Package, PackageOpen } from "lucide-react";
 import { cn, formatEuro, formatVolume, formatWeight } from "@/lib/utils";
 
 type StockRow = {
@@ -80,13 +48,12 @@ const stockUnits: StockUnit[] = [
 
 const demandStatuses: { key: string; label: string }[] = [
   { key: "IN_PROGRESS", label: "En attente" },
-  { key: "VALIDATED", label: "Validée" },
   { key: "CONTAINERIZED", label: "Empotée" },
   { key: "DISTRIBUTED", label: "Distribuée" },
 ];
 
 function toStockRow(raw: StockRowInput): StockRow {
-  const name = typeof raw.type === "string" ? raw.type : raw.type?.name ?? "—";
+  const name = typeof raw.type === "string" ? raw.type : (raw.type?.name ?? "—");
   return {
     name,
     quantity: raw.quantity,
@@ -141,18 +108,11 @@ function StatCard({
       <CardHeader className="px-5">
         <div className="flex items-center justify-between gap-2">
           <CardDescription>{label}</CardDescription>
-          <span
-            className={cn(
-              "flex size-8 items-center justify-center rounded-md",
-              tint,
-            )}
-          >
+          <span className={cn("flex size-8 items-center justify-center rounded-md", tint)}>
             <Icon className="size-4" />
           </span>
         </div>
-        <CardTitle className="text-3xl font-bold tabular-nums">
-          {value}
-        </CardTitle>
+        <CardTitle className="text-3xl font-bold tabular-nums">{value}</CardTitle>
       </CardHeader>
     </Card>
   );
@@ -173,42 +133,28 @@ function TotalCard({
     <Card className="gap-4 py-5">
       <CardHeader className="px-5">
         <CardDescription className="flex items-center gap-2">
-          <span
-            className={cn(
-              "flex size-8 items-center justify-center rounded-md",
-              tint,
-            )}
-          >
+          <span className={cn("flex size-8 items-center justify-center rounded-md", tint)}>
             <Icon className="size-4" />
           </span>
           {title}
         </CardDescription>
         <CardTitle className="text-3xl font-bold tabular-nums">
-          {totals.quantity}{" "}
-          <span className="text-base font-medium text-muted-foreground">
-            articles
-          </span>
+          {totals.quantity} <span className="text-base font-medium text-muted-foreground">articles</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="px-5">
         <dl className="grid grid-cols-3 gap-3">
           <div>
             <dt className="text-xs text-muted-foreground">Poids</dt>
-            <dd className="font-medium tabular-nums">
-              {formatWeight(totals.weight)} kg
-            </dd>
+            <dd className="font-medium tabular-nums">{formatWeight(totals.weight)} kg</dd>
           </div>
           <div>
             <dt className="text-xs text-muted-foreground">Volume</dt>
-            <dd className="font-medium tabular-nums">
-              {formatVolume(totals.volume)} m³
-            </dd>
+            <dd className="font-medium tabular-nums">{formatVolume(totals.volume)} m³</dd>
           </div>
           <div>
             <dt className="text-xs text-muted-foreground">Valeur</dt>
-            <dd className="font-medium tabular-nums">
-              {formatEuro(totals.value)}
-            </dd>
+            <dd className="font-medium tabular-nums">{formatEuro(totals.value)}</dd>
           </div>
         </dl>
       </CardContent>
@@ -231,10 +177,7 @@ function StockChartCard({
   emptyTitle: string;
   emptyDescription: string;
 }) {
-  const data = useMemo(
-    () => [...rows].sort((a, b) => b[unit.value] - a[unit.value]).slice(0, 10),
-    [rows, unit],
-  );
+  const data = useMemo(() => [...rows].sort((a, b) => b[unit.value] - a[unit.value]).slice(0, 10), [rows, unit]);
 
   const colorByName = useMemo(() => {
     const colors = new Map<string, string>();
@@ -252,9 +195,7 @@ function StockChartCard({
         <CardTitle>{title}</CardTitle>
         <Select
           value={unit.value}
-          onValueChange={(value) =>
-            onUnitChange(stockUnits.find((u) => u.value === value) ?? unit)
-          }
+          onValueChange={(value) => onUnitChange(stockUnits.find((u) => u.value === value) ?? unit)}
         >
           <SelectTrigger className="w-[80px]">
             <SelectValue placeholder="Unité" />
@@ -280,37 +221,18 @@ function StockChartCard({
             </EmptyHeader>
           </Empty>
         ) : (
-          <ChartContainer
-            config={config}
-            className="aspect-auto h-[260px] w-full"
-          >
+          <ChartContainer config={config} className="aspect-auto h-[260px] w-full">
             <BarChart accessibilityLayer data={data}>
-              <XAxis
-                dataKey="name"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-              />
-              <YAxis
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                unit={" " + unit.unit}
-              />
+              <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
+              <YAxis tickLine={false} tickMargin={10} axisLine={false} unit={" " + unit.unit} />
               <ChartTooltip
                 content={
-                  <ChartTooltipContent
-                    indicator="line"
-                    formatter={(value) => formatByUnit(Number(value), unit)}
-                  />
+                  <ChartTooltipContent indicator="line" formatter={(value) => formatByUnit(Number(value), unit)} />
                 }
               />
               <Bar dataKey={unit.value} radius={4}>
                 {data.map((row) => (
-                  <Cell
-                    key={row.name}
-                    fill={colorByName.get(row.name) ?? chartColor(0)}
-                  />
+                  <Cell key={row.name} fill={colorByName.get(row.name) ?? chartColor(0)} />
                 ))}
               </Bar>
             </BarChart>
@@ -361,8 +283,9 @@ export default function Page() {
         throw new Error("Échec du chargement du tableau de bord");
       }
 
-      const [stockData, containerData, donationData, associationData, demandData] =
-        await Promise.all(responses.map((response) => response.json()));
+      const [stockData, containerData, donationData, associationData, demandData] = await Promise.all(
+        responses.map((response) => response.json()),
+      );
 
       setStocks((stockData as StockRowInput[]).map(toStockRow));
       setStocksInContainer((containerData as StockRowInput[]).map(toStockRow));
@@ -403,26 +326,14 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight text-balance">
-          Tableau de bord
-        </h1>
+        <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight text-balance">Tableau de bord</h1>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isLoading}
-            onClick={() => onExport("stock")}
-          >
+          <Button variant="outline" size="sm" disabled={isLoading} onClick={() => onExport("stock")}>
             <span className="hidden md:flex">Exporter le stock</span>
             <Download />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isLoading}
-            onClick={() => onExport("container")}
-          >
-            <span className="hidden md:flex">Exporter le stock des contenants</span>
+          <Button variant="outline" size="sm" disabled={isLoading} onClick={() => onExport("container")}>
+            <span className="hidden md:flex">Exporter le stock empoté</span>
             <Download />
           </Button>
         </div>
@@ -445,24 +356,14 @@ export default function Page() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              icon={Gift}
-              label="Donations"
-              value={donationCount}
-              tint="bg-chart-1/10 text-chart-1"
-            />
+            <StatCard icon={Gift} label="Donations" value={donationCount} tint="bg-chart-1/10 text-chart-1" />
             <StatCard
               icon={Building2}
               label="Associations"
               value={associationCount}
               tint="bg-chart-2/10 text-chart-2"
             />
-            <StatCard
-              icon={ClipboardList}
-              label="Demandes"
-              value={demands.length}
-              tint="bg-chart-3/10 text-chart-3"
-            />
+            <StatCard icon={ClipboardList} label="Demandes" value={demands.length} tint="bg-chart-3/10 text-chart-3" />
             <StatCard
               icon={Clock}
               label="Demandes en attente"
@@ -472,15 +373,10 @@ export default function Page() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <TotalCard
-              icon={Package}
-              title="Stock total"
-              totals={stockTotals}
-              tint="bg-chart-3/10 text-chart-3"
-            />
+            <TotalCard icon={Package} title="Stock total" totals={stockTotals} tint="bg-chart-3/10 text-chart-3" />
             <TotalCard
               icon={PackageOpen}
-              title="Stock des contenants"
+              title="Stock empoté"
               totals={containerTotals}
               tint="bg-chart-5/10 text-chart-5"
             />
@@ -515,29 +411,14 @@ export default function Page() {
                         <Inbox />
                       </EmptyMedia>
                       <EmptyTitle>Aucune demande</EmptyTitle>
-                      <EmptyDescription>
-                        Aucune demande n&apos;a encore été enregistrée.
-                      </EmptyDescription>
+                      <EmptyDescription>Aucune demande n&apos;a encore été enregistrée.</EmptyDescription>
                     </EmptyHeader>
                   </Empty>
                 ) : (
-                  <ChartContainer
-                    config={demandChartConfig}
-                    className="aspect-auto h-[260px] w-full"
-                  >
+                  <ChartContainer config={demandChartConfig} className="aspect-auto h-[260px] w-full">
                     <BarChart accessibilityLayer data={demandStatusData}>
-                      <XAxis
-                        dataKey="status"
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
-                        allowDecimals={false}
-                      />
+                      <XAxis dataKey="status" tickLine={false} tickMargin={10} axisLine={false} />
+                      <YAxis tickLine={false} tickMargin={10} axisLine={false} allowDecimals={false} />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey="count" radius={4}>
                         {demandStatusData.map((_, index) => (

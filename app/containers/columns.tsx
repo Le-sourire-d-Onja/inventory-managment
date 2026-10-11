@@ -89,6 +89,16 @@ export const columns = (
       const state = ContainerDto.containerState(row);
       return (
         <div className="flex justify-end gap-1">
+          {state.text === "Attribué" && (
+            <Button variant="ghost" onClick={() => onContainerize(row.id)}>
+              <Package />
+            </Button>
+          )}
+          {state.text === "Empoté" && (
+            <Button variant="ghost" onClick={() => onDistribute(row.id)}>
+              <Truck />
+            </Button>
+          )}
           <Button variant="ghost" onClick={() => onView(row.id)}>
             <Eye />
           </Button>
@@ -98,18 +108,6 @@ export const columns = (
           <Button variant="ghost" onClick={() => onRemove(row.id)}>
             <Trash className="text-destructive" />
           </Button>
-          {state.text === "Attribué" && (
-            <Button variant="ghost" onClick={() => onContainerize(row.id)}>
-              <span className="hidden md:flex"> Empoter </span>
-              <Package />
-            </Button>
-          )}
-          {state.text === "Empoté" && (
-            <Button variant="ghost" onClick={() => onDistribute(row.id)}>
-              <span className="hidden md:flex"> Distribuer </span>
-              <Truck />
-            </Button>
-          )}
         </div>
       );
     },

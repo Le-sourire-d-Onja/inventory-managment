@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import DemandsService, { ContainerDetachError } from "./demands.service";
 import { createDemandDtoSchema } from "./dto/create-demand.dto";
 import { updateDemandDtoSchema } from "./dto/update-demand.entity";
-import { InsufficientStockError } from "../stocks/stocks.service";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -57,9 +56,6 @@ export async function POST(request: NextRequest) {
     const demand = await DemandsService.create(createDemand.data, file);
     return NextResponse.json(demand);
   } catch (error) {
-    if (error instanceof InsufficientStockError) {
-      return NextResponse.json({ message: error.message }, { status: 409 });
-    }
     throw error;
   }
 }
@@ -90,9 +86,6 @@ export async function PATCH(request: NextRequest) {
     const demand = await DemandsService.update(updateDemand.data, file);
     return NextResponse.json(demand);
   } catch (error) {
-    if (error instanceof InsufficientStockError) {
-      return NextResponse.json({ message: error.message }, { status: 409 });
-    }
     if (error instanceof ContainerDetachError) {
       return NextResponse.json({ message: error.message }, { status: 409 });
     }

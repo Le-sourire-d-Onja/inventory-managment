@@ -20,7 +20,7 @@ export function jsonRequest(url: string, method: string, body: unknown): NextReq
  */
 export async function stockQuantityOf(
   typeId: string,
-  mode: "stock" | "container" | "demand" = "stock",
+  mode: "stock" | "container" = "stock",
 ): Promise<number> {
   const response = await getStocks(new NextRequest(`http://localhost/api/stocks?type=${mode}`));
   const body = (await response.json()) as { type: { id: string }; quantity: number }[];

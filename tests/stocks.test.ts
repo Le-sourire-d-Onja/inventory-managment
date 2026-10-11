@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { DemandStatus, PackagingType } from "@/lib/generated/prisma";
+import { PackagingType } from "@/lib/generated/prisma";
 import {
   createContainer,
   createDemand,
@@ -32,10 +32,10 @@ describe("GET /api/stocks (aggregation)", () => {
     expect(await stockQuantityOf(articleType.id)).toBe(100);
   });
 
-  it("decrements stock as soon as a container is attributed, whatever the demand status", async () => {
+  it("decrements stock as soon as a container is attributed", async () => {
     const { articleType, association } = await seed();
     await createDonationWithArticle(articleType.id, 100);
-    const demand = await createDemand(association.id, { status: DemandStatus.IN_PROGRESS });
+    const demand = await createDemand(association.id);
     await createContainer({
       packaging: PackagingType.CARDBOARD,
       demand: { connect: { id: demand.id } },
@@ -45,41 +45,45 @@ describe("GET /api/stocks (aggregation)", () => {
     expect(await stockQuantityOf(articleType.id)).toBe(70);
   });
 
-  it("type=container keeps its historical meaning: only validated demands' contents", async () => {
+  it("type=container counts only the contents of Empoté containers", async () => {
     const { articleType, association } = await seed();
     await createDonationWithArticle(articleType.id, 100);
-    const validated = await createDemand(association.id, { status: DemandStatus.VALIDATED });
+
+    // Empoté -> counted.
+    const empote = await createDemand(association.id);
     await createContainer({
       packaging: PackagingType.CARDBOARD,
-      demand: { connect: { id: validated.id } },
+      demand: { connect: { id: empote.id } },
+      containerized_at: new Date(),
       contents: { create: [{ type_id: articleType.id, quantity: 30 }] },
     });
-    const inProgress = await createDemand(association.id, { status: DemandStatus.IN_PROGRESS });
+
+    const alsoEmpote = await createDemand(association.id);
     await createContainer({
       packaging: PackagingType.CARDBOARD,
-      demand: { connect: { id: inProgress.id } },
+      demand: { connect: { id: alsoEmpote.id } },
+      containerized_at: new Date(),
       contents: { create: [{ type_id: articleType.id, quantity: 40 }] },
     });
 
-    expect(await stockQuantityOf(articleType.id, "container")).toBe(30);
-  });
-
-  it("type=demand keeps its historical meaning: only in-progress demands' contents", async () => {
-    const { articleType, association } = await seed();
-    await createDonationWithArticle(articleType.id, 100);
-    const validated = await createDemand(association.id, { status: DemandStatus.VALIDATED });
+    // Attributed but not yet containerized -> excluded.
+    const attributed = await createDemand(association.id);
     await createContainer({
       packaging: PackagingType.CARDBOARD,
-      demand: { connect: { id: validated.id } },
-      contents: { create: [{ type_id: articleType.id, quantity: 30 }] },
-    });
-    const inProgress = await createDemand(association.id, { status: DemandStatus.IN_PROGRESS });
-    await createContainer({
-      packaging: PackagingType.CARDBOARD,
-      demand: { connect: { id: inProgress.id } },
-      contents: { create: [{ type_id: articleType.id, quantity: 40 }] },
+      demand: { connect: { id: attributed.id } },
+      contents: { create: [{ type_id: articleType.id, quantity: 10 }] },
     });
 
-    expect(await stockQuantityOf(articleType.id, "demand")).toBe(60);
+    // Distributed -> excluded.
+    const distributed = await createDemand(association.id);
+    await createContainer({
+      packaging: PackagingType.CARDBOARD,
+      demand: { connect: { id: distributed.id } },
+      containerized_at: new Date(),
+      distributed_at: new Date(),
+      contents: { create: [{ type_id: articleType.id, quantity: 20 }] },
+    });
+
+    expect(await stockQuantityOf(articleType.id, "container")).toBe(70);
   });
 });

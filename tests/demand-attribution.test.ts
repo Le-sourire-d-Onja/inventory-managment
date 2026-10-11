@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { PATCH as patchDemand, POST as postDemand } from "@/app/api/demands/route";
 import { PATCH as patchContainer } from "@/app/api/containers/route";
 import { prisma } from "@/app/api/prisma";
-import { DemandStatus, PackagingType } from "@/lib/generated/prisma";
+import { PackagingType } from "@/lib/generated/prisma";
 import {
   createContainer,
   createDemand,
@@ -27,7 +27,7 @@ async function demandContainersOf(demandId: string) {
   }));
 }
 
-describe("availability is only enforced at validation", () => {
+describe("attributing a container never checks availability", () => {
   beforeEach(async () => {
     await resetDatabase();
   });
@@ -127,82 +127,6 @@ describe("availability is only enforced at validation", () => {
   });
 });
 
-describe("validation recalibrated around the demand's own consumption", () => {
-  beforeEach(async () => {
-    await resetDatabase();
-  });
-
-  it("validates a demand whose needs equal its own attributed consumption", async () => {
-    const { articleType, association } = await seed();
-    await createDonationWithArticle(articleType.id, 100);
-    const created = await postDemand(
-      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 100 }])),
-    );
-    const demand = await created.json();
-    expect(await stockQuantityOf(articleType.id)).toBe(0);
-
-    const response = await patchDemand(
-      jsonRequest("http://localhost/api/demands", "PATCH", {
-        id: demand.id,
-        status: DemandStatus.VALIDATED,
-        association_id: association.id,
-        containers: await demandContainersOf(demand.id),
-      }),
-    );
-
-    expect(response.status).toBe(200);
-  });
-
-  it("refuses validating a demand whose needs exceed the donated stock", async () => {
-    const { articleType, association } = await seed();
-    await createDonationWithArticle(articleType.id, 100);
-    const created = await postDemand(
-      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 150 }])),
-    );
-    const demand = await created.json();
-
-    const response = await patchDemand(
-      jsonRequest("http://localhost/api/demands", "PATCH", {
-        id: demand.id,
-        status: DemandStatus.VALIDATED,
-        association_id: association.id,
-        containers: await demandContainersOf(demand.id),
-      }),
-    );
-
-    expect(response.status).toBeGreaterThanOrEqual(400);
-    expect(response.status).toBeLessThan(500);
-  });
-
-  it("refuses validation when another demand over-allocated the stock", async () => {
-    const { articleType, association } = await seed();
-    await createDonationWithArticle(articleType.id, 100);
-    const created = await postDemand(
-      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 50 }])),
-    );
-    const demand = await created.json();
-
-    const concurrent = await createDemand(association.id);
-    await createContainer({
-      packaging: PackagingType.CARDBOARD,
-      demand: { connect: { id: concurrent.id } },
-      contents: { create: [{ type_id: articleType.id, quantity: 130 }] },
-    });
-
-    const response = await patchDemand(
-      jsonRequest("http://localhost/api/demands", "PATCH", {
-        id: demand.id,
-        status: DemandStatus.VALIDATED,
-        association_id: association.id,
-        containers: await demandContainersOf(demand.id),
-      }),
-    );
-
-    expect(response.status).toBeGreaterThanOrEqual(400);
-    expect(response.status).toBeLessThan(500);
-  });
-});
-
 describe("legacy over-allocation: a demand holds more than was donated", () => {
   beforeEach(async () => {
     await resetDatabase();
@@ -237,7 +161,7 @@ describe("legacy over-allocation: a demand holds more than was donated", () => {
     expect(await prisma.container.count({ where: { demand_id: demand.id } })).toBe(2);
   });
 
-  it("allows increasing an over-allocated type (only validation checks)", async () => {
+  it("allows increasing an over-allocated type", async () => {
     const { articleType, association, demand } = await overAllocatedDemand();
     const existing = await demandContainersOf(demand.id);
 
@@ -255,21 +179,5 @@ describe("legacy over-allocation: a demand holds more than was donated", () => {
 
     expect(response.status).toBe(200);
     expect(await prisma.container.count({ where: { demand_id: demand.id } })).toBe(2);
-  });
-
-  it("still refuses validating a demand holding an over-allocated type", async () => {
-    const { association, demand } = await overAllocatedDemand();
-
-    const response = await patchDemand(
-      jsonRequest("http://localhost/api/demands", "PATCH", {
-        id: demand.id,
-        status: DemandStatus.VALIDATED,
-        association_id: association.id,
-        containers: await demandContainersOf(demand.id),
-      }),
-    );
-
-    expect(response.status).toBeGreaterThanOrEqual(400);
-    expect(response.status).toBeLessThan(500);
   });
 });

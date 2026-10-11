@@ -1,10 +1,5 @@
 import { prisma } from "@/app/api/prisma";
-import {
-  AssociationType,
-  DemandStatus,
-  PackagingType,
-  Prisma,
-} from "@/lib/generated/prisma";
+import { AssociationType, PackagingType, Prisma } from "@/lib/generated/prisma";
 
 /**
  * Removes every row from the test database in foreign-key-safe order so every
@@ -59,7 +54,6 @@ export async function createDemand(
 ) {
   return prisma.demand.create({
     data: {
-      status: DemandStatus.IN_PROGRESS,
       association: { connect: { id: associationId } },
       ...overrides,
     },
