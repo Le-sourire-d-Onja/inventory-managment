@@ -1,6 +1,4 @@
-import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it } from "vitest";
-import { GET } from "@/app/api/stocks/route";
 import { DemandStatus, PackagingType } from "@/lib/generated/prisma";
 import {
   createContainer,
@@ -9,12 +7,7 @@ import {
   resetDatabase,
   seed,
 } from "./helpers/db";
-
-async function stockQuantityOf(typeId: string): Promise<number> {
-  const response = await GET(new NextRequest("http://localhost/api/stocks"));
-  const body = (await response.json()) as { type: { id: string }; quantity: number }[];
-  return body.find((stock) => stock.type.id === typeId)?.quantity ?? 0;
-}
+import { stockQuantityOf } from "./helpers/http";
 
 describe("GET /api/stocks (aggregation)", () => {
   beforeEach(async () => {
@@ -50,5 +43,43 @@ describe("GET /api/stocks (aggregation)", () => {
     });
 
     expect(await stockQuantityOf(articleType.id)).toBe(70);
+  });
+
+  it("type=container keeps its historical meaning: only validated demands' contents", async () => {
+    const { articleType, association } = await seed();
+    await createDonationWithArticle(articleType.id, 100);
+    const validated = await createDemand(association.id, { status: DemandStatus.VALIDATED });
+    await createContainer({
+      packaging: PackagingType.CARDBOARD,
+      demand: { connect: { id: validated.id } },
+      contents: { create: [{ type_id: articleType.id, quantity: 30 }] },
+    });
+    const inProgress = await createDemand(association.id, { status: DemandStatus.IN_PROGRESS });
+    await createContainer({
+      packaging: PackagingType.CARDBOARD,
+      demand: { connect: { id: inProgress.id } },
+      contents: { create: [{ type_id: articleType.id, quantity: 40 }] },
+    });
+
+    expect(await stockQuantityOf(articleType.id, "container")).toBe(30);
+  });
+
+  it("type=demand keeps its historical meaning: only in-progress demands' contents", async () => {
+    const { articleType, association } = await seed();
+    await createDonationWithArticle(articleType.id, 100);
+    const validated = await createDemand(association.id, { status: DemandStatus.VALIDATED });
+    await createContainer({
+      packaging: PackagingType.CARDBOARD,
+      demand: { connect: { id: validated.id } },
+      contents: { create: [{ type_id: articleType.id, quantity: 30 }] },
+    });
+    const inProgress = await createDemand(association.id, { status: DemandStatus.IN_PROGRESS });
+    await createContainer({
+      packaging: PackagingType.CARDBOARD,
+      demand: { connect: { id: inProgress.id } },
+      contents: { create: [{ type_id: articleType.id, quantity: 40 }] },
+    });
+
+    expect(await stockQuantityOf(articleType.id, "demand")).toBe(60);
   });
 });

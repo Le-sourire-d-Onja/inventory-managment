@@ -127,24 +127,37 @@ export default class DemandsService {
 
     const articleTypes = await ArticleTypesService.findAll();
 
+    // A partial update that carries neither `containers` nor `linkedContainers`
+    // (e.g. `{ id, document: null }`) must not touch the Demand's Containers at
+    // all: only an explicit `containers: []` means "detach all". Reconciling in
+    // that case would detach every Container and could 409 on a document-only
+    // edit, which is independent of the Container list.
+    const reconcileContainers =
+      data.containers !== undefined || data.linkedContainers !== undefined;
+
     // Containers currently linked to this Demand and the incoming Containers
     // that already exist. A missing incoming Container is detached rather than
     // deleted; an existing one is updated in place, preserving its identity,
     // its Contents and its empotage/distribution dates.
-    const currentContainers = await prisma.container.findMany({
-      where: { demand_id: demandId },
-      include: { contents: true },
-    });
+    const currentContainers = reconcileContainers
+      ? await prisma.container.findMany({
+          where: { demand_id: demandId },
+          include: { contents: true },
+        })
+      : [];
     const incoming = data.containers ?? [];
     const linkedIds = (data.linkedContainers ?? []).map((container) => container.id);
     const incomingIds = incoming
       .map((container) => container.id)
       .filter((id): id is string => !!id);
 
-    const existingIncoming = await prisma.container.findMany({
-      where: { id: { in: incomingIds } },
-      include: { contents: true },
-    });
+    const existingIncoming =
+      incomingIds.length > 0
+        ? await prisma.container.findMany({
+            where: { id: { in: incomingIds } },
+            include: { contents: true },
+          })
+        : [];
     const existingById = new Map(existingIncoming.map((container) => [container.id, container]));
 
     const toDetach = currentContainers.filter(
@@ -162,19 +175,21 @@ export default class DemandsService {
     // genuine over-allocation (e.g. a concurrent Demand) is refused. The final
     // consumption is the incoming Contents plus the Contents of the linked
     // Containers; an incoming Container that omits its Contents keeps its own.
-    const normalizedIncoming = incoming.map((container) => ({
-      contents:
-        container.contents ??
-        (container.id
-          ? existingById
-              .get(container.id)
-              ?.contents.map((content) => ({ type_id: content.type_id, quantity: content.quantity }))
-          : undefined),
-    }));
-    const stock = await StocksService.stockByType();
-    const own = await StocksService.demandConsumption(demandId);
-    const requested = await StocksService.consumptionOf(normalizedIncoming, linkedIds);
-    StocksService.assertAvailability(stock, own, requested);
+    if (reconcileContainers) {
+      const normalizedIncoming = incoming.map((container) => ({
+        contents:
+          container.contents ??
+          (container.id
+            ? existingById
+                .get(container.id)
+                ?.contents.map((content) => ({ type_id: content.type_id, quantity: content.quantity }))
+            : undefined),
+      }));
+      const stock = await StocksService.stockByType();
+      const ownConsumption = await StocksService.demandConsumption(demandId);
+      const requested = await StocksService.consumptionOf(normalizedIncoming, linkedIds);
+      StocksService.assertAvailability(stock, ownConsumption, requested);
+    }
 
     let nextContainerNumber = await ContainersService.findNextContainerNumber();
 

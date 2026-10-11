@@ -1,8 +1,6 @@
-import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it } from "vitest";
 import { PATCH as patchDemand, POST as postDemand } from "@/app/api/demands/route";
 import { PATCH as patchContainer } from "@/app/api/containers/route";
-import { GET as getStocks } from "@/app/api/stocks/route";
 import { prisma } from "@/app/api/prisma";
 import { DemandStatus, PackagingType } from "@/lib/generated/prisma";
 import {
@@ -12,33 +10,7 @@ import {
   resetDatabase,
   seed,
 } from "./helpers/db";
-
-function jsonRequest(url: string, method: string, body: unknown): NextRequest {
-  return new NextRequest(url, {
-    method,
-    body: JSON.stringify(body),
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-function demandBody(associationId: string, articleTypeId: string, quantity: number) {
-  return {
-    association_id: associationId,
-    containers: [
-      {
-        packaging: PackagingType.CARDBOARD,
-        contents: [{ type_id: articleTypeId, quantity }],
-      },
-    ],
-    linkedContainers: [],
-  };
-}
-
-async function stockQuantityOf(typeId: string): Promise<number> {
-  const response = await getStocks(new NextRequest("http://localhost/api/stocks"));
-  const body = (await response.json()) as { type: { id: string }; quantity: number }[];
-  return body.find((stock) => stock.type.id === typeId)?.quantity ?? 0;
-}
+import { demandBody, jsonRequest, stockQuantityOf } from "./helpers/http";
 
 async function demandContainersOf(demandId: string) {
   const demand = await prisma.demand.findUniqueOrThrow({
@@ -65,7 +37,7 @@ describe("availability enforced at attribution", () => {
     await createDonationWithArticle(articleType.id, 100);
 
     const response = await postDemand(
-      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, articleType.id, 150)),
+      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 150 }])),
     );
 
     expect(response.status).toBeGreaterThanOrEqual(400);
@@ -78,7 +50,7 @@ describe("availability enforced at attribution", () => {
     await createDonationWithArticle(articleType.id, 100);
 
     const response = await postDemand(
-      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, articleType.id, 60)),
+      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 60 }])),
     );
 
     expect(response.status).toBe(200);
@@ -90,12 +62,12 @@ describe("availability enforced at attribution", () => {
     await createDonationWithArticle(articleType.id, 100);
 
     const first = await postDemand(
-      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, articleType.id, 60)),
+      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 60 }])),
     );
     expect(first.status).toBe(200);
 
     const second = await postDemand(
-      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, articleType.id, 50)),
+      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 50 }])),
     );
 
     expect(second.status).toBeGreaterThanOrEqual(400);
@@ -130,7 +102,7 @@ describe("availability enforced at attribution", () => {
     const { articleType, association } = await seed();
     await createDonationWithArticle(articleType.id, 100);
     const created = await postDemand(
-      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, articleType.id, 80)),
+      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 80 }])),
     );
     const demand = await created.json();
     const [container] = await demandContainersOf(demand.id);
@@ -168,7 +140,7 @@ describe("validation recalibrated around the demand's own consumption", () => {
     const { articleType, association } = await seed();
     await createDonationWithArticle(articleType.id, 100);
     const created = await postDemand(
-      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, articleType.id, 100)),
+      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 100 }])),
     );
     const demand = await created.json();
     expect(await stockQuantityOf(articleType.id)).toBe(0);
@@ -189,7 +161,7 @@ describe("validation recalibrated around the demand's own consumption", () => {
     const { articleType, association } = await seed();
     await createDonationWithArticle(articleType.id, 100);
     const created = await postDemand(
-      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, articleType.id, 50)),
+      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 50 }])),
     );
     const demand = await created.json();
 

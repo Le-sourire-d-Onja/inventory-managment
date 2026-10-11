@@ -10,19 +10,14 @@ import {
   resetDatabase,
   seed,
 } from "./helpers/db";
+import { jsonRequest } from "./helpers/http";
 
 function getContainer(id: string) {
   return GET(new NextRequest(`http://localhost/api/containers?id=${id}`));
 }
 
 function patchContainer(body: unknown) {
-  return PATCH(
-    new NextRequest("http://localhost/api/containers", {
-      method: "PATCH",
-      body: JSON.stringify(body),
-      headers: { "content-type": "application/json" },
-    }),
-  );
+  return PATCH(jsonRequest("http://localhost/api/containers", "PATCH", body));
 }
 
 describe("Container status derivation and transitions", () => {

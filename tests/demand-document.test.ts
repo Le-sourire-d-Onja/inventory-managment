@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PATCH } from "@/app/api/demands/route";
 import { prisma } from "@/app/api/prisma";
 import FilesService from "@/app/api/files/files.service";
-import { createAssociation, createDemand, resetDatabase } from "./helpers/db";
+import { createAssociation, createContainer, createDemand, resetDatabase } from "./helpers/db";
 
 describe("PATCH /api/demands — document", () => {
   beforeEach(async () => {
@@ -30,6 +30,31 @@ describe("PATCH /api/demands — document", () => {
 
     expect(response.status).toBe(200);
     expect(body.documentUrl).toBeNull();
+    const stored = await prisma.demand.findUnique({ where: { id: demand.id } });
+    expect(stored?.document).toBeNull();
+    expect(deleteByKey).toHaveBeenCalledWith("old-key");
+  });
+
+  it("does not detach linked containers when the body omits containers", async () => {
+    const association = await createAssociation();
+    const demand = await createDemand(association.id, { document: "old-key" });
+    const container = await createContainer({
+      demand: { connect: { id: demand.id } },
+    });
+    const deleteByKey = vi.spyOn(FilesService, "deleteByKey").mockResolvedValue();
+
+    const request = new NextRequest("http://localhost/api/demands", {
+      method: "PATCH",
+      body: JSON.stringify({ id: demand.id, document: null }),
+      headers: { "content-type": "application/json" },
+    });
+    const response = await PATCH(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.documentUrl).toBeNull();
+    const storedContainer = await prisma.container.findUnique({ where: { id: container.id } });
+    expect(storedContainer?.demand_id).toBe(demand.id);
     const stored = await prisma.demand.findUnique({ where: { id: demand.id } });
     expect(stored?.document).toBeNull();
     expect(deleteByKey).toHaveBeenCalledWith("old-key");

@@ -109,10 +109,12 @@ export const columns = (
       for (const content of contents) {
         ownByType.set(content.type.id, (ownByType.get(content.type.id) ?? 0) + content.quantity);
       }
-      const hasStock = contents.every((content) => {
-        const stock = stocks.find((stock) => stock.type.id === content.type.id);
-        const available = (stock?.quantity ?? 0) + (ownByType.get(content.type.id) ?? 0);
-        return available >= content.quantity;
+      // Compare the aggregated per-type need, not each line individually: two
+      // lines of the same type can each fit while their sum does not.
+      const hasStock = Array.from(ownByType).every(([typeId, ownQuantity]) => {
+        const stock = stocks.find((stock) => stock.type.id === typeId);
+        const available = (stock?.quantity ?? 0) + ownQuantity;
+        return available >= ownQuantity;
       });
       return (
         <div className="flex justify-end gap-1">

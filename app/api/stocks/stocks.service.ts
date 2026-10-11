@@ -32,16 +32,24 @@ export default class StocksService {
 
     // Get the sum of the quantity of all content by types.
     //
-    // A Content leaves the stock as soon as its Container is attributed
-    // (non-null demand_id) whatever the status of the Demand. A free Container
-    // (null demand_id) does not decrement anything. The "demand" mode keeps its
-    // historical meaning of "content of the demands still in progress".
+    // Only the "stock" mode changed: a Content leaves the stock as soon as its
+    // Container is attributed (non-null demand_id) whatever the status of the
+    // Demand, and a free Container (null demand_id) does not decrement anything.
+    // The "demand" and "container" modes keep their historical, status-based
+    // meanings.
     const contents = await prisma.content.groupBy({
       by: ["type_id"],
       where:
-        type === "demand"
-          ? { container: { demand: { status: DemandStatus.IN_PROGRESS } } }
-          : { container: { demand_id: { not: null } } },
+        type === "stock"
+          ? { container: { demand_id: { not: null } } }
+          : {
+              container: {
+                demand: {
+                  status:
+                    type === "demand" ? DemandStatus.IN_PROGRESS : DemandStatus.VALIDATED,
+                },
+              },
+            },
       _sum: {
         quantity: true
       },
@@ -124,21 +132,21 @@ export default class StocksService {
   /**
    * Ensures attributing `requested` (the Demand's consumption after the
    * mutation) does not exceed the stock available to that Demand, defined as
-   * the current stock plus the Demand's own current consumption `own`. Because
-   * the current stock already excludes the Demand's attributed Containers,
-   * adding `own` back lets a Demand re-use what it already holds without
-   * blocking itself.
+   * the current stock plus the Demand's own current consumption
+   * `ownConsumption`. Because the current stock already excludes the Demand's
+   * attributed Containers, adding `ownConsumption` back lets a Demand re-use
+   * what it already holds without blocking itself.
    *
    * @throws InsufficientStockError when a quantity would go negative.
    */
   static assertAvailability(
     stock: Map<string, number>,
-    own: Map<string, number>,
+    ownConsumption: Map<string, number>,
     requested: Map<string, number>,
   ): void {
     for (const [typeId, quantity] of requested) {
       if (quantity <= 0) continue;
-      const available = (stock.get(typeId) ?? 0) + (own.get(typeId) ?? 0);
+      const available = (stock.get(typeId) ?? 0) + (ownConsumption.get(typeId) ?? 0);
       if (quantity > available) {
         throw new InsufficientStockError(typeId, available, quantity);
       }

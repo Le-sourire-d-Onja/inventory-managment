@@ -216,8 +216,8 @@ export default class ContainersService {
 
     if (targetDemandId) {
       const stock = await StocksService.stockByType();
-      const own = await StocksService.demandConsumption(targetDemandId);
-      const requested = new Map(own);
+      const ownConsumption = await StocksService.demandConsumption(targetDemandId);
+      const requested = new Map(ownConsumption);
       const adjust = (typeId: string, delta: number) =>
         requested.set(typeId, (requested.get(typeId) ?? 0) + delta);
 
@@ -233,7 +233,7 @@ export default class ContainersService {
         adjust(content.type_id, content.quantity);
       }
 
-      StocksService.assertAvailability(stock, own, requested);
+      StocksService.assertAvailability(stock, ownConsumption, requested);
     }
 
     const [weight, volume, value] = ContainersService.findContainerWeightVolumeAndValue(articleTypes, data.contents);
