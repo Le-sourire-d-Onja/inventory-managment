@@ -4,8 +4,8 @@ import { StockDto } from "./dto/stock.dto";
 import ArticleTypesService from "../article-types/article-types.service";
 
 /**
- * Raised when an attribution would push a stock quantity below zero. Route
- * handlers translate it into a 4xx so callers can correct the attribution
+ * Raised when validating a Demand would push a stock quantity below zero.
+ * Route handlers translate it into a 4xx so callers can correct the Demand
  * instead of seeing a server error.
  */
 export class InsufficientStockError extends Error {
@@ -130,12 +130,12 @@ export default class StocksService {
   }
 
   /**
-   * Ensures attributing `requested` (the Demand's consumption after the
-   * mutation) does not exceed the stock available to that Demand, defined as
-   * the current stock plus the Demand's own current consumption
-   * `ownConsumption`. Because the current stock already excludes the Demand's
-   * attributed Containers, adding `ownConsumption` back lets a Demand re-use
-   * what it already holds without blocking itself.
+   * Ensures the `requested` consumption of a Demand does not exceed the stock
+   * available to it, defined as the current stock plus the Demand's own current
+   * consumption `ownConsumption`. Because the current stock already excludes the
+   * Demand's attributed Containers, adding `ownConsumption` back lets a Demand
+   * re-use what it already holds without blocking itself. Called only when
+   * validating a Demand.
    *
    * @throws InsufficientStockError when a quantity would go negative.
    */

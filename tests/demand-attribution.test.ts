@@ -27,12 +27,12 @@ async function demandContainersOf(demandId: string) {
   }));
 }
 
-describe("availability enforced at attribution", () => {
+describe("availability is only enforced at validation", () => {
   beforeEach(async () => {
     await resetDatabase();
   });
 
-  it("refuses a demand whose contents exceed available stock", async () => {
+  it("attributes a demand that exceeds available stock without refusing", async () => {
     const { articleType, association } = await seed();
     await createDonationWithArticle(articleType.id, 100);
 
@@ -40,9 +40,8 @@ describe("availability enforced at attribution", () => {
       jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 150 }])),
     );
 
-    expect(response.status).toBeGreaterThanOrEqual(400);
-    expect(response.status).toBeLessThan(500);
-    expect(await stockQuantityOf(articleType.id)).toBe(100);
+    expect(response.status).toBe(200);
+    expect(await stockQuantityOf(articleType.id)).toBe(-50);
   });
 
   it("accepts a demand within available stock and decrements stock", async () => {
@@ -57,7 +56,7 @@ describe("availability enforced at attribution", () => {
     expect(await stockQuantityOf(articleType.id)).toBe(40);
   });
 
-  it("refuses a second demand that exceeds the remaining stock", async () => {
+  it("attributes a second demand that exceeds the remaining stock without refusing", async () => {
     const { articleType, association } = await seed();
     await createDonationWithArticle(articleType.id, 100);
 
@@ -70,12 +69,11 @@ describe("availability enforced at attribution", () => {
       jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 50 }])),
     );
 
-    expect(second.status).toBeGreaterThanOrEqual(400);
-    expect(second.status).toBeLessThan(500);
-    expect(await stockQuantityOf(articleType.id)).toBe(40);
+    expect(second.status).toBe(200);
+    expect(await stockQuantityOf(articleType.id)).toBe(-10);
   });
 
-  it("refuses attributing a free container beyond available stock", async () => {
+  it("attributes a free container beyond available stock without refusing", async () => {
     const { articleType, association } = await seed();
     await createDonationWithArticle(articleType.id, 100);
     const demand = await createDemand(association.id);
@@ -93,12 +91,11 @@ describe("availability enforced at attribution", () => {
       }),
     );
 
-    expect(response.status).toBeGreaterThanOrEqual(400);
-    expect(response.status).toBeLessThan(500);
-    expect(await stockQuantityOf(articleType.id)).toBe(100);
+    expect(response.status).toBe(200);
+    expect(await stockQuantityOf(articleType.id)).toBe(-50);
   });
 
-  it("re-checks availability on re-attribution of the same demand", async () => {
+  it("re-attributes a container beyond available stock without refusing", async () => {
     const { articleType, association } = await seed();
     await createDonationWithArticle(articleType.id, 100);
     const created = await postDemand(
@@ -115,8 +112,7 @@ describe("availability enforced at attribution", () => {
         contents: [{ type_id: articleType.id, quantity: 150 }],
       }),
     );
-    expect(tooBig.status).toBeGreaterThanOrEqual(400);
-    expect(tooBig.status).toBeLessThan(500);
+    expect(tooBig.status).toBe(200);
 
     const fits = await patchContainer(
       jsonRequest("http://localhost/api/containers", "PATCH", {
@@ -157,6 +153,27 @@ describe("validation recalibrated around the demand's own consumption", () => {
     expect(response.status).toBe(200);
   });
 
+  it("refuses validating a demand whose needs exceed the donated stock", async () => {
+    const { articleType, association } = await seed();
+    await createDonationWithArticle(articleType.id, 100);
+    const created = await postDemand(
+      jsonRequest("http://localhost/api/demands", "POST", demandBody(association.id, [{ type_id: articleType.id, quantity: 150 }])),
+    );
+    const demand = await created.json();
+
+    const response = await patchDemand(
+      jsonRequest("http://localhost/api/demands", "PATCH", {
+        id: demand.id,
+        status: DemandStatus.VALIDATED,
+        association_id: association.id,
+        containers: await demandContainersOf(demand.id),
+      }),
+    );
+
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.status).toBeLessThan(500);
+  });
+
   it("refuses validation when another demand over-allocated the stock", async () => {
     const { articleType, association } = await seed();
     await createDonationWithArticle(articleType.id, 100);
@@ -171,6 +188,77 @@ describe("validation recalibrated around the demand's own consumption", () => {
       demand: { connect: { id: concurrent.id } },
       contents: { create: [{ type_id: articleType.id, quantity: 130 }] },
     });
+
+    const response = await patchDemand(
+      jsonRequest("http://localhost/api/demands", "PATCH", {
+        id: demand.id,
+        status: DemandStatus.VALIDATED,
+        association_id: association.id,
+        containers: await demandContainersOf(demand.id),
+      }),
+    );
+
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.status).toBeLessThan(500);
+  });
+});
+
+describe("legacy over-allocation: a demand holds more than was donated", () => {
+  beforeEach(async () => {
+    await resetDatabase();
+  });
+
+  async function overAllocatedDemand() {
+    const { articleType, association } = await seed();
+    await createDonationWithArticle(articleType.id, 1);
+    const demand = await createDemand(association.id);
+    await createContainer({
+      packaging: PackagingType.CARDBOARD,
+      demand: { connect: { id: demand.id } },
+      contents: { create: [{ type_id: articleType.id, quantity: 12 }] },
+    });
+    return { articleType, association, demand };
+  }
+
+  it("allows adding a container even though the demand already over-allocated a type", async () => {
+    const { association, demand } = await overAllocatedDemand();
+    const existing = await demandContainersOf(demand.id);
+
+    const response = await patchDemand(
+      jsonRequest("http://localhost/api/demands", "PATCH", {
+        id: demand.id,
+        association_id: association.id,
+        containers: [...existing, { packaging: PackagingType.CARDBOARD, contents: [] }],
+        linkedContainers: [],
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await prisma.container.count({ where: { demand_id: demand.id } })).toBe(2);
+  });
+
+  it("allows increasing an over-allocated type (only validation checks)", async () => {
+    const { articleType, association, demand } = await overAllocatedDemand();
+    const existing = await demandContainersOf(demand.id);
+
+    const response = await patchDemand(
+      jsonRequest("http://localhost/api/demands", "PATCH", {
+        id: demand.id,
+        association_id: association.id,
+        containers: [
+          ...existing,
+          { packaging: PackagingType.CARDBOARD, contents: [{ type_id: articleType.id, quantity: 1 }] },
+        ],
+        linkedContainers: [],
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await prisma.container.count({ where: { demand_id: demand.id } })).toBe(2);
+  });
+
+  it("still refuses validating a demand holding an over-allocated type", async () => {
+    const { association, demand } = await overAllocatedDemand();
 
     const response = await patchDemand(
       jsonRequest("http://localhost/api/demands", "PATCH", {

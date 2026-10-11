@@ -28,8 +28,9 @@ consommation du Stock au moment de l'Attribution :
   conservés, Stock restitué) au lieu de le supprimer ; un Contenant Empoté ou
   Distribué ne peut plus être détaché.
 - Un Type d'article quitte le Stock **dès qu'un Contenant qui le porte est
-  attribué** (la disponibilité est contrôlée à l'attribution, et revérifiée à la
-  validation).
+  attribué**. La disponibilité n'est **contrôlée qu'à la validation** d'une
+  Demande : une attribution (création ou rattachement) n'est jamais refusée, seul
+  le bouton Valider bloque une Demande dont les besoins dépassent le Stock.
 - Confort : les badges de Contenants passent à la ligne, la recherche des
   Contenants couvre le nom de l'Association, un document de Demande peut être
   supprimé, poids/volume s'affichent sans décimale et la Valeur avec 2 décimales,
@@ -68,8 +69,8 @@ consommation du Stock au moment de l'Attribution :
 21. En tant que gestionnaire, je veux qu'un Type d'article quitte le Stock dès qu'un Contenant qui le porte est attribué, afin qu'il ne soit plus disponible pour une autre Demande.
 22. En tant que gestionnaire, je veux qu'un Type d'article d'un Contenant libre reste dans le Stock, afin de ne pas décrémenter du matériel non affecté.
 23. En tant que gestionnaire, je veux que le détachement d'un Contenant restitue ses Contenus au Stock, afin de pouvoir les réaffecter.
-24. En tant que gestionnaire, je veux être empêché d'attribuer plus de Contenus qu'il n'y a de Stock disponible, afin de ne pas créer de stock négatif.
-25. En tant que gestionnaire, je veux que la disponibilité soit revérifiée à la validation d'une Demande, afin de rattraper les conflits entre Demande concurrentes.
+24. En tant que gestionnaire, je veux pouvoir attribuer des Contenus même si le Stock est momentanément insuffisant, afin de ne pas bloquer la saisie.
+25. En tant que gestionnaire, je veux être empêché de valider une Demande dont les besoins dépassent le Stock disponible, afin de ne pas créer de stock négatif (rattrape aussi les conflits entre Demande concurrentes).
 26. En tant que gestionnaire, je veux que le contrôle de la validation compare le Stock restant augmenté de la consommation propre de cette Demande, afin qu'une Demande ne se bloque pas elle-même.
 27. En tant que gestionnaire, je veux que la quantité « disponible » affichée dans les sélecteurs de Contenu reflète le Stock courant, afin de choisir des quantités réalistes.
 
@@ -155,11 +156,10 @@ aujourd'hui) et alimente l'affichage, la colonne Statut et l'export.
 - La requête d'agrégation du Stock doit soustraire les Contenus dont le Contenant
   a **un `demand_id` non nul**, quel que soit le statut de la Demande (aujourd'hui
   elle filtre sur le statut `VALIDATED`). Un Contenant libre ne décrémente rien.
-- Contrôle de disponibilité **à l'attribution** : l'ajout/le rattachement d'un
-  Contenu ne doit pas dépasser le Stock disponible ; ce contrôle se rejoue à
-  chaque (ré)attribution.
-- Le contrôle de validation de Demande (bouton Valider) est conservé mais
-  recalibré : il compare le Stock restant **augmenté de la consommation propre de
+- Aucun contrôle de disponibilité **à l'attribution** : l'ajout/le rattachement
+  d'un Contenu n'est jamais refusé, même s'il fait passer le Stock en négatif.
+- Le contrôle de disponibilité se fait **uniquement à la validation** (bouton
+  Valider) : il compare le Stock restant **augmenté de la consommation propre de
   la Demande** à ses besoins, pour ne pas se bloquer soi-même.
 
 ### Formatage des nombres

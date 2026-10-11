@@ -4,7 +4,6 @@ import { CreateContainerDto } from "./dto/create-container.dto";
 import { UpdateContainerDto } from "./dto/update-container.dto";
 import { ContainerActionDto } from "./dto/container-action.dto";
 import ArticleTypesService from "../article-types/article-types.service";
-import StocksService from "../stocks/stocks.service";
 import { containerInclude } from "./entity/container.entity";
 import { ArticleTypeDto } from "../article-types/dto/article-types.dto";
 
@@ -22,30 +21,28 @@ export default class ContainersService {
    * @returns The next container number
    */
   static async findNextContainerNumber() {
-    const currentYear = new Date().getFullYear() % 100;
-    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const yearPrefix = String(new Date().getFullYear() % 100);
 
+    // Container ids are formatted `YYNNNN`: the year prefix identifies the
+    // current year's containers regardless of which Demand they are attached
+    // to. Filtering instead on the Demand's creation year would hide a
+    // current-year container still attached to an older Demand, and the next
+    // number would then collide with it.
     const containers = await prisma.container.findMany({
-      where: {
-        OR: [{ demand: { created_at: { gte: startOfYear } } }, { demand_id: null }],
-      },
-      orderBy: { id: "desc" },
-      take: 1,
+      where: { id: { startsWith: yearPrefix } },
+      select: { id: true },
     });
 
     if (containers.length === 0) {
       return 1;
     }
 
-    const lastId = containers[0].id;
-    const lastYear = parseInt(lastId.substring(0, 2), 10);
+    const lastNumber = containers.reduce((max, container) => {
+      const number = parseInt(container.id.substring(yearPrefix.length), 10);
+      return Number.isNaN(number) ? max : Math.max(max, number);
+    }, 0);
 
-    if (lastYear === currentYear) {
-      const lastNumber = parseInt(lastId.substring(2), 10);
-      return lastNumber + 1;
-    }
-
-    return 1;
+    return lastNumber + 1;
   }
 
   /**
@@ -204,37 +201,6 @@ export default class ContainersService {
    */
   static async update(data: UpdateContainerDto): Promise<ContainerDto> {
     const articleTypes = await ArticleTypesService.findAll();
-
-    // Attributing a Container to a Demand must not exceed the stock available
-    // to that Demand. `undefined` leaves the current attribution untouched.
-    const existing = await prisma.container.findUnique({
-      where: { id: data.id },
-      include: { contents: true },
-    });
-    const targetDemandId =
-      data.demand_id === undefined ? existing?.demand_id ?? null : data.demand_id;
-
-    if (targetDemandId) {
-      const stock = await StocksService.stockByType();
-      const ownConsumption = await StocksService.demandConsumption(targetDemandId);
-      const requested = new Map(ownConsumption);
-      const adjust = (typeId: string, delta: number) =>
-        requested.set(typeId, (requested.get(typeId) ?? 0) + delta);
-
-      // This Container's previous content is released before the new one is
-      // attributed to the same Demand, so a re-attribution is only checked
-      // against the difference.
-      if (existing && existing.demand_id === targetDemandId) {
-        for (const content of existing.contents) {
-          adjust(content.type_id, -content.quantity);
-        }
-      }
-      for (const content of data.contents ?? []) {
-        adjust(content.type_id, content.quantity);
-      }
-
-      StocksService.assertAvailability(stock, ownConsumption, requested);
-    }
 
     const [weight, volume, value] = ContainersService.findContainerWeightVolumeAndValue(articleTypes, data.contents);
 

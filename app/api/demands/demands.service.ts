@@ -60,15 +60,6 @@ export default class DemandsService {
   static async create(data: CreateDemandDto, file?: File | null): Promise<DemandDto> {
     const articleTypes = await ArticleTypesService.findAll();
 
-    // Attributing the Containers of a brand new Demand consumes stock: the
-    // requested consumption must not exceed what is currently available.
-    const stock = await StocksService.stockByType();
-    const requested = await StocksService.consumptionOf(
-      data.containers,
-      (data.linkedContainers ?? []).map((container) => container.id),
-    );
-    StocksService.assertAvailability(stock, new Map(), requested);
-
     let nextContainerNumber = await ContainersService.findNextContainerNumber();
 
     let documentKey: string | undefined;
@@ -170,24 +161,30 @@ export default class DemandsService {
       }
     }
 
-    // Every (re)attribution replays the availability check. The Demand's own
-    // current consumption is added back so it never blocks itself; only a
-    // genuine over-allocation (e.g. a concurrent Demand) is refused. The final
-    // consumption is the incoming Contents plus the Contents of the linked
-    // Containers; an incoming Container that omits its Contents keeps its own.
-    if (reconcileContainers) {
-      const normalizedIncoming = incoming.map((container) => ({
-        contents:
-          container.contents ??
-          (container.id
-            ? existingById
-                .get(container.id)
-                ?.contents.map((content) => ({ type_id: content.type_id, quantity: content.quantity }))
-            : undefined),
-      }));
+    // Stock availability is only checked when validating a Demand. The stock
+    // already excludes every attributed Container, so the Demand's own
+    // consumption is added back to avoid blocking itself; only a genuine
+    // over-allocation (e.g. a concurrent Demand) is refused. The requested
+    // consumption is the incoming Contents (plus the linked Containers) when
+    // the update also touches them, and the Demand's current consumption
+    // otherwise.
+    if (data.status === DemandStatus.VALIDATED) {
       const stock = await StocksService.stockByType();
       const ownConsumption = await StocksService.demandConsumption(demandId);
-      const requested = await StocksService.consumptionOf(normalizedIncoming, linkedIds);
+      const requested = reconcileContainers
+        ? await StocksService.consumptionOf(
+            incoming.map((container) => ({
+              contents:
+                container.contents ??
+                (container.id
+                  ? existingById
+                      .get(container.id)
+                      ?.contents.map((content) => ({ type_id: content.type_id, quantity: content.quantity }))
+                  : undefined),
+            })),
+            linkedIds,
+          )
+        : new Map(ownConsumption);
       StocksService.assertAvailability(stock, ownConsumption, requested);
     }
 
