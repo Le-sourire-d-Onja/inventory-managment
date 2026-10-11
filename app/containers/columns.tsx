@@ -11,7 +11,8 @@ export const columns = (
   onRemove: (id: string) => void,
 ): ColumnDef<ContainerDto>[] => [
   {
-    accessorKey: "id",
+    id: "id",
+    accessorFn: (row) => `${row.id} ${row.association?.name ?? ""}`,
     header: "Identifiant",
     cell: (props) => {
       const row = props.row.original;
