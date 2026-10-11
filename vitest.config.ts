@@ -46,8 +46,8 @@ export default defineConfig({
     sequence: {
       concurrent: false,
     },
-    // The suite shares a single Postgres database and each test file truncates
-    // it in `beforeEach`. Running files sequentially avoids cross-file races.
+    // Every test file shares the same Postgres database and truncates it in
+    // `beforeEach`, so files must not run in parallel against each other.
     fileParallelism: false,
   },
 });

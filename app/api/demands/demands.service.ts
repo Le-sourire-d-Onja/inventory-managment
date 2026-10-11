@@ -5,6 +5,7 @@ import { DemandDto } from "./dto/demand.dto";
 import { UpdateDemandDto } from "./dto/update-demand.entity";
 import ArticleTypesService from "../article-types/article-types.service";
 import ContainersService from "../containers/containers.service";
+import StocksService from "../stocks/stocks.service";
 import { demandInclude } from "./entity/demand.entity";
 import FilesService from "../files/files.service";
 
@@ -46,6 +47,15 @@ export default class DemandsService {
    */
   static async create(data: CreateDemandDto, file?: File | null): Promise<DemandDto> {
     const articleTypes = await ArticleTypesService.findAll();
+
+    // Attributing the Containers of a brand new Demand consumes stock: the
+    // requested consumption must not exceed what is currently available.
+    const stock = await StocksService.stockByType();
+    const requested = await StocksService.consumptionOf(
+      data.containers,
+      (data.linkedContainers ?? []).map((container) => container.id),
+    );
+    StocksService.assertAvailability(stock, new Map(), requested);
 
     let nextContainerNumber = await ContainersService.findNextContainerNumber();
 
@@ -98,9 +108,22 @@ export default class DemandsService {
    * @returns The updated demand
    */
   static async update(data: UpdateDemandDto, file?: File | null): Promise<DemandDto> {
+    if (!data.id) throw new Error("Demand id is required");
+
     const validated_at = data.status === DemandStatus.VALIDATED ? new Date() : undefined;
 
     const articleTypes = await ArticleTypesService.findAll();
+
+    // Every (re)attribution replays the availability check. The Demand's own
+    // current consumption is added back so it never blocks itself; only a
+    // genuine over-allocation (e.g. a concurrent Demand) is refused.
+    const stock = await StocksService.stockByType();
+    const own = await StocksService.demandConsumption(data.id);
+    const requested = await StocksService.consumptionOf(
+      data.containers ?? [],
+      (data.linkedContainers ?? []).map((container) => container.id),
+    );
+    StocksService.assertAvailability(stock, own, requested);
 
     let nextContainerNumber = await ContainersService.findNextContainerNumber();
 

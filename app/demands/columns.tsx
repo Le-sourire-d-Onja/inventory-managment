@@ -102,9 +102,17 @@ export const columns = (
     cell: (props) => {
       const row = props.row.original;
       const contents = row.containers.flatMap((container) => container.contents);
+      // The stock endpoint already excludes this demand's attributed
+      // containers, so add its own consumption back: a demand must not block
+      // itself at validation. A genuine over-allocation is refused server-side.
+      const ownByType = new Map<string, number>();
+      for (const content of contents) {
+        ownByType.set(content.type.id, (ownByType.get(content.type.id) ?? 0) + content.quantity);
+      }
       const hasStock = contents.every((content) => {
         const stock = stocks.find((stock) => stock.type.id === content.type.id);
-        return stock && stock.quantity >= content.quantity;
+        const available = (stock?.quantity ?? 0) + (ownByType.get(content.type.id) ?? 0);
+        return available >= content.quantity;
       });
       return (
         <div className="flex justify-end gap-1">

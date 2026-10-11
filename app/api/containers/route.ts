@@ -3,6 +3,7 @@ import ContainersService, { ContainerTransitionError } from "./containers.servic
 import { createContainerDtoSchema } from "./dto/create-container.dto";
 import { updateContainerDtoSchema } from "./dto/update-container.dto";
 import { containerActionDtoSchema } from "./dto/container-action.dto";
+import { InsufficientStockError } from "../stocks/stocks.service";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -57,8 +58,15 @@ export async function PATCH(request: NextRequest) {
   if (!updateContainer.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
-  const container = await ContainersService.update(updateContainer.data);
-  return NextResponse.json(container);
+  try {
+    const container = await ContainersService.update(updateContainer.data);
+    return NextResponse.json(container);
+  } catch (error) {
+    if (error instanceof InsufficientStockError) {
+      return NextResponse.json({ message: error.message }, { status: 409 });
+    }
+    throw error;
+  }
 }
 
 export async function DELETE(request: NextRequest) {
