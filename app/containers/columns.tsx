@@ -1,17 +1,20 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Eye, Pen, Trash } from "lucide-react";
+import { Eye, Package, Pen, Trash, Truck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ContainerDto } from "../api/containers/dto/container.dto";
-import { formatEuro } from "@/lib/utils";
+import { formatEuro, formatVolume, formatWeight } from "@/lib/utils";
 
 export const columns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void,
+  onContainerize: (id: string) => void,
+  onDistribute: (id: string) => void,
 ): ColumnDef<ContainerDto>[] => [
   {
-    accessorKey: "id",
+    id: "id",
+    accessorFn: (row) => `${row.id} ${row.association?.name ?? ""}`,
     header: "Identifiant",
     cell: (props) => {
       const row = props.row.original;
@@ -58,7 +61,7 @@ export const columns = (
     header: "Poids total",
     cell: (props) => {
       const weight = props.getValue() as number;
-      return <> {weight.toFixed(2)} kg </>;
+      return <> {formatWeight(weight)} kg </>;
     },
   },
   {
@@ -67,7 +70,7 @@ export const columns = (
     header: "Volume total",
     cell: (props) => {
       const volume = props.getValue() as number;
-      return <> {volume.toFixed(2)} m³ </>;
+      return <> {formatVolume(volume)} m³ </>;
     },
   },
   {
@@ -83,8 +86,19 @@ export const columns = (
     id: "actions",
     cell: (props) => {
       const row = props.row.original;
+      const state = ContainerDto.containerState(row);
       return (
         <div className="flex justify-end gap-1">
+          {state.text === "Attribué" && (
+            <Button variant="ghost" onClick={() => onContainerize(row.id)}>
+              <Package />
+            </Button>
+          )}
+          {state.text === "Empoté" && (
+            <Button variant="ghost" onClick={() => onDistribute(row.id)}>
+              <Truck />
+            </Button>
+          )}
           <Button variant="ghost" onClick={() => onView(row.id)}>
             <Eye />
           </Button>

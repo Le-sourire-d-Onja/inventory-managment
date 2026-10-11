@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import DemandsService from "./demands.service";
+import DemandsService, { ContainerDetachError } from "./demands.service";
 import { createDemandDtoSchema } from "./dto/create-demand.dto";
 import { updateDemandDtoSchema } from "./dto/update-demand.entity";
 
@@ -52,8 +52,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
 
-  const demand = await DemandsService.create(createDemand.data, file);
-  return NextResponse.json(demand);
+  try {
+    const demand = await DemandsService.create(createDemand.data, file);
+    return NextResponse.json(demand);
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function PATCH(request: NextRequest) {
@@ -74,12 +78,19 @@ export async function PATCH(request: NextRequest) {
   }
 
   const updateDemand = updateDemandDtoSchema.safeParse(body);
-  if (!updateDemand.success) {
+  if (!updateDemand.success || !updateDemand.data.id) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
 
-  const demand = await DemandsService.update(updateDemand.data, file);
-  return NextResponse.json(demand);
+  try {
+    const demand = await DemandsService.update(updateDemand.data, file);
+    return NextResponse.json(demand);
+  } catch (error) {
+    if (error instanceof ContainerDetachError) {
+      return NextResponse.json({ message: error.message }, { status: 409 });
+    }
+    throw error;
+  }
 }
 
 export async function DELETE(request: NextRequest) {

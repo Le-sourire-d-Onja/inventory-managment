@@ -1,18 +1,25 @@
-import { DemandStatus, PackagingType } from "@/lib/generated/prisma";
+import { PackagingType } from "@/lib/generated/prisma";
 import { ContainerDto } from "../../containers/dto/container.dto";
 import { LabelInfos } from "@/lib/pdf";
 import { DemandEntity } from "../entity/demand.entity";
 import { AssociationDto } from "../../associations/dto/association.dto";
 import FilesService from "../../files/files.service";
 
+/**
+ * Statut de la Demande, entièrement dérivé de ses Contenants : jamais stocké.
+ * `IN_PROGRESS` tant que tous les Contenants n'ont pas atteint l'Empotage,
+ * `CONTAINERIZED` dès que tous l'ont atteint, `DISTRIBUTED` dès que tous sont
+ * distribués.
+ */
+export type DemandStatus = "IN_PROGRESS" | "CONTAINERIZED" | "DISTRIBUTED";
+
+export const DEMAND_STATUSES: DemandStatus[] = ["IN_PROGRESS", "CONTAINERIZED", "DISTRIBUTED"];
+
 export class DemandDto {
   id: string;
   status: DemandStatus;
   containers: ContainerDto[];
   association: AssociationDto;
-  validated_at: Date | null;
-  containerized_at: Date | null;
-  distributed_at: Date | null;
   documentUrl: string | null;
   created_at: Date;
   updated_at: Date;
@@ -22,9 +29,6 @@ export class DemandDto {
     status: DemandStatus,
     containers: ContainerDto[],
     association: AssociationDto,
-    validated_at: Date | null,
-    containerized_at: Date | null,
-    distributed_at: Date | null,
     documentUrl: string | null,
     created_at: Date,
     updated_at: Date,
@@ -33,9 +37,6 @@ export class DemandDto {
     this.status = status;
     this.containers = containers;
     this.association = association;
-    this.validated_at = validated_at;
-    this.containerized_at = containerized_at;
-    this.distributed_at = distributed_at;
     this.documentUrl = documentUrl;
     this.created_at = created_at;
     this.updated_at = updated_at;
@@ -58,14 +59,12 @@ export class DemandDto {
 
   static statusData(status?: DemandStatus) {
     switch (status) {
-      case DemandStatus.IN_PROGRESS:
+      case "IN_PROGRESS":
         return { color: "bg-orange-300", text: "En attente" };
-      case DemandStatus.VALIDATED:
-        return { color: "bg-green-300", text: "Validée" };
-      case DemandStatus.CONTAINERIZED:
-        return { color: "bg-green-300", text: "Empotée" };
-      case DemandStatus.DISTRIBUTED:
-        return { color: "bg-green-300", text: "Distribuée" };
+      case "CONTAINERIZED":
+        return { color: "bg-blue-300", text: "Empotée" };
+      case "DISTRIBUTED":
+        return { color: "bg-purple-300", text: "Distribuée" };
       default:
         return { color: "bg-white", text: "Inconnu" };
     }
@@ -73,31 +72,44 @@ export class DemandDto {
 
   static statusDate(demand?: DemandDto): Date | null {
     switch (demand?.status) {
-      case DemandStatus.IN_PROGRESS:
+      case "IN_PROGRESS":
         return demand.created_at;
-      case DemandStatus.VALIDATED:
-        return demand.validated_at;
-      case DemandStatus.CONTAINERIZED:
-        return demand.containerized_at;
-      case DemandStatus.DISTRIBUTED:
-        return demand.distributed_at;
+      case "CONTAINERIZED":
+        // A Container that only carries a distribution date has still passed
+        // through empotage, so it counts toward the Empotée milestone date.
+        return latestDate(
+          demand.containers.map((container) => container.containerized_at ?? container.distributed_at),
+        );
+      case "DISTRIBUTED":
+        return latestDate(demand.containers.map((container) => container.distributed_at));
       default:
         return null;
     }
   }
 
+  /**
+   * Dérive le Statut de la Demande de ses Contenants (règle « tous ») : une
+   * Demande à 0 Contenant reste En attente. Un Contenant Distribué compte comme
+   * ayant atteint l'Empotage.
+   */
+  static deriveStatus(
+    containers: Pick<ContainerDto, "containerized_at" | "distributed_at">[],
+  ): DemandStatus {
+    if (containers.length === 0) return "IN_PROGRESS";
+    if (containers.every((container) => container.distributed_at)) return "DISTRIBUTED";
+    if (containers.every((container) => container.containerized_at || container.distributed_at)) {
+      return "CONTAINERIZED";
+    }
+    return "IN_PROGRESS";
+  }
+
   static parse(obj: DemandEntity) {
-    const validated_at = !!obj.validated_at ? new Date(obj.validated_at) : null;
-    const containerized_at = !!obj.containerized_at ? new Date(obj.containerized_at) : null;
-    const distributed_at = !!obj.distributed_at ? new Date(obj.distributed_at) : null;
+    const containers = obj.containers.map((container) => ContainerDto.parse(container));
     return new DemandDto(
       obj.id,
-      obj.status,
-      obj.containers.map((container) => ContainerDto.parse(container)),
+      DemandDto.deriveStatus(containers),
+      containers,
       AssociationDto.parse(obj.association),
-      validated_at,
-      containerized_at,
-      distributed_at,
       null,
       new Date(obj.created_at),
       new Date(obj.updated_at),
@@ -107,18 +119,13 @@ export class DemandDto {
   static async parseWithDocumentUrl(
     obj: DemandEntity & { document?: string | null; documentUrl?: string | null },
   ): Promise<DemandDto> {
-    const validated_at = !!obj.validated_at ? new Date(obj.validated_at) : null;
-    const containerized_at = !!obj.containerized_at ? new Date(obj.containerized_at) : null;
-    const distributed_at = !!obj.distributed_at ? new Date(obj.distributed_at) : null;
+    const containers = obj.containers.map((container) => ContainerDto.parse(container));
     const documentUrl = obj.documentUrl ?? (obj.document ? await FilesService.getDownloadUrl(obj.document) : null);
     return new DemandDto(
       obj.id,
-      obj.status,
-      obj.containers.map((container) => ContainerDto.parse(container)),
+      DemandDto.deriveStatus(containers),
+      containers,
       AssociationDto.parse(obj.association),
-      validated_at,
-      containerized_at,
-      distributed_at,
       documentUrl,
       new Date(obj.created_at),
       new Date(obj.updated_at),
@@ -149,4 +156,11 @@ export class DemandDto {
   static exportHeaders(): string[] {
     return ["Association", "Statut", "Document", "Contenants"];
   }
+}
+
+/** La plus récente des dates non nulles, ou `null` si aucune ne l'est. */
+function latestDate(dates: (Date | null)[]): Date | null {
+  const timestamps = dates.filter((date): date is Date => date !== null).map((date) => date.getTime());
+  if (timestamps.length === 0) return null;
+  return new Date(Math.max(...timestamps));
 }

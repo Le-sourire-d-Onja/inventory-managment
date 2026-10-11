@@ -2,9 +2,23 @@ import { prisma } from "../prisma";
 import { ContainerDto } from "./dto/container.dto";
 import { CreateContainerDto } from "./dto/create-container.dto";
 import { UpdateContainerDto } from "./dto/update-container.dto";
+import { ContainerActionDto } from "./dto/container-action.dto";
 import ArticleTypesService from "../article-types/article-types.service";
 import { containerInclude } from "./entity/container.entity";
 import { ArticleTypeDto } from "../article-types/dto/article-types.dto";
+
+/**
+ * Raised when a Container transition is not allowed from its current state
+ * (illegal transition or backward move). The route maps it to a 4xx response.
+ */
+export class ContainerTransitionError extends Error {}
+
+/**
+ * Raised when deleting a Container would erase a physical act: an Empoté or
+ * Distribué Container must not be deleted, by symmetry with the detach guard.
+ * The route maps it to a 4xx response.
+ */
+export class ContainerDeletionError extends Error {}
 
 export default class ContainersService {
   /**
@@ -14,30 +28,28 @@ export default class ContainersService {
    * @returns The next container number
    */
   static async findNextContainerNumber() {
-    const currentYear = new Date().getFullYear() % 100;
-    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const yearPrefix = String(new Date().getFullYear() % 100);
 
+    // Container ids are formatted `YYNNNN`: the year prefix identifies the
+    // current year's containers regardless of which Demand they are attached
+    // to. Filtering instead on the Demand's creation year would hide a
+    // current-year container still attached to an older Demand, and the next
+    // number would then collide with it.
     const containers = await prisma.container.findMany({
-      where: {
-        OR: [{ demand: { created_at: { gte: startOfYear } } }, { demand_id: null }],
-      },
-      orderBy: { id: "desc" },
-      take: 1,
+      where: { id: { startsWith: yearPrefix } },
+      select: { id: true },
     });
 
     if (containers.length === 0) {
       return 1;
     }
 
-    const lastId = containers[0].id;
-    const lastYear = parseInt(lastId.substring(0, 2), 10);
+    const lastNumber = containers.reduce((max, container) => {
+      const number = parseInt(container.id.substring(yearPrefix.length), 10);
+      return Number.isNaN(number) ? max : Math.max(max, number);
+    }, 0);
 
-    if (lastYear === currentYear) {
-      const lastNumber = parseInt(lastId.substring(2), 10);
-      return lastNumber + 1;
-    }
-
-    return 1;
+    return lastNumber + 1;
   }
 
   /**
@@ -223,12 +235,59 @@ export default class ContainersService {
   }
 
   /**
-   * This function is used to delete a container from the database
+   * This function is used to advance a container's lifecycle with a server
+   * timestamp: "containerize" is only allowed from Attribué (demand linked,
+   * no dates) and "distribute" only from Empoté (containerized, not yet
+   * distributed). Any other transition, or a backward move, is refused.
+   *
+   * @param data The id of the container and the action to perform
+   * @returns The updated container entity
+   * @throws Error if the container doesn't exist
+   * @throws ContainerTransitionError if the transition is not allowed
+   */
+  static async transition(data: ContainerActionDto): Promise<ContainerDto> {
+    const container = await prisma.container.findUnique({
+      where: { id: data.id },
+      include: containerInclude,
+    });
+    if (!container) throw new Error("Not found");
+
+    if (data.action === "containerize") {
+      const allowed = !!container.demand_id && !container.containerized_at && !container.distributed_at;
+      if (!allowed) throw new ContainerTransitionError("Cannot containerize");
+    } else {
+      const allowed = !!container.containerized_at && !container.distributed_at;
+      if (!allowed) throw new ContainerTransitionError("Cannot distribute");
+    }
+
+    const updated = await prisma.container.update({
+      where: { id: data.id },
+      data:
+        data.action === "containerize"
+          ? { containerized_at: new Date() }
+          : { distributed_at: new Date() },
+      include: containerInclude,
+    });
+    return ContainerDto.parse(updated);
+  }
+
+  /**
+   * This function is used to delete a container from the database. A Container
+   * that is already Empoté or Distribué cannot be deleted: doing so would erase
+   * a physical act and falsify the aggregate status of its Demand.
    *
    * @param id The id of the container
    * @returns The container entity of the database
+   * @throws Error if the container doesn't exist
+   * @throws ContainerDeletionError if the container is Empoté or Distribué
    */
   static async delete(id: string): Promise<ContainerDto> {
+    const existing = await prisma.container.findUnique({ where: { id: id } });
+    if (!existing) throw new Error("Not found");
+    if (existing.containerized_at || existing.distributed_at) {
+      throw new ContainerDeletionError("Impossible de supprimer un contenant empoté ou distribué");
+    }
+
     const container = await prisma.container.delete({
       where: { id: id },
       include: containerInclude,

@@ -40,28 +40,26 @@ model Content {
 }
 
 model Container {
-  id        String        @id
-  weight    Float
-  volume    Float
-  value     Float         @default(0)
-  packaging PackagingType
-  demand    Demand?        @relation(fields: [demand_id], references: [id], onDelete: SetNull)
-  demand_id String?
-  contents  Content[]
+  id               String        @id
+  weight           Float
+  volume           Float
+  value            Float         @default(0)
+  packaging        PackagingType
+  demand           Demand?       @relation(fields: [demand_id], references: [id], onDelete: SetNull)
+  demand_id        String?
+  containerized_at DateTime?
+  distributed_at   DateTime?
+  contents         Content[]
 }
 
 model Demand {
-  id               String       @id @default(uuid())
-  status           DemandStatus
-  containers       Container[]
-  association      Association  @relation(fields: [association_id], references: [id], onDelete: Cascade)
-  association_id   String
-  validated_at     DateTime?
-  containerized_at DateTime?
-  distributed_at   DateTime?
-  document         String?
-  created_at       DateTime     @default(now())
-  updated_at       DateTime     @updatedAt
+  id             String      @id @default(uuid())
+  containers     Container[]
+  association    Association @relation(fields: [association_id], references: [id], onDelete: Cascade)
+  association_id String
+  document       String?
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @updatedAt
 }
 
 model Association {
@@ -95,13 +93,6 @@ enum PackagingType {
   TIED_STRING
   NAKED
   NONE
-}
-
-enum DemandStatus {
-  IN_PROGRESS
-  VALIDATED
-  CONTAINERIZED
-  DISTRIBUTED
 }
 
 enum AssociationType {

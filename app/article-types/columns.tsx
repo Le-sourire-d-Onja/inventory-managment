@@ -2,7 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Eye, Pen, Trash } from "lucide-react";
 import { ArticleTypeDto } from "../api/article-types/dto/article-types.dto";
-import { formatEuro } from "@/lib/utils";
+import { formatEuro, formatVolume, formatWeight } from "@/lib/utils";
 
 export const columns = (
   onView: (id: string) => void,
@@ -19,7 +19,7 @@ export const columns = (
     header: "Poids",
     cell: (props) => {
       const row = props.row.original;
-      return <> {row.weight} kg </>;
+      return <> {formatWeight(row.weight)} kg </>;
     },
   },
   {
@@ -27,7 +27,7 @@ export const columns = (
     header: "Volume",
     cell: (props) => {
       const row = props.row.original;
-      return <> {row.volume} m³ </>;
+      return <> {formatVolume(row.volume)} m³ </>;
     },
   },
   {

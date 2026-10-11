@@ -12,7 +12,6 @@ import { useEffect, useState } from "react";
 import { localeDateOptions } from "@/lib/utils";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import { DemandStatus } from "@/lib/generated/prisma";
 import { AssociationDto } from "../api/associations/dto/association.dto";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ContainerSelector from "./container-selector";
@@ -20,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { StockDto } from "../api/stocks/dto/stock.dto";
 import { generatePdf } from "@/lib/pdf";
 import { ContainerDto } from "../api/containers/dto/container.dto";
+import { Trash2 } from "lucide-react";
 
 export enum Permission {
   READ,
@@ -41,6 +41,7 @@ export default function DemandModal(props: DemandModalProps) {
   const { data, stocks, associations, containers, open, onOpenChange, permission, refetch } = props;
   const statusTxt = DemandDto.statusData(data?.status);
   const [file, setFile] = useState<File | null>(null);
+  const [documentRemoved, setDocumentRemoved] = useState(false);
   const form = useForm<z.infer<typeof updateDemandDtoSchema>>({
     resolver: zodResolver(updateDemandDtoSchema),
   });
@@ -48,7 +49,6 @@ export default function DemandModal(props: DemandModalProps) {
   function resetForm() {
     form.reset({
       id: data?.id ?? undefined,
-      status: data?.status ?? DemandStatus.IN_PROGRESS,
       association_id: data?.association.id ?? undefined,
       containers:
         data?.containers.map((container) => ({
@@ -58,8 +58,10 @@ export default function DemandModal(props: DemandModalProps) {
             type_id: content.type.id,
           })),
         })) ?? [],
+      linkedContainers: [],
     });
     setFile(null);
+    setDocumentRemoved(false);
   }
 
   useEffect(() => {
@@ -116,9 +118,7 @@ export default function DemandModal(props: DemandModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {!data ? "Nouvelle demande" : `Demande pour ${data.association.name}`}
-            {data?.status === DemandStatus.VALIDATED && (
-              <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
-            )}
+            {data && <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>}
           </DialogTitle>
           <DialogDescription className="text-left text-muted-foreground text-sm">
             Créée le{" "}
@@ -198,6 +198,7 @@ export default function DemandModal(props: DemandModalProps) {
                             }
                           }
                           setFile(selectedFile);
+                          setDocumentRemoved(false);
                           field.onChange(selectedFile ? "placeholder" : undefined);
                         }}
                       />
@@ -208,7 +209,7 @@ export default function DemandModal(props: DemandModalProps) {
                 )}
               />
             )}
-            {data?.documentUrl && (
+            {data?.documentUrl && !documentRemoved && (
               <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
                 <span className="text-sm font-medium">Document :</span>
                 <a
@@ -219,6 +220,22 @@ export default function DemandModal(props: DemandModalProps) {
                 >
                   Télécharger le document
                 </a>
+                {permission === Permission.WRITE && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="ml-auto text-destructive"
+                    aria-label="Supprimer le document"
+                    onClick={() => {
+                      setFile(null);
+                      setDocumentRemoved(true);
+                      form.setValue("document", null);
+                    }}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
               </div>
             )}
 

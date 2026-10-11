@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import ContainersService from "./containers.service";
+import ContainersService, { ContainerDeletionError, ContainerTransitionError } from "./containers.service";
 import { createContainerDtoSchema } from "./dto/create-container.dto";
 import { updateContainerDtoSchema } from "./dto/update-container.dto";
+import { containerActionDtoSchema } from "./dto/container-action.dto";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -32,6 +33,26 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
+
+  if (body && typeof body === "object" && "action" in body) {
+    const action = containerActionDtoSchema.safeParse(body);
+    if (!action.success) {
+      return NextResponse.json({ message: "Bad request" }, { status: 400 });
+    }
+    try {
+      const container = await ContainersService.transition(action.data);
+      return NextResponse.json(container);
+    } catch (err) {
+      if (err instanceof ContainerTransitionError) {
+        return NextResponse.json({ message: err.message }, { status: 409 });
+      }
+      if (err instanceof Error && err.message === "Not found") {
+        return NextResponse.json({ message: "Not found" }, { status: 404 });
+      }
+      throw err;
+    }
+  }
+
   const updateContainer = updateContainerDtoSchema.safeParse(body);
   if (!updateContainer.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
@@ -46,6 +67,16 @@ export async function DELETE(request: NextRequest) {
   if (!id) {
     return NextResponse.json({ message: "Not found" }, { status: 404 });
   }
-  const container = await ContainersService.delete(id);
-  return NextResponse.json(container);
+  try {
+    const container = await ContainersService.delete(id);
+    return NextResponse.json(container);
+  } catch (err) {
+    if (err instanceof ContainerDeletionError) {
+      return NextResponse.json({ message: err.message }, { status: 409 });
+    }
+    if (err instanceof Error && err.message === "Not found") {
+      return NextResponse.json({ message: "Not found" }, { status: 404 });
+    }
+    throw err;
+  }
 }

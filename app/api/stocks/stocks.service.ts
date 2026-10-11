@@ -1,11 +1,9 @@
-import { DemandStatus } from "@/lib/generated/prisma";
 import { prisma } from "../prisma";
 import { StockDto } from "./dto/stock.dto";
 import ArticleTypesService from "../article-types/article-types.service";
 
 export default class StocksService {
-
-  static async findAll(type: "stock" | "container" | "demand"): Promise<StockDto[]> {
+  static async findAll(type: "stock" | "container"): Promise<StockDto[]> {
     // Get the sum of the quantity of all article by types
     const articles = await prisma.article.groupBy({
       by: ["type_id"],
@@ -14,18 +12,26 @@ export default class StocksService {
       },
     });
 
-    // Get the sum of the quantity of all content by types
+    // Get the sum of the quantity of all content by types.
+    //
+    // "stock": a Content leaves the stock as soon as its Container is attributed
+    // (non-null demand_id); a free Container (null demand_id) does not decrement
+    // anything.
+    // "container": only the Contents of Containers at status Empoté, i.e.
+    // containerized_at set and distributed_at null, whatever the Demand status.
     const contents = await prisma.content.groupBy({
-      by: ['type_id'],
-      where: {
-        container: {
-          demand: {
-            status: type === "demand" ? DemandStatus.IN_PROGRESS : DemandStatus.VALIDATED,
-          }
-        }
-      },
+      by: ["type_id"],
+      where:
+        type === "stock"
+          ? { container: { demand_id: { not: null } } }
+          : {
+              container: {
+                containerized_at: { not: null },
+                distributed_at: null,
+              },
+            },
       _sum: {
-        quantity: true
+        quantity: true,
       },
     });
 
@@ -35,16 +41,15 @@ export default class StocksService {
     const stocks = articles.map((article) => {
       const content = contents.find((content) => content.type_id === article.type_id);
       const articleType = articleTypes.find((articleType) => article.type_id === articleType.id)!;
-      let quantity =  (article._sum.quantity ?? 0) - (content?._sum.quantity ?? 0);
+      let quantity = (article._sum.quantity ?? 0) - (content?._sum.quantity ?? 0);
       if (type === "container") {
         quantity = content?._sum.quantity ?? 0;
       }
       const volume = (articleType.volume ?? 0) * quantity;
       const weight = (articleType.weight ?? 0) * quantity;
       const value = (articleType.value ?? 0) * quantity;
-      return { type: articleType, _sum: { quantity, volume, weight, value } }
-    })
+      return { type: articleType, _sum: { quantity, volume, weight, value } };
+    });
     return stocks.map(({ type, _sum }) => StockDto.parse({ type, ..._sum }));
   }
-
 }

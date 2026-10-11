@@ -1,19 +1,62 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Check, Download, Eye, Pen, Trash } from "lucide-react";
+import { Download, Eye, Pen, Trash } from "lucide-react";
 import { DemandDto } from "../api/demands/dto/demand.dto";
 import { Badge } from "@/components/ui/badge";
-import { localeDateOptions, formatEuro } from "@/lib/utils";
+import { localeDateOptions, formatEuro, formatVolume, formatWeight } from "@/lib/utils";
 import { AssociationDto } from "../api/associations/dto/association.dto";
-import { DemandStatus } from "@/lib/generated/prisma";
-import { StockDto } from "../api/stocks/dto/stock.dto";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ContainerDto } from "../api/containers/dto/container.dto";
+
+const PROGRESS_SEGMENTS = [
+  { state: "Attribué", color: "bg-green-300" },
+  { state: "Empoté", color: "bg-blue-300" },
+  { state: "Distribué", color: "bg-purple-300" },
+] as const;
+
+/**
+ * Segmented progress bar shown on hover: the share of the Demand's Containers
+ * still Attribué, already Empoté, and Distribué.
+ */
+function DemandProgress({ containers }: { containers: ContainerDto[] }) {
+  const total = containers.length;
+  if (total === 0) {
+    return <p className="text-xs">Aucun contenant</p>;
+  }
+
+  const segments = PROGRESS_SEGMENTS.map((segment) => ({
+    ...segment,
+    count: containers.filter((container) => container.state.text === segment.state).length,
+  }));
+
+  return (
+    <div className="flex w-48 flex-col gap-2">
+      <p className="text-xs font-medium">Progression</p>
+      <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
+        {segments.map((segment) => (
+          <div
+            key={segment.state}
+            className={segment.color}
+            style={{ width: `${(segment.count / total) * 100}%` }}
+          />
+        ))}
+      </div>
+      <ul className="flex flex-col gap-1">
+        {segments.map((segment) => (
+          <li key={segment.state} className="flex items-center gap-1.5 text-xs">
+            <span className={`size-2.5 rounded-full ${segment.color}`} />
+            {segment.state} : {segment.count}/{total}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export const columns = (
-  stocks: StockDto[],
   onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void,
-  onValidate: (id: string) => void,
   onDownload: (id: string) => void,
 ): ColumnDef<DemandDto>[] => [
   {
@@ -40,7 +83,7 @@ export const columns = (
         return <> - </>;
       }
       return (
-        <div className="flex gap-1 w-95 pb-1">
+        <div className="flex flex-wrap gap-1 pb-1">
           {row.containers.map((container) => (
             <Badge key={container.id}>N°{container.id}</Badge>
           ))}
@@ -57,16 +100,23 @@ export const columns = (
       const statusTxt = DemandDto.statusData(row.status);
       const statusDate = DemandDto.statusDate(row);
       return (
-        <div className="flex flex-col gap-1.5">
-          <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
-          {statusDate ? (
-            <p className="text-muted-foreground text-xs">
-              Depuis le {statusDate.toLocaleDateString("fr-FR", localeDateOptions)}{" "}
-            </p>
-          ) : (
-            <></>
-          )}
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex w-fit cursor-default flex-col gap-1.5">
+              <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
+              {statusDate ? (
+                <p className="text-muted-foreground text-xs">
+                  Depuis le {statusDate.toLocaleDateString("fr-FR", localeDateOptions)}{" "}
+                </p>
+              ) : (
+                <></>
+              )}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <DemandProgress containers={row.containers} />
+          </TooltipContent>
+        </Tooltip>
       );
     },
   },
@@ -76,7 +126,7 @@ export const columns = (
     header: "Poids total",
     cell: (props) => {
       const weight = props.getValue() as number;
-      return <> {weight} kg </>;
+      return <> {formatWeight(weight)} kg </>;
     },
   },
   {
@@ -85,7 +135,7 @@ export const columns = (
     header: "Volume total",
     cell: (props) => {
       const volume = props.getValue() as number;
-      return <> {volume} m³ </>;
+      return <> {formatVolume(volume)} m³ </>;
     },
   },
   {
@@ -101,18 +151,8 @@ export const columns = (
     id: "actions",
     cell: (props) => {
       const row = props.row.original;
-      const contents = row.containers.flatMap((container) => container.contents);
-      const hasStock = contents.every((content) => {
-        const stock = stocks.find((stock) => stock.type.id === content.type.id);
-        return stock && stock.quantity >= content.quantity;
-      });
       return (
         <div className="flex justify-end gap-1">
-          {row.status !== DemandStatus.VALIDATED && hasStock && (
-            <Button variant="ghost" onClick={() => onValidate(row.id)}>
-              <Check />
-            </Button>
-          )}
           <Button variant="ghost" onClick={() => onView(row.id)}>
             <Eye />
           </Button>
