@@ -4,8 +4,15 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Les badges de Contenants d'une ligne de Demande s'enroulent sur plusieurs lignes.
-- [ ] Aucun débordement horizontal n'apparaît, quel que soit le nombre de Contenants.
-- [ ] Les autres colonnes du tableau restent alignées.
+- [x] Les badges de Contenants d'une ligne de Demande s'enroulent sur plusieurs lignes.
+- [x] Aucun débordement horizontal n'apparaît, quel que soit le nombre de Contenants.
+- [x] Les autres colonnes du tableau restent alignées.
+
+## Comments
+
+Résolu. La cellule des badges de Contenants du tableau des Demandes passe en
+`flex flex-wrap` (largeur fixe `w-95` retirée): plus de débordement horizontal.
+Commit: `0815e27` (fusion `f115a59`). Rendu: vérification manuelle (hors
+périmètre tests, cf. spec).

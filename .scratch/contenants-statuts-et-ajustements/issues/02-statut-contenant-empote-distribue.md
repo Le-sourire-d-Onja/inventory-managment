@@ -4,11 +4,21 @@
 
 **Blocked by:** 01 (Harnais de tests).
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] L'état est dérivé, dans cet ordre : `distributed_at` renseigné → Distribué ; sinon `containerized_at` → Empoté ; sinon rattaché à une Demande → Attribué ; sinon En attente.
-- [ ] Les boutons apparaissent selon la règle (Attribué → Empoter ; Empoté → Distribuer ; sinon aucun) et uniquement avec les droits d'écriture.
-- [ ] « Empoter » pose la date d'empotage côté serveur, « Distribuer » la date de distribution ; la ligne se met à jour.
-- [ ] Le serveur refuse d'empoter un Contenant non Attribué, de distribuer un Contenant non Empoté, et tout retour en arrière.
-- [ ] Le libellé du statut (« Empoté », pas « Empotée ») est identique dans la liste des Contenants et dans le détail d'une Demande.
-- [ ] Le comportement est couvert par des tests sur les route handlers.
+- [x] L'état est dérivé, dans cet ordre : `distributed_at` renseigné → Distribué ; sinon `containerized_at` → Empoté ; sinon rattaché à une Demande → Attribué ; sinon En attente.
+- [x] Les boutons apparaissent selon la règle (Attribué → Empoter ; Empoté → Distribuer ; sinon aucun) et uniquement avec les droits d'écriture.
+- [x] « Empoter » pose la date d'empotage côté serveur, « Distribuer » la date de distribution ; la ligne se met à jour.
+- [x] Le serveur refuse d'empoter un Contenant non Attribué, de distribuer un Contenant non Empoté, et tout retour en arrière.
+- [x] Le libellé du statut (« Empoté », pas « Empotée ») est identique dans la liste des Contenants et dans le détail d'une Demande.
+- [x] Le comportement est couvert par des tests sur les route handlers.
+
+## Comments
+
+Résolu. `containerized_at` / `distributed_at` nullables sur `Container` +
+migration; état dérivé unique (`state` exposé par `ContainerDto`) avec
+précédence Distribué > Empoté > Attribué > En attente; action serveur
+`PATCH /api/containers { id, action: "containerize" | "distribute" }` horodatée
+côté serveur, transitions illégales → 409; boutons Empoter/Distribuer en fin de
+ligne. Commits: `d4b6cb4` (fusion `9f6ddc1`). Tests:
+`tests/containers-status.test.ts` (11).

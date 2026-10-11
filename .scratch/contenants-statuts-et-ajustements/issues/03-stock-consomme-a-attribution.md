@@ -4,11 +4,19 @@
 
 **Blocked by:** 01 (Harnais de tests).
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] L'agrégation du Stock soustrait les Contenus dont le Contenant a un `demand_id` non nul, quel que soit le statut de la Demande.
-- [ ] Un Contenant libre (sans Demande) ne décrémente pas le Stock.
-- [ ] L'attribution d'un Contenu qui dépasse le Stock disponible est refusée.
-- [ ] La quantité « N disponible » des sélecteurs reflète le Stock courant.
-- [ ] Le contrôle de validation compare le Stock restant + la consommation propre de la Demande, sans bloquer la Demande elle-même.
-- [ ] Le comportement est couvert par des tests sur les route handlers.
+- [x] L'agrégation du Stock soustrait les Contenus dont le Contenant a un `demand_id` non nul, quel que soit le statut de la Demande.
+- [x] Un Contenant libre (sans Demande) ne décrémente pas le Stock.
+- [x] L'attribution d'un Contenu qui dépasse le Stock disponible est refusée.
+- [x] La quantité « N disponible » des sélecteurs reflète le Stock courant.
+- [x] Le contrôle de validation compare le Stock restant + la consommation propre de la Demande, sans bloquer la Demande elle-même.
+- [x] Le comportement est couvert par des tests sur les route handlers.
+
+## Comments
+
+Résolu. Agrégation Stock soustrait les Contenus dont le Contenant a un
+`demand_id` non nul (quel que soit le statut); Contenant libre non décrémenté;
+disponibilité contrôlée à chaque (ré)attribution (409); validation recalibrée
+sur Stock + consommation propre. Commits: `73f2fcb` (fusion `60de749`). Tests:
+`tests/stocks.test.ts`, `tests/demand-attribution.test.ts`.

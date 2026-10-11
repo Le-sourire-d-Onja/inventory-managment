@@ -1,6 +1,6 @@
 # Statuts du Contenant, détachement, stock et ajustements divers
 
-Status: ready-for-agent
+Status: resolved
 
 ## Problem Statement
 

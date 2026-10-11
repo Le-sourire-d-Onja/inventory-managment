@@ -4,8 +4,16 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Saisir (une partie de) un nom d'Association dans la liste des Contenants filtre sur les Contenants rattachés à cette Association.
-- [ ] La recherche par identifiant de Contenant continue de fonctionner.
-- [ ] La recherche des Demandes par nom d'Association n'est pas régressée.
+- [x] Saisir (une partie de) un nom d'Association dans la liste des Contenants filtre sur les Contenants rattachés à cette Association.
+- [x] La recherche par identifiant de Contenant continue de fonctionner.
+- [x] La recherche des Demandes par nom d'Association n'est pas régressée.
+
+## Comments
+
+Résolu. La colonne de recherche des Contenants combine identifiant + nom de
+l'Association (`${row.id} ${row.association?.name ?? ""}`), l'affichage reste
+inchangé; la recherche des Demandes (`searchColumnId="name"`) est intacte.
+Commit: `3ca3faa` (fusion `2c7f397`). Comportement: vérification manuelle (hors
+périmètre tests, cf. spec).

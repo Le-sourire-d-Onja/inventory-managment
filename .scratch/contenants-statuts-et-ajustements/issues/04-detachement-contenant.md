@@ -4,12 +4,21 @@
 
 **Blocked by:** 02 (Statut du Contenant), 03 (Stock consommé à l'Attribution).
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Retirer un Contenant de la Demande puis enregistrer le détache (`demand_id` nul) sans supprimer la ligne.
-- [ ] Le Contenant détaché repasse à En attente et conserve tous ses Contenus.
-- [ ] Ses dates d'empotage/distribution sont remises à vide et ses Contenus réintègrent le Stock.
-- [ ] Une corbeille est absente pour un Contenant Empoté ou Distribué.
-- [ ] Supprimer une Demande détache les Contenants non Empotés et préserve l'état des Empotés/Distribués.
-- [ ] À l'édition d'une Demande, les Contenants déjà liés sont rechargés (plus de destruction/recréation silencieuse).
-- [ ] Le comportement est couvert par des tests sur les route handlers.
+- [x] Retirer un Contenant de la Demande puis enregistrer le détache (`demand_id` nul) sans supprimer la ligne.
+- [x] Le Contenant détaché repasse à En attente et conserve tous ses Contenus.
+- [x] Ses dates d'empotage/distribution sont remises à vide et ses Contenus réintègrent le Stock.
+- [x] Une corbeille est absente pour un Contenant Empoté ou Distribué.
+- [x] Supprimer une Demande détache les Contenants non Empotés et préserve l'état des Empotés/Distribués.
+- [x] À l'édition d'une Demande, les Contenants déjà liés sont rechargés (plus de destruction/recréation silencieuse).
+- [x] Le comportement est couvert par des tests sur les route handlers.
+
+## Comments
+
+Résolu. `DemandsService.update` ne détruit plus: détache les Contenants retirés
+(`demand_id = null`, dates remises à vide, Contenus conservés, Stock restitué),
+met à jour les Contenants existants en place, refuse (409) le détachement d'un
+Empoté/Distribué; la fenêtre de Demande recharge les Contenants liés (plus de
+destruction/recréation). Commits: `f0c74c7` (fusion `07ad128`). Tests:
+`tests/demand-detach.test.ts` (8).
