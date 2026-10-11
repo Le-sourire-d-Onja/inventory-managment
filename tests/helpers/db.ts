@@ -66,6 +66,22 @@ export async function createDemand(
   });
 }
 
+export async function createDonationWithArticle(
+  articleTypeId: string,
+  quantity: number,
+  overrides: Partial<Omit<Prisma.DonationCreateInput, "articles">> = {},
+) {
+  return prisma.donation.create({
+    data: {
+      description: uniq("Donation"),
+      articles: {
+        create: [{ type: { connect: { id: articleTypeId } }, quantity }],
+      },
+      ...overrides,
+    },
+  });
+}
+
 export async function createContainer(
   overrides: Partial<Prisma.ContainerCreateInput> = {},
 ) {

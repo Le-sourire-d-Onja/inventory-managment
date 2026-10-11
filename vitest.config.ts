@@ -46,5 +46,8 @@ export default defineConfig({
     sequence: {
       concurrent: false,
     },
+    // Every test file shares the same Postgres database and truncates it in
+    // `beforeEach`, so files must not run in parallel against each other.
+    fileParallelism: false,
   },
 });
