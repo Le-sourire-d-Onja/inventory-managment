@@ -6,6 +6,7 @@ import { PackagingType } from "@/lib/generated/prisma";
 import {
   createContainer,
   createDemand,
+  createDonationWithArticle,
   resetDatabase,
   seed,
 } from "./helpers/db";
@@ -228,6 +229,7 @@ describe("Container status derivation and transitions", () => {
 
   it("still accepts a normal container update (packaging/contents/demand_id)", async () => {
     const { articleType, association } = await seed();
+    await createDonationWithArticle(articleType.id, 10);
     const demand = await createDemand(association.id);
     await createContainer({ id: "240011", packaging: PackagingType.CARDBOARD });
 
