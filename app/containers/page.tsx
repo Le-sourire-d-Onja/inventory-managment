@@ -10,6 +10,7 @@ import { Download, Plus } from "lucide-react";
 import { StockDto } from "../api/stocks/dto/stock.dto";
 import { useStateParam } from "@/lib/utils";
 import { ContainerDto } from "../api/containers/dto/container.dto";
+import { articleTypeFilterOptions } from "./filters";
 
 enum Modals {
   CONTAINER,
@@ -201,6 +202,12 @@ export default function Page() {
               },
               [] as { label: string; value: string }[],
             ),
+          },
+          {
+            columnId: "content",
+            label: "Type d'article",
+            multiple: true,
+            options: articleTypeFilterOptions(data),
           },
         ]}
         searchColumnId="id"
