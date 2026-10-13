@@ -4,6 +4,7 @@ import { Eye, Package, Pen, Trash, Truck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 import { formatEuro, formatVolume, formatWeight } from "@/lib/utils";
+import { matchesAnyArticleType } from "./filters";
 
 export const columns = (
   onView: (id: string) => void,
@@ -22,8 +23,11 @@ export const columns = (
     },
   },
   {
+    id: "content",
     accessorFn: (row) => row.contents.map((content) => content.type.name),
     header: "Contenu",
+    filterFn: (row, _columnId, filterValue) =>
+      matchesAnyArticleType(row.original.contents, filterValue as string[]),
     cell: (props) => {
       const row = props.row.original;
       return (

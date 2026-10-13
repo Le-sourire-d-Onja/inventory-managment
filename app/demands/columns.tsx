@@ -5,7 +5,7 @@ import { DemandDto } from "../api/demands/dto/demand.dto";
 import { Badge } from "@/components/ui/badge";
 import { localeDateOptions, formatEuro, formatVolume, formatWeight } from "@/lib/utils";
 import { AssociationDto } from "../api/associations/dto/association.dto";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { InfoBubble } from "@/components/info-bubble";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 
 const PROGRESS_SEGMENTS = [
@@ -15,8 +15,8 @@ const PROGRESS_SEGMENTS = [
 ] as const;
 
 /**
- * Segmented progress bar shown on hover: the share of the Demand's Containers
- * still Attribué, already Empoté, and Distribué.
+ * Segmented progress bar shown in the Status bubble: the share of the Demand's
+ * Containers still Attribué, already Empoté, and Distribué.
  */
 function DemandProgress({ containers }: { containers: ContainerDto[] }) {
   const total = containers.length;
@@ -34,11 +34,7 @@ function DemandProgress({ containers }: { containers: ContainerDto[] }) {
       <p className="text-xs font-medium">Progression</p>
       <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
         {segments.map((segment) => (
-          <div
-            key={segment.state}
-            className={segment.color}
-            style={{ width: `${(segment.count / total) * 100}%` }}
-          />
+          <div key={segment.state} className={segment.color} style={{ width: `${(segment.count / total) * 100}%` }} />
         ))}
       </div>
       <ul className="flex flex-col gap-1">
@@ -46,6 +42,30 @@ function DemandProgress({ containers }: { containers: ContainerDto[] }) {
           <li key={segment.state} className="flex items-center gap-1.5 text-xs">
             <span className={`size-2.5 rounded-full ${segment.color}`} />
             {segment.state} : {segment.count}/{total}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * Les Types d'article placés dans un Contenant, chacun suivi de sa quantité.
+ * Contenu de la bulle attachée à l'identifiant du Contenant, comme la barre de
+ * progression l'est à celle du Statut de la Demande.
+ */
+function ContainerContents({ container }: { container: ContainerDto }) {
+  if (container.contents.length === 0) {
+    return <p className="text-xs">Aucun contenu</p>;
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="text-xs font-medium">Contenu</p>
+      <ul className="flex flex-col gap-1">
+        {container.contents.map((content) => (
+          <li key={content.id} className="text-xs">
+            {content.type.name} ({content.quantity})
           </li>
         ))}
       </ul>
@@ -84,9 +104,13 @@ export const columns = (
       }
       return (
         <div className="flex flex-wrap gap-1 pb-1">
-          {row.containers.map((container) => (
-            <Badge key={container.id}>N°{container.id}</Badge>
-          ))}
+          {row.containers
+            .sort((a, b) => a.id.localeCompare(b.id))
+            .map((container) => (
+              <InfoBubble key={container.id} content={<ContainerContents container={container} />}>
+                <Badge className="cursor-default">N°{container.id}</Badge>
+              </InfoBubble>
+            ))}
         </div>
       );
     },
@@ -100,23 +124,18 @@ export const columns = (
       const statusTxt = DemandDto.statusData(row.status);
       const statusDate = DemandDto.statusDate(row);
       return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex w-fit cursor-default flex-col gap-1.5">
-              <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
-              {statusDate ? (
-                <p className="text-muted-foreground text-xs">
-                  Depuis le {statusDate.toLocaleDateString("fr-FR", localeDateOptions)}{" "}
-                </p>
-              ) : (
-                <></>
-              )}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <DemandProgress containers={row.containers} />
-          </TooltipContent>
-        </Tooltip>
+        <InfoBubble content={<DemandProgress containers={row.containers} />}>
+          <div className="flex w-fit cursor-default flex-col gap-1.5">
+            <Badge className={`${statusTxt.color}`}>{statusTxt.text}</Badge>
+            {statusDate ? (
+              <p className="text-muted-foreground text-xs">
+                Depuis le {statusDate.toLocaleDateString("fr-FR", localeDateOptions)}{" "}
+              </p>
+            ) : (
+              <></>
+            )}
+          </div>
+        </InfoBubble>
       );
     },
   },

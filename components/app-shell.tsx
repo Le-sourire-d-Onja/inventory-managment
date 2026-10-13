@@ -19,7 +19,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <Suspense fallback={<MoonLoader />}>
         <main className="flex flex-col gap-2 w-full p-8">
-          <SidebarTrigger className="initial md:hidden" />
+          <SidebarTrigger className="initial" />
           {children}
         </main>
       </Suspense>

@@ -10,6 +10,7 @@ import { Download, Plus } from "lucide-react";
 import { StockDto } from "../api/stocks/dto/stock.dto";
 import { useStateParam } from "@/lib/utils";
 import { ContainerDto } from "../api/containers/dto/container.dto";
+import { articleTypeFilterOptions } from "./filters";
 
 enum Modals {
   CONTAINER,
@@ -180,7 +181,38 @@ export default function Page() {
         Vous êtes sur le point de supprimer un contenant. Êtes-vous sûr de vouloir continuer ?
       </ConfirmModal>
 
-      <DataTable data={data} columns={columns(onView, onEdit, onRemove, (id) => transitionContainer(id, "containerize"), (id) => transitionContainer(id, "distribute"))} searchColumnId="id" isLoading={isLoading} />
+      <DataTable
+        data={data}
+        columns={columns(
+          onView,
+          onEdit,
+          onRemove,
+          (id) => transitionContainer(id, "containerize"),
+          (id) => transitionContainer(id, "distribute"),
+        )}
+        filters={[
+          {
+            columnId: "association",
+            label: "Association",
+            options: data.reduce(
+              (prev, curr) => {
+                if (curr.association && !prev.map((el) => el.value).includes(curr.association.name))
+                  return [...prev, { label: curr.association.name, value: curr.association.name }];
+                return prev;
+              },
+              [] as { label: string; value: string }[],
+            ),
+          },
+          {
+            columnId: "content",
+            label: "Type d'article",
+            multiple: true,
+            options: articleTypeFilterOptions(data),
+          },
+        ]}
+        searchColumnId="id"
+        isLoading={isLoading}
+      />
     </div>
   );
 }

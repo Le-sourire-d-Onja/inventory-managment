@@ -16,6 +16,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from "@/components/ui/multi-select";
 
 import {
   Table,
@@ -36,6 +44,8 @@ interface DataTableFilter {
   columnId: string;
   label: string;
   options: DataTableFilterOption[];
+  /** Rend un filtre multi-sélection (OR) au lieu du `<select>` mono-valeur. */
+  multiple?: boolean;
 }
 
 interface DataTableProps<TData, TValue> {
@@ -207,6 +217,45 @@ export function DataTable<TData, TValue>({
               const column = table.getColumn(filter.columnId);
               if (!column) {
                 return null;
+              }
+
+              if (filter.multiple) {
+                const selected =
+                  (column.getFilterValue() as string[] | undefined) ?? [];
+
+                return (
+                  <MultiSelect
+                    key={filter.columnId}
+                    values={selected}
+                    onValuesChange={(values) =>
+                      column.setFilterValue(
+                        values.length > 0 ? values : undefined,
+                      )
+                    }
+                  >
+                    <MultiSelectTrigger className="w-full sm:w-56">
+                      <MultiSelectValue placeholder={filter.label} />
+                    </MultiSelectTrigger>
+                    <MultiSelectContent
+                      search={{
+                        placeholder: searchPlaceholder,
+                        emptyMessage: "Aucun résultat.",
+                      }}
+                    >
+                      <MultiSelectGroup>
+                        {filter.options.map((option) => (
+                          <MultiSelectItem
+                            key={option.value}
+                            value={option.value}
+                            keywords={[option.label]}
+                          >
+                            {option.label}
+                          </MultiSelectItem>
+                        ))}
+                      </MultiSelectGroup>
+                    </MultiSelectContent>
+                  </MultiSelect>
+                );
               }
 
               return (
