@@ -197,7 +197,7 @@ function StockChartCard({
           value={unit.value}
           onValueChange={(value) => onUnitChange(stockUnits.find((u) => u.value === value) ?? unit)}
         >
-          <SelectTrigger className="w-[80px]">
+          <SelectTrigger className="w-20">
             <SelectValue placeholder="Unité" />
           </SelectTrigger>
           <SelectContent>
@@ -221,7 +221,7 @@ function StockChartCard({
             </EmptyHeader>
           </Empty>
         ) : (
-          <ChartContainer config={config} className="aspect-auto h-[260px] w-full">
+          <ChartContainer config={config} className="aspect-auto h-65 w-full">
             <BarChart accessibilityLayer data={data}>
               <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
               <YAxis tickLine={false} tickMargin={10} axisLine={false} unit={" " + unit.unit} />
@@ -348,9 +348,9 @@ export default function Page() {
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             {Array.from({ length: 2 }).map((_, index) => (
-              <Skeleton key={index} className="h-[150px] rounded-xl" />
+              <Skeleton key={index} className="h-37.5 rounded-xl" />
             ))}
-            <Skeleton className="h-[340px] rounded-xl lg:col-span-2" />
+            <Skeleton className="h-85 rounded-xl lg:col-span-2" />
           </div>
         </>
       ) : (
@@ -415,7 +415,7 @@ export default function Page() {
                     </EmptyHeader>
                   </Empty>
                 ) : (
-                  <ChartContainer config={demandChartConfig} className="aspect-auto h-[260px] w-full">
+                  <ChartContainer config={demandChartConfig} className="aspect-auto h-65 w-full">
                     <BarChart accessibilityLayer data={demandStatusData}>
                       <XAxis dataKey="status" tickLine={false} tickMargin={10} axisLine={false} />
                       <YAxis tickLine={false} tickMargin={10} axisLine={false} allowDecimals={false} />

@@ -34,11 +34,7 @@ function DemandProgress({ containers }: { containers: ContainerDto[] }) {
       <p className="text-xs font-medium">Progression</p>
       <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
         {segments.map((segment) => (
-          <div
-            key={segment.state}
-            className={segment.color}
-            style={{ width: `${(segment.count / total) * 100}%` }}
-          />
+          <div key={segment.state} className={segment.color} style={{ width: `${(segment.count / total) * 100}%` }} />
         ))}
       </div>
       <ul className="flex flex-col gap-1">
@@ -84,9 +80,11 @@ export const columns = (
       }
       return (
         <div className="flex flex-wrap gap-1 pb-1">
-          {row.containers.map((container) => (
-            <Badge key={container.id}>N°{container.id}</Badge>
-          ))}
+          {row.containers
+            .sort((a, b) => a.id.localeCompare(b.id))
+            .map((container) => (
+              <Badge key={container.id}>N°{container.id}</Badge>
+            ))}
         </div>
       );
     },

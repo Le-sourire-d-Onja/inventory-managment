@@ -8,6 +8,7 @@ import DonationModal, { Permission } from "./donation-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
 import { Download, Plus } from "lucide-react";
+import { DonationEntity } from "../api/donations/entity/donation.entity";
 
 enum Modals {
   DONATION,
@@ -29,6 +30,7 @@ export default function Page() {
         if (res.ok) return res.json();
         throw res;
       })
+      .then((data) => data.map((donation: DonationEntity) => DonationDto.parse(donation)))
       .then((data) => setData(data))
       .catch((err) => console.log(err))
       .finally(() => setIsLoading(false));
