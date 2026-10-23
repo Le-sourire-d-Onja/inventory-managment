@@ -1,10 +1,14 @@
 import { PackagingType } from "@/lib/generated/prisma";
+import { STATUS_TOKENS, StatusToken } from "@/lib/status-tokens";
 import { ContentDto } from "./content.dto";
 import { AssociationDto } from "../../associations/dto/association.dto";
 import { ContainerEntity } from "../entity/container.entity";
 import { DemandDto } from "../../demands/dto/demand.dto";
 
 export interface ContainerState {
+  /** Clé stable du token de statut (`waiting`, `assigned`, …). */
+  key: StatusToken;
+  /** Classe de badge associée au token. */
   color: string;
   text: string;
 }
@@ -54,15 +58,15 @@ export class ContainerDto {
     >,
   ): ContainerState {
     if (container.distributed_at) {
-      return { color: "bg-purple-300", text: "Distribué" };
+      return { key: "distributed", color: STATUS_TOKENS.distributed.badgeClass, text: "Distribué" };
     }
     if (container.containerized_at) {
-      return { color: "bg-blue-300", text: "Empoté" };
+      return { key: "containerized", color: STATUS_TOKENS.containerized.badgeClass, text: "Empoté" };
     }
     if (container.demand_id || container.association) {
-      return { color: "bg-green-300", text: "Attribué" };
+      return { key: "assigned", color: STATUS_TOKENS.assigned.badgeClass, text: "Attribué" };
     }
-    return { color: "bg-orange-300", text: "En attente" };
+    return { key: "waiting", color: STATUS_TOKENS.waiting.badgeClass, text: "En attente" };
   }
 
   static parse(obj: ContainerEntity) {
