@@ -8,6 +8,7 @@ import AssociationModal, { Permission } from "./association-modal";
 import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
 import { Download, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 enum Modals {
   ASSOCIATION,
@@ -15,9 +16,25 @@ enum Modals {
   NONE,
 }
 
+/**
+ * Reads the server-provided file name so the per-association export keeps the
+ * `association-<nom>-<date>.xlsx` contract instead of a generic "export.xlsx".
+ */
+function filenameFromDisposition(
+  disposition: string | null,
+  fallback: string,
+): string {
+  if (!disposition) return fallback;
+  const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
+  if (utf8) return decodeURIComponent(utf8[1].trim().replace(/^"|"$/g, ""));
+  const plain = /filename="?([^";]+)"?/i.exec(disposition);
+  return plain ? plain[1] : fallback;
+}
+
 export default function Page() {
   const [data, setData] = useState<AssociationDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [exportingId, setExportingId] = useState<string | null>(null);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
   const [selectedData, setSelectedData] = useState<AssociationDto | null>(null);
   const [modalPermission, setModalPermission] = useState<Permission>(
@@ -84,6 +101,33 @@ export default function Page() {
       .finally(() => setIsLoading(false));
   }
 
+  async function onExportAssociation(id: string) {
+    setExportingId(id);
+    try {
+      const res = await fetch(
+        `/api/associations/export?id=${encodeURIComponent(id)}`,
+      );
+      if (!res.ok) throw res;
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filenameFromDisposition(
+        res.headers.get("Content-Disposition"),
+        `association-${id}.xlsx`,
+      );
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      toast.error("Impossible d'exporter l'association.");
+    } finally {
+      setExportingId(null);
+    }
+  }
+
   function onView(id: string) {
     setModalPermission(Permission.READ);
     openModal(Modals.ASSOCIATION, id);
@@ -140,7 +184,7 @@ export default function Page() {
 
       <DataTable
         data={data}
-        columns={columns(onView, onEdit, onRemove)}
+        columns={columns(onView, onEdit, onRemove, onExportAssociation, exportingId)}
         searchColumnId="name"
         isLoading={isLoading}
       />
