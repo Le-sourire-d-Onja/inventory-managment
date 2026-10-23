@@ -12,10 +12,21 @@ type ConfirmModalProps = React.ComponentProps<typeof DialogPrimitive.Root> & {
   children: React.ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Disables the confirmation while the request it triggers is in flight. */
+  pending?: boolean;
+  /** Keep the dialog open after confirming, e.g. to show a pending state. */
+  closeOnConfirm?: boolean;
 };
 
 export default function ConfirmModal(props: ConfirmModalProps) {
-  const { onConfirm, onCancel, children, ...dialogProps } = props;
+  const {
+    onConfirm,
+    onCancel,
+    children,
+    pending = false,
+    closeOnConfirm = true,
+    ...dialogProps
+  } = props;
 
   return (
     <Dialog {...dialogProps}>
@@ -31,17 +42,18 @@ export default function ConfirmModal(props: ConfirmModalProps) {
         </DialogHeader>
         {children}
         <div className="flex gap-4 justify-end">
-          <Button variant="secondary" onClick={onCancel}>
+          <Button variant="secondary" onClick={onCancel} disabled={pending}>
             Annuler
           </Button>
           <Button
             variant="destructive"
+            disabled={pending}
             onClick={() => {
               onConfirm();
-              dialogProps.onOpenChange?.(false);
+              if (closeOnConfirm) dialogProps.onOpenChange?.(false);
             }}
           >
-            Confirmer
+            {pending ? "En cours…" : "Confirmer"}
           </Button>
         </div>
       </DialogContent>

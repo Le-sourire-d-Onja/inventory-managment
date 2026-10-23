@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import DemandsService, { ContainerDetachError } from "./demands.service";
+import DemandsService, {
+  ContainerAttachmentError,
+  ContainerDetachError,
+} from "./demands.service";
 import { createDemandDtoSchema } from "./dto/create-demand.dto";
 import { updateDemandDtoSchema } from "./dto/update-demand.entity";
 
@@ -56,6 +59,9 @@ export async function POST(request: NextRequest) {
     const demand = await DemandsService.create(createDemand.data, file);
     return NextResponse.json(demand);
   } catch (error) {
+    if (error instanceof ContainerAttachmentError) {
+      return NextResponse.json({ message: error.message }, { status: 409 });
+    }
     throw error;
   }
 }
@@ -86,7 +92,7 @@ export async function PATCH(request: NextRequest) {
     const demand = await DemandsService.update(updateDemand.data, file);
     return NextResponse.json(demand);
   } catch (error) {
-    if (error instanceof ContainerDetachError) {
+    if (error instanceof ContainerDetachError || error instanceof ContainerAttachmentError) {
       return NextResponse.json({ message: error.message }, { status: 409 });
     }
     throw error;
