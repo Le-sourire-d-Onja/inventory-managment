@@ -7,12 +7,13 @@ import { localeDateOptions, formatEuro, formatVolume, formatWeight } from "@/lib
 import { AssociationDto } from "../api/associations/dto/association.dto";
 import { InfoBubble } from "@/components/info-bubble";
 import { ContainerDto } from "../api/containers/dto/container.dto";
+import { STATUS_TOKENS, StatusToken } from "@/lib/status-tokens";
 
-const PROGRESS_SEGMENTS = [
-  { state: "Attribué", color: "bg-green-300" },
-  { state: "Empoté", color: "bg-blue-300" },
-  { state: "Distribué", color: "bg-purple-300" },
-] as const;
+const PROGRESS_SEGMENTS: { key: StatusToken; label: string }[] = [
+  { key: "assigned", label: "Attribué" },
+  { key: "containerized", label: "Empoté" },
+  { key: "distributed", label: "Distribué" },
+];
 
 /**
  * Segmented progress bar shown in the Status bubble: the share of the Demand's
@@ -26,7 +27,8 @@ function DemandProgress({ containers }: { containers: ContainerDto[] }) {
 
   const segments = PROGRESS_SEGMENTS.map((segment) => ({
     ...segment,
-    count: containers.filter((container) => container.state.text === segment.state).length,
+    color: STATUS_TOKENS[segment.key].backgroundClass,
+    count: containers.filter((container) => container.state.key === segment.key).length,
   }));
 
   return (
@@ -34,14 +36,14 @@ function DemandProgress({ containers }: { containers: ContainerDto[] }) {
       <p className="text-xs font-medium">Progression</p>
       <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
         {segments.map((segment) => (
-          <div key={segment.state} className={segment.color} style={{ width: `${(segment.count / total) * 100}%` }} />
+          <div key={segment.key} className={segment.color} style={{ width: `${(segment.count / total) * 100}%` }} />
         ))}
       </div>
       <ul className="flex flex-col gap-1">
         {segments.map((segment) => (
-          <li key={segment.state} className="flex items-center gap-1.5 text-xs">
+          <li key={segment.key} className="flex items-center gap-1.5 text-xs">
             <span className={`size-2.5 rounded-full ${segment.color}`} />
-            {segment.state} : {segment.count}/{total}
+            {segment.label} : {segment.count}/{total}
           </li>
         ))}
       </ul>
@@ -108,7 +110,7 @@ export const columns = (
             .sort((a, b) => a.id.localeCompare(b.id))
             .map((container) => (
               <InfoBubble key={container.id} content={<ContainerContents container={container} />}>
-                <Badge className="cursor-default">N°{container.id}</Badge>
+                <Badge className={`cursor-default ${container.state.color}`}>N°{container.id}</Badge>
               </InfoBubble>
             ))}
         </div>
