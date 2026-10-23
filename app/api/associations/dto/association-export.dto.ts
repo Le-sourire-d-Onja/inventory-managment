@@ -1,6 +1,7 @@
 import type { ExportCell, ExportSheet } from "../../exports/exports.service";
 import { ContainerDto } from "../../containers/dto/container.dto";
 import { DemandDto } from "../../demands/dto/demand.dto";
+import { formatDate, formatDateTime } from "@/lib/dates";
 import { AssociationDto } from "./association.dto";
 import {
   AssociationExportContainer,
@@ -10,16 +11,6 @@ import {
 
 function pad(value: number): string {
   return String(value).padStart(2, "0");
-}
-
-/** `jj/mm/aaaa`, pour les dates qui ne portent pas d'acte. */
-export function formatDate(date: Date): string {
-  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
-}
-
-/** `jj/mm/aaaa hh:mm`, pour les dates d'empotage et de distribution. */
-export function formatDateTime(date: Date): string {
-  return `${formatDate(date)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function sum(

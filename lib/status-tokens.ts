@@ -1,6 +1,6 @@
 /**
  * Tokens sémantiques des Statuts : source unique des couleurs consommée par les
- * badges, la barre de progression et, à terme, les camemberts. Les valeurs
+ * badges, la barre de progression et les camemberts. Les valeurs
  * pointent vers les variables CSS `--status-*` (palette `-300`, identiques en
  * clair et en sombre), définies dans `app/globals.css`.
  */

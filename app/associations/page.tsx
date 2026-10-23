@@ -17,16 +17,15 @@ enum Modals {
 }
 
 /**
- * Reads the server-provided file name so the per-association export keeps the
- * `association-<nom>-<date>.xlsx` contract instead of a generic "export.xlsx".
+ * Reads the plain server-provided file name so the per-association export keeps
+ * the `association-<nom>-<date>.xlsx` contract instead of a generic
+ * "export.xlsx". The server only emits `filename="..."`.
  */
 function filenameFromDisposition(
   disposition: string | null,
   fallback: string,
 ): string {
   if (!disposition) return fallback;
-  const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
-  if (utf8) return decodeURIComponent(utf8[1].trim().replace(/^"|"$/g, ""));
   const plain = /filename="?([^";]+)"?/i.exec(disposition);
   return plain ? plain[1] : fallback;
 }
