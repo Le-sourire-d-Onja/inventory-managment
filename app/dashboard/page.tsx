@@ -368,7 +368,7 @@ export default function Page() {
               icon={Clock}
               label="Demandes en attente"
               value={demandStatusData[0]?.count ?? 0}
-              tint="bg-chart-4/10 text-chart-4"
+              tint="bg-status-waiting/20 text-foreground"
             />
           </div>
 
