@@ -157,6 +157,12 @@ describe("Annulation d'un empotage ou d'une distribution", () => {
     });
 
     const cases: { id: string; action: string }[] = [
+      // Empoter un Contenant libre, ou déjà empoté.
+      { id: "240103", action: "containerize" },
+      { id: "240105", action: "containerize" },
+      // Distribuer un Contenant qui n'est pas empoté, ou déjà distribué.
+      { id: "240104", action: "distribute" },
+      { id: "240106", action: "distribute" },
       // Annuler un empotage qui n'a pas eu lieu, ou sans avoir annulé la
       // distribution d'abord.
       { id: "240103", action: "uncontainerize" },
@@ -168,10 +174,18 @@ describe("Annulation d'un empotage ou d'une distribution", () => {
       { id: "240105", action: "undistribute" },
     ];
 
+    const messagesByAction = new Map<string, string>();
     for (const invalid of cases) {
       const response = await transition(invalid.id, invalid.action);
+      const body = await response.json();
       expect(response.status, `${invalid.action} on ${invalid.id}`).toBe(409);
+      expect(body.message, `${invalid.action} on ${invalid.id}`).toContain("Impossible");
+      messagesByAction.set(invalid.action, body.message);
     }
+
+    // Each action explains its own refusal instead of leaking one generic
+    // English message.
+    expect(new Set(messagesByAction.values()).size).toBe(4);
 
     // The refused transitions changed nothing.
     const distributed = await containerOf("240106");

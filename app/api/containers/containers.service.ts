@@ -296,13 +296,17 @@ export default class ContainersService {
     switch (data.action) {
       case "containerize":
         if (!container.demand_id || containerized || distributed) {
-          throw new ContainerTransitionError("Cannot containerize");
+          throw new ContainerTransitionError(
+            "Impossible d'empoter ce contenant : il doit être rattaché à une demande et non daté.",
+          );
         }
         update = { containerized_at: new Date() };
         break;
       case "distribute":
         if (!containerized || distributed) {
-          throw new ContainerTransitionError("Cannot distribute");
+          throw new ContainerTransitionError(
+            "Impossible de distribuer ce contenant : il doit être empoté et non déjà distribué.",
+          );
         }
         update = { distributed_at: new Date() };
         break;
@@ -310,13 +314,17 @@ export default class ContainersService {
         // One step back only: a Distribué Container must be undistributed
         // first, so this requires an empotage date and no distribution date.
         if (!containerized || distributed) {
-          throw new ContainerTransitionError("Cannot uncontainerize");
+          throw new ContainerTransitionError(
+            "Impossible d'annuler l'empotage : le contenant doit être empoté et non distribué.",
+          );
         }
         update = { containerized_at: null };
         break;
       case "undistribute":
         if (!distributed) {
-          throw new ContainerTransitionError("Cannot undistribute");
+          throw new ContainerTransitionError(
+            "Impossible d'annuler la distribution : le contenant doit être distribué.",
+          );
         }
         update = { distributed_at: null };
         break;
