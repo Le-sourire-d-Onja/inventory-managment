@@ -1,7 +1,9 @@
 import { prisma } from "../prisma";
 import { CreateAssociationDto } from "./dto/create-association.dto";
 import { AssociationDto } from "./dto/association.dto";
+import { AssociationExportDto } from "./dto/association-export.dto";
 import { UpdateAssociationDto } from "./dto/update-association.dto";
+import { associationExportInclude } from "./entity/association.entity";
 
 export default class AssociationsService {
 
@@ -15,6 +17,22 @@ export default class AssociationsService {
     return associations.map((association) => AssociationDto.parse(
       association
     ));
+  }
+
+  /**
+   * This function is used to retrieve one association with everything needed
+   * for its workbook export: its demands and their currently attached
+   * containers and contents.
+   *
+   * @param id The id of the association
+   * @returns The export entity, or null if the association doesn't exist
+   */
+  static async findForExport(id: string): Promise<AssociationExportDto | null> {
+    const association = await prisma.association.findUnique({
+      where: { id },
+      include: associationExportInclude,
+    });
+    return association ? AssociationExportDto.parse(association) : null;
   }
 
   /**
