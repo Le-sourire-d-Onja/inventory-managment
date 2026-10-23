@@ -69,11 +69,18 @@ statut Attribué.
 
 **Empotage**:
 L'action de conditionner les Contenus d'un Contenant attribué ; un Contenant
-empoté est au statut Empoté.
+empoté est au statut Empoté. Réversible par **Annulation**.
 
 **Distribution**:
 L'action de remettre un Contenant empoté à son Association ; un Contenant
-distribué est au statut Distribué.
+distribué est au statut Distribué. Réversible par **Annulation**.
+
+**Annulation**:
+L'action d'effacer la date d'un acte (Empotage ou Distribution) pour faire
+reculer le Contenant d'un seul cran : l'annulation de la distribution le remet
+Empoté, celle de l'empotage le remet Attribué. Elle ne modifie ni le rattachement,
+ni les Contenus, ni le Stock. Distincte du détachement, qui défait l'Attribution.
+_Avoid_: retour arrière, désempotage, suppression
 
 **Stock**:
 La quantité d'un Type d'article disponible, c'est-à-dire non encore rattachée à
