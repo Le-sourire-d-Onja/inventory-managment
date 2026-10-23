@@ -13,6 +13,14 @@ export interface ContainerState {
   text: string;
 }
 
+/** Libellés genrés des Statuts de Contenant, portés par le DTO. */
+const CONTAINER_STATE_LABELS: Record<StatusToken, string> = {
+  waiting: "En attente",
+  assigned: "Attribué",
+  containerized: "Empoté",
+  distributed: "Distribué",
+};
+
 export class ContainerDto {
   id: string;
   weight: number;
@@ -51,6 +59,15 @@ export class ContainerDto {
     this.state = ContainerDto.containerState(this);
   }
 
+  /** Projection d'une clé de token sur son Statut de Contenant complet. */
+  static stateData(key: StatusToken): ContainerState {
+    return {
+      key,
+      color: STATUS_TOKENS[key].badgeClass,
+      text: CONTAINER_STATE_LABELS[key],
+    };
+  }
+
   static containerState(
     container: Pick<
       ContainerDto,
@@ -58,15 +75,15 @@ export class ContainerDto {
     >,
   ): ContainerState {
     if (container.distributed_at) {
-      return { key: "distributed", color: STATUS_TOKENS.distributed.badgeClass, text: "Distribué" };
+      return ContainerDto.stateData("distributed");
     }
     if (container.containerized_at) {
-      return { key: "containerized", color: STATUS_TOKENS.containerized.badgeClass, text: "Empoté" };
+      return ContainerDto.stateData("containerized");
     }
     if (container.demand_id || container.association) {
-      return { key: "assigned", color: STATUS_TOKENS.assigned.badgeClass, text: "Attribué" };
+      return ContainerDto.stateData("assigned");
     }
-    return { key: "waiting", color: STATUS_TOKENS.waiting.badgeClass, text: "En attente" };
+    return ContainerDto.stateData("waiting");
   }
 
   static parse(obj: ContainerEntity) {

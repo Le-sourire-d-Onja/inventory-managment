@@ -58,6 +58,16 @@ export class DemandDto {
     }
   }
 
+  static statusData(status: DemandStatus): {
+    key: StatusToken;
+    color: string;
+    text: string;
+  };
+  static statusData(status?: DemandStatus): {
+    key: StatusToken | null;
+    color: string;
+    text: string;
+  };
   static statusData(status?: DemandStatus) {
     switch (status) {
       case "IN_PROGRESS":

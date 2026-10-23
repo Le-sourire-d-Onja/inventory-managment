@@ -8,9 +8,9 @@ const XLSX_MIME =
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 export async function GET(request: NextRequest) {
-  const id = request.nextUrl.searchParams.get("id");
+  const searchParams = request.nextUrl.searchParams;
 
-  if (!id) {
+  if (!searchParams.has("id")) {
     const associations = await AssociationsService.findAll();
     const exportData = associations.map((association) => AssociationDto.exportValues(association));
     const exportHeaders = AssociationDto.exportHeaders();
@@ -24,7 +24,10 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const association = await AssociationsService.findForExport(id);
+  // An explicit but empty `?id=` is a client error, not a request for the
+  // global export: only the absence of the parameter keeps that behaviour.
+  const id = searchParams.get("id");
+  const association = id ? await AssociationsService.findForExport(id) : null;
   if (!association) {
     return NextResponse.json({ error: "Association not found" }, { status: 404 });
   }

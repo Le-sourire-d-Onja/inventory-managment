@@ -18,9 +18,10 @@ const XLSX_MIME =
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 function exportRequest(id?: string) {
-  const url = id
-    ? `http://localhost/api/associations/export?id=${id}`
-    : "http://localhost/api/associations/export";
+  const url = new URL("http://localhost/api/associations/export");
+  if (id !== undefined) {
+    url.searchParams.set("id", id);
+  }
   return exportAssociations(new NextRequest(url));
 }
 
@@ -181,6 +182,14 @@ describe("GET /api/associations/export", () => {
     expect(workbook.worksheets[0].name).toBe("Feuille 1");
     expect(headerRow(workbook.worksheets[0])).toEqual(AssociationDto.exportHeaders());
     expect(workbook.worksheets[0].rowCount).toBe(3);
+  });
+
+  it("returns 404 for an empty id instead of the global export", async () => {
+    await createAssociation({ name: "Association A" });
+
+    const response = await exportRequest("");
+
+    expect(response.status).toBe(404);
   });
 
   it("returns 404 for an unknown association id", async () => {

@@ -10,8 +10,10 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, ClipboardList, Clock, Download, Gift, Inbox, Package, PackageOpen } from "lucide-react";
 import { cn, formatEuro, formatVolume, formatWeight } from "@/lib/utils";
-import { STATUS_TOKENS } from "@/lib/status-tokens";
+import { STATUS_TOKENS, type StatusToken } from "@/lib/status-tokens";
 import { buildStatusBreakdown, type StatusCategory, type StatusSegment } from "@/lib/status-breakdown";
+import { DEMAND_STATUSES, DemandDto } from "@/app/api/demands/dto/demand.dto";
+import { ContainerDto } from "@/app/api/containers/dto/container.dto";
 
 type StockRow = {
   name: string;
@@ -39,31 +41,30 @@ type ContainerStatusInput = {
   } | null;
 };
 
-const demandStatusCategories: StatusCategory[] = [
-  { key: "IN_PROGRESS", label: "En attente", token: "waiting" },
-  { key: "CONTAINERIZED", label: "Empotée", token: "containerized" },
-  { key: "DISTRIBUTED", label: "Distribuée", token: "distributed" },
-];
+const demandStatusCategories: StatusCategory[] = DEMAND_STATUSES.map((status) => {
+  const data = DemandDto.statusData(status);
+  return { key: status, label: data.text, token: data.key };
+});
 
-const containerStatusCategories: StatusCategory[] = [
-  { key: "waiting", label: "En attente", token: "waiting" },
-  { key: "assigned", label: "Attribué", token: "assigned" },
-  { key: "containerized", label: "Empoté", token: "containerized" },
-  { key: "distributed", label: "Distribué", token: "distributed" },
-];
+const containerStatusCategories: StatusCategory[] = (
+  Object.keys(STATUS_TOKENS) as StatusToken[]
+).map((token) => {
+  const state = ContainerDto.stateData(token);
+  return { key: token, label: state.text, token };
+});
 
-const demandChartConfig = {
-  IN_PROGRESS: { label: "En attente", color: STATUS_TOKENS.waiting.color },
-  CONTAINERIZED: { label: "Empotée", color: STATUS_TOKENS.containerized.color },
-  DISTRIBUTED: { label: "Distribuée", color: STATUS_TOKENS.distributed.color },
-} satisfies ChartConfig;
+/** Reconstruit le `ChartConfig` depuis les catégories, sans recopier libellés ni couleurs. */
+function chartConfigOf(categories: readonly StatusCategory[]): ChartConfig {
+  return Object.fromEntries(
+    categories.map((category) => [
+      category.key,
+      { label: category.label, color: STATUS_TOKENS[category.token].color },
+    ]),
+  );
+}
 
-const containerChartConfig = {
-  waiting: { label: "En attente", color: STATUS_TOKENS.waiting.color },
-  assigned: { label: "Attribué", color: STATUS_TOKENS.assigned.color },
-  containerized: { label: "Empoté", color: STATUS_TOKENS.containerized.color },
-  distributed: { label: "Distribué", color: STATUS_TOKENS.distributed.color },
-} satisfies ChartConfig;
+const demandChartConfig = chartConfigOf(demandStatusCategories);
+const containerChartConfig = chartConfigOf(containerStatusCategories);
 
 const percentageFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
@@ -208,61 +209,63 @@ function StatusDonutCard({
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        {breakdown.total === 0 ? (
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Inbox />
-              </EmptyMedia>
-              <EmptyTitle>Aucune donnée</EmptyTitle>
-              <EmptyDescription>{emptyDescription}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <div className="flex flex-col items-center gap-6 sm:flex-row">
-            <div className="relative h-52 w-full max-w-52 shrink-0">
-              <ChartContainer config={config} className="aspect-auto h-full w-full">
-                <PieChart accessibilityLayer>
-                  <ChartTooltip content={<StatusDonutTooltip />} />
-                  <Pie
-                    data={breakdown.segments}
-                    dataKey="count"
-                    nameKey="label"
-                    innerRadius="62%"
-                    outerRadius="92%"
-                    paddingAngle={2}
-                    strokeWidth={2}
-                  >
-                    {breakdown.segments.map((segment) => (
-                      <Cell key={segment.key} fill={STATUS_TOKENS[segment.token].color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold tabular-nums">{breakdown.total}</span>
-                <span className="text-xs text-muted-foreground">Total</span>
-              </div>
-            </div>
-            <ul className="grid w-full gap-2">
-              {breakdown.segments.map((segment) => (
-                <li key={segment.key} className="flex items-center justify-between gap-3 text-sm">
-                  <span className="flex min-w-0 items-center gap-2">
-                    <span
-                      className="size-2.5 shrink-0 rounded-[2px]"
-                      style={{ backgroundColor: STATUS_TOKENS[segment.token].color }}
-                    />
-                    <span className="truncate">{segment.label}</span>
-                  </span>
-                  <span className="shrink-0 text-muted-foreground tabular-nums">
-                    <span className="font-medium text-foreground">{segment.count}</span> ·{" "}
-                    {formatPercentage(segment.percentage)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+        <div className="flex flex-col items-center gap-6 sm:flex-row">
+          <div className="relative h-52 w-full max-w-52 shrink-0">
+            {breakdown.total === 0 ? (
+              <Empty className="h-full justify-center gap-3 border-0 p-4 md:p-4">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Inbox />
+                  </EmptyMedia>
+                  <EmptyTitle>Aucune donnée</EmptyTitle>
+                  <EmptyDescription>{emptyDescription}</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <>
+                <ChartContainer config={config} className="aspect-auto h-full w-full">
+                  <PieChart accessibilityLayer>
+                    <ChartTooltip content={<StatusDonutTooltip />} />
+                    <Pie
+                      data={breakdown.segments}
+                      dataKey="count"
+                      nameKey="label"
+                      innerRadius="62%"
+                      outerRadius="92%"
+                      paddingAngle={2}
+                      strokeWidth={2}
+                    >
+                      {breakdown.segments.map((segment) => (
+                        <Cell key={segment.key} fill={STATUS_TOKENS[segment.token].color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-bold tabular-nums">{breakdown.total}</span>
+                  <span className="text-xs text-muted-foreground">Total</span>
+                </div>
+              </>
+            )}
           </div>
-        )}
+          <ul className="grid w-full gap-2">
+            {breakdown.segments.map((segment) => (
+              <li key={segment.key} className="flex items-center justify-between gap-3 text-sm">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span
+                    className="size-2.5 shrink-0 rounded-[2px]"
+                    style={{ backgroundColor: STATUS_TOKENS[segment.token].color }}
+                  />
+                  <span className="truncate">{segment.label}</span>
+                </span>
+                <span className="shrink-0 text-muted-foreground tabular-nums">
+                  <span className="font-medium text-foreground">{segment.count}</span> ·{" "}
+                  {formatPercentage(segment.percentage)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </CardContent>
     </Card>
   );

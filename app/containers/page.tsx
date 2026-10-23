@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
 import { Download, Plus } from "lucide-react";
 import { StockDto } from "../api/stocks/dto/stock.dto";
-import { localeDateOptions, useStateParam } from "@/lib/utils";
+import { useStateParam } from "@/lib/utils";
+import { formatDateTime } from "@/lib/dates";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 import { articleTypeFilterOptions } from "./filters";
 import { toast } from "sonner";
@@ -31,11 +32,7 @@ const TRANSITION_SUCCESS: Record<TransitionAction, (id: string) => string> = {
 
 function formatActDate(value: Date | string | null): string {
   if (!value) return "—";
-  return new Intl.DateTimeFormat("fr-FR", {
-    ...localeDateOptions,
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
+  return formatDateTime(new Date(value));
 }
 
 /** Copy of the confirmation window: identifier, current → target, consequence. */
