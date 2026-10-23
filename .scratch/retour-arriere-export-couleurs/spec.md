@@ -1,6 +1,6 @@
 # Annulation des actes, export d'une Association, couleurs de statut et camemberts
 
-Status: ready-for-agent
+Status: resolved
 
 ## Problem Statement
 
