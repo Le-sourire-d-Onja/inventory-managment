@@ -1,13 +1,25 @@
 import { PackagingType } from "@/lib/generated/prisma";
+import { STATUS_TOKENS, StatusToken } from "@/lib/status-tokens";
 import { ContentDto } from "./content.dto";
 import { AssociationDto } from "../../associations/dto/association.dto";
 import { ContainerEntity } from "../entity/container.entity";
 import { DemandDto } from "../../demands/dto/demand.dto";
 
 export interface ContainerState {
+  /** Clé stable du token de statut (`waiting`, `assigned`, …). */
+  key: StatusToken;
+  /** Classe de badge associée au token. */
   color: string;
   text: string;
 }
+
+/** Libellés genrés des Statuts de Contenant, portés par le DTO. */
+const CONTAINER_STATE_LABELS: Record<StatusToken, string> = {
+  waiting: "En attente",
+  assigned: "Attribué",
+  containerized: "Empoté",
+  distributed: "Distribué",
+};
 
 export class ContainerDto {
   id: string;
@@ -47,6 +59,15 @@ export class ContainerDto {
     this.state = ContainerDto.containerState(this);
   }
 
+  /** Projection d'une clé de token sur son Statut de Contenant complet. */
+  static stateData(key: StatusToken): ContainerState {
+    return {
+      key,
+      color: STATUS_TOKENS[key].badgeClass,
+      text: CONTAINER_STATE_LABELS[key],
+    };
+  }
+
   static containerState(
     container: Pick<
       ContainerDto,
@@ -54,15 +75,15 @@ export class ContainerDto {
     >,
   ): ContainerState {
     if (container.distributed_at) {
-      return { color: "bg-purple-300", text: "Distribué" };
+      return ContainerDto.stateData("distributed");
     }
     if (container.containerized_at) {
-      return { color: "bg-blue-300", text: "Empoté" };
+      return ContainerDto.stateData("containerized");
     }
     if (container.demand_id || container.association) {
-      return { color: "bg-green-300", text: "Attribué" };
+      return ContainerDto.stateData("assigned");
     }
-    return { color: "bg-orange-300", text: "En attente" };
+    return ContainerDto.stateData("waiting");
   }
 
   static parse(obj: ContainerEntity) {

@@ -1,4 +1,5 @@
 import { PackagingType } from "@/lib/generated/prisma";
+import { NEUTRAL_STATUS, STATUS_TOKENS, StatusToken } from "@/lib/status-tokens";
 import { ContainerDto } from "../../containers/dto/container.dto";
 import { LabelInfos } from "@/lib/pdf";
 import { DemandEntity } from "../entity/demand.entity";
@@ -57,16 +58,26 @@ export class DemandDto {
     }
   }
 
+  static statusData(status: DemandStatus): {
+    key: StatusToken;
+    color: string;
+    text: string;
+  };
+  static statusData(status?: DemandStatus): {
+    key: StatusToken | null;
+    color: string;
+    text: string;
+  };
   static statusData(status?: DemandStatus) {
     switch (status) {
       case "IN_PROGRESS":
-        return { color: "bg-orange-300", text: "En attente" };
+        return demandStatusData("waiting", "En attente");
       case "CONTAINERIZED":
-        return { color: "bg-blue-300", text: "Empotée" };
+        return demandStatusData("containerized", "Empotée");
       case "DISTRIBUTED":
-        return { color: "bg-purple-300", text: "Distribuée" };
+        return demandStatusData("distributed", "Distribuée");
       default:
-        return { color: "bg-white", text: "Inconnu" };
+        return { key: null, color: NEUTRAL_STATUS.badgeClass, text: "Inconnu" };
     }
   }
 
@@ -156,6 +167,11 @@ export class DemandDto {
   static exportHeaders(): string[] {
     return ["Association", "Statut", "Document", "Contenants"];
   }
+}
+
+/** Associe un libellé de Demande au badge de son token partagé. */
+function demandStatusData(key: StatusToken, text: string) {
+  return { key, color: STATUS_TOKENS[key].badgeClass, text };
 }
 
 /** La plus récente des dates non nulles, ou `null` si aucune ne l'est. */

@@ -2,15 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ComponentType } from "react";
-import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Cell, Pie, PieChart } from "recharts";
+import { ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, ClipboardList, Clock, Download, Gift, Inbox, Package, PackageOpen } from "lucide-react";
 import { cn, formatEuro, formatVolume, formatWeight } from "@/lib/utils";
+import { STATUS_TOKENS, type StatusToken } from "@/lib/status-tokens";
+import { buildStatusBreakdown, type StatusCategory, type StatusSegment } from "@/lib/status-breakdown";
+import { DEMAND_STATUSES, DemandDto } from "@/app/api/demands/dto/demand.dto";
+import { ContainerDto } from "@/app/api/containers/dto/container.dto";
 
 type StockRow = {
   name: string;
@@ -28,29 +31,46 @@ type StockRowInput = {
   value: number;
 };
 
-type StockUnit = {
-  value: keyof Omit<StockRow, "name">;
-  unit: string;
-  label: string;
-};
-
-type DemandStatusRow = {
+type DemandStatusInput = {
   status: string;
-  count: number;
 };
 
-const stockUnits: StockUnit[] = [
-  { value: "quantity", unit: "#", label: "Articles" },
-  { value: "volume", unit: "m³", label: "Volume" },
-  { value: "weight", unit: "kg", label: "Poids" },
-  { value: "value", unit: "€", label: "Valeur" },
-];
+type ContainerStatusInput = {
+  state?: {
+    key?: string;
+  } | null;
+};
 
-const demandStatuses: { key: string; label: string }[] = [
-  { key: "IN_PROGRESS", label: "En attente" },
-  { key: "CONTAINERIZED", label: "Empotée" },
-  { key: "DISTRIBUTED", label: "Distribuée" },
-];
+const demandStatusCategories: StatusCategory[] = DEMAND_STATUSES.map((status) => {
+  const data = DemandDto.statusData(status);
+  return { key: status, label: data.text, token: data.key };
+});
+
+const containerStatusCategories: StatusCategory[] = (
+  Object.keys(STATUS_TOKENS) as StatusToken[]
+).map((token) => {
+  const state = ContainerDto.stateData(token);
+  return { key: token, label: state.text, token };
+});
+
+/** Reconstruit le `ChartConfig` depuis les catégories, sans recopier libellés ni couleurs. */
+function chartConfigOf(categories: readonly StatusCategory[]): ChartConfig {
+  return Object.fromEntries(
+    categories.map((category) => [
+      category.key,
+      { label: category.label, color: STATUS_TOKENS[category.token].color },
+    ]),
+  );
+}
+
+const demandChartConfig = chartConfigOf(demandStatusCategories);
+const containerChartConfig = chartConfigOf(containerStatusCategories);
+
+const percentageFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
+
+function formatPercentage(value: number): string {
+  return `${percentageFormatter.format(value)} %`;
+}
 
 function toStockRow(raw: StockRowInput): StockRow {
   const name = typeof raw.type === "string" ? raw.type : (raw.type?.name ?? "—");
@@ -61,23 +81,6 @@ function toStockRow(raw: StockRowInput): StockRow {
     weight: raw.weight,
     value: raw.value,
   };
-}
-
-function formatByUnit(value: number, unit: StockUnit): string {
-  switch (unit.value) {
-    case "value":
-      return formatEuro(value);
-    case "weight":
-      return `${formatWeight(value)} kg`;
-    case "volume":
-      return `${formatVolume(value)} m³`;
-    default:
-      return formatWeight(value);
-  }
-}
-
-function chartColor(index: number): string {
-  return `var(--chart-${(index % 5) + 1})`;
 }
 
 function sumTotals(rows: StockRow[]) {
@@ -162,82 +165,107 @@ function TotalCard({
   );
 }
 
-function StockChartCard({
+function StatusDonutTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { payload?: StatusSegment }[];
+}) {
+  const segment = payload?.[0]?.payload;
+  if (!active || !segment) return null;
+
+  return (
+    <div className="border-border/50 bg-background grid min-w-36 gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl">
+      <div className="flex items-center gap-1.5 font-medium">
+        <span
+          className="size-2 shrink-0 rounded-[2px]"
+          style={{ backgroundColor: STATUS_TOKENS[segment.token].color }}
+        />
+        {segment.label}
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-muted-foreground tabular-nums">{segment.count}</span>
+        <span className="font-mono font-medium tabular-nums">{formatPercentage(segment.percentage)}</span>
+      </div>
+    </div>
+  );
+}
+
+function StatusDonutCard({
   title,
-  rows,
-  unit,
-  onUnitChange,
-  emptyTitle,
+  breakdown,
+  config,
   emptyDescription,
 }: {
   title: string;
-  rows: StockRow[];
-  unit: StockUnit;
-  onUnitChange: (unit: StockUnit) => void;
-  emptyTitle: string;
+  breakdown: ReturnType<typeof buildStatusBreakdown>;
+  config: ChartConfig;
   emptyDescription: string;
 }) {
-  const data = useMemo(() => [...rows].sort((a, b) => b[unit.value] - a[unit.value]).slice(0, 10), [rows, unit]);
-
-  const colorByName = useMemo(() => {
-    const colors = new Map<string, string>();
-    rows.forEach((row, index) => colors.set(row.name, chartColor(index)));
-    return colors;
-  }, [rows]);
-
-  const config = {
-    [unit.value]: { label: unit.label, color: "var(--chart-1)" },
-  } satisfies ChartConfig;
-
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-2">
+      <CardHeader>
         <CardTitle>{title}</CardTitle>
-        <Select
-          value={unit.value}
-          onValueChange={(value) => onUnitChange(stockUnits.find((u) => u.value === value) ?? unit)}
-        >
-          <SelectTrigger className="w-20">
-            <SelectValue placeholder="Unité" />
-          </SelectTrigger>
-          <SelectContent>
-            {stockUnits.map((stockUnit) => (
-              <SelectItem key={stockUnit.value} value={stockUnit.value}>
-                {stockUnit.unit}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent>
-        {rows.length === 0 ? (
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Inbox />
-              </EmptyMedia>
-              <EmptyTitle>{emptyTitle}</EmptyTitle>
-              <EmptyDescription>{emptyDescription}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <ChartContainer config={config} className="aspect-auto h-65 w-full">
-            <BarChart accessibilityLayer data={data}>
-              <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
-              <YAxis tickLine={false} tickMargin={10} axisLine={false} unit={" " + unit.unit} />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent indicator="line" formatter={(value) => formatByUnit(Number(value), unit)} />
-                }
-              />
-              <Bar dataKey={unit.value} radius={4}>
-                {data.map((row) => (
-                  <Cell key={row.name} fill={colorByName.get(row.name) ?? chartColor(0)} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ChartContainer>
-        )}
+        <div className="flex flex-col items-center gap-6 sm:flex-row">
+          <div className="relative h-52 w-full max-w-52 shrink-0">
+            {breakdown.total === 0 ? (
+              <Empty className="h-full justify-center gap-3 border-0 p-4 md:p-4">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Inbox />
+                  </EmptyMedia>
+                  <EmptyTitle>Aucune donnée</EmptyTitle>
+                  <EmptyDescription>{emptyDescription}</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <>
+                <ChartContainer config={config} className="aspect-auto h-full w-full">
+                  <PieChart accessibilityLayer>
+                    <ChartTooltip content={<StatusDonutTooltip />} />
+                    <Pie
+                      data={breakdown.segments}
+                      dataKey="count"
+                      nameKey="label"
+                      innerRadius="62%"
+                      outerRadius="92%"
+                      paddingAngle={2}
+                      strokeWidth={2}
+                    >
+                      {breakdown.segments.map((segment) => (
+                        <Cell key={segment.key} fill={STATUS_TOKENS[segment.token].color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-bold tabular-nums">{breakdown.total}</span>
+                  <span className="text-xs text-muted-foreground">Total</span>
+                </div>
+              </>
+            )}
+          </div>
+          <ul className="grid w-full gap-2">
+            {breakdown.segments.map((segment) => (
+              <li key={segment.key} className="flex items-center justify-between gap-3 text-sm">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span
+                    className="size-2.5 shrink-0 rounded-[2px]"
+                    style={{ backgroundColor: STATUS_TOKENS[segment.token].color }}
+                  />
+                  <span className="truncate">{segment.label}</span>
+                </span>
+                <span className="shrink-0 text-muted-foreground tabular-nums">
+                  <span className="font-medium text-foreground">{segment.count}</span> ·{" "}
+                  {formatPercentage(segment.percentage)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </CardContent>
     </Card>
   );
@@ -249,24 +277,21 @@ export default function Page() {
   const [stocksInContainer, setStocksInContainer] = useState<StockRow[]>([]);
   const [donationCount, setDonationCount] = useState(0);
   const [associationCount, setAssociationCount] = useState(0);
-  const [demands, setDemands] = useState<{ status: string }[]>([]);
-  const [stockUnit, setStockUnit] = useState<StockUnit>(stockUnits[0]);
-  const [containerUnit, setContainerUnit] = useState<StockUnit>(stockUnits[1]);
+  const [demands, setDemands] = useState<DemandStatusInput[]>([]);
+  const [containers, setContainers] = useState<ContainerStatusInput[]>([]);
 
   const stockTotals = useMemo(() => sumTotals(stocks), [stocks]);
   const containerTotals = useMemo(() => sumTotals(stocksInContainer), [stocksInContainer]);
-  const demandStatusData = useMemo<DemandStatusRow[]>(
-    () =>
-      demandStatuses.map(({ key, label }) => ({
-        status: label,
-        count: demands.filter((demand) => demand.status === key).length,
-      })),
+  const demandBreakdown = useMemo(
+    () => buildStatusBreakdown(demands, demandStatusCategories, (demand) => demand.status),
     [demands],
   );
-
-  const demandChartConfig = {
-    count: { label: "Demandes", color: "var(--chart-1)" },
-  } satisfies ChartConfig;
+  const containerBreakdown = useMemo(
+    () => buildStatusBreakdown(containers, containerStatusCategories, (container) => container.state?.key),
+    [containers],
+  );
+  const waitingDemandCount =
+    demandBreakdown.segments.find((segment) => segment.key === "IN_PROGRESS")?.count ?? 0;
 
   async function retrieveData() {
     setIsLoading(true);
@@ -277,21 +302,22 @@ export default function Page() {
         fetch("/api/donations"),
         fetch("/api/associations"),
         fetch("/api/demands"),
+        fetch("/api/containers?scope=all"),
       ]);
 
       if (responses.some((response) => !response.ok)) {
         throw new Error("Échec du chargement du tableau de bord");
       }
 
-      const [stockData, containerData, donationData, associationData, demandData] = await Promise.all(
-        responses.map((response) => response.json()),
-      );
+      const [stockData, containerData, donationData, associationData, demandData, containerListData] =
+        await Promise.all(responses.map((response) => response.json()));
 
       setStocks((stockData as StockRowInput[]).map(toStockRow));
       setStocksInContainer((containerData as StockRowInput[]).map(toStockRow));
       setDonationCount((donationData as unknown[]).length);
       setAssociationCount((associationData as unknown[]).length);
-      setDemands(demandData as { status: string }[]);
+      setDemands(demandData as DemandStatusInput[]);
+      setContainers(containerListData as ContainerStatusInput[]);
     } catch (error) {
       console.log(error);
     } finally {
@@ -350,7 +376,11 @@ export default function Page() {
             {Array.from({ length: 2 }).map((_, index) => (
               <Skeleton key={index} className="h-37.5 rounded-xl" />
             ))}
-            <Skeleton className="h-85 rounded-xl lg:col-span-2" />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <Skeleton key={index} className="h-80 rounded-xl" />
+            ))}
           </div>
         </>
       ) : (
@@ -367,8 +397,8 @@ export default function Page() {
             <StatCard
               icon={Clock}
               label="Demandes en attente"
-              value={demandStatusData[0]?.count ?? 0}
-              tint="bg-chart-4/10 text-chart-4"
+              value={waitingDemandCount}
+              tint="bg-status-waiting/20 text-foreground"
             />
           </div>
 
@@ -383,53 +413,18 @@ export default function Page() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <StockChartCard
-              title="Stock par type d'article"
-              rows={stocks}
-              unit={stockUnit}
-              onUnitChange={setStockUnit}
-              emptyTitle="Le stock est vide"
-              emptyDescription="Aucun article n'est en stock."
+            <StatusDonutCard
+              title="Demandes par statut"
+              breakdown={demandBreakdown}
+              config={demandChartConfig}
+              emptyDescription="Aucune demande n'a encore été enregistrée."
             />
-            <StockChartCard
-              title="Contenants par type d'article"
-              rows={stocksInContainer}
-              unit={containerUnit}
-              onUnitChange={setContainerUnit}
-              emptyTitle="Les contenants sont vides"
-              emptyDescription="Aucun article n'est empoté dans un contenant."
+            <StatusDonutCard
+              title="Contenants par statut"
+              breakdown={containerBreakdown}
+              config={containerChartConfig}
+              emptyDescription="Aucun contenant n'a encore été enregistré."
             />
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Demandes par statut</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {demands.length === 0 ? (
-                  <Empty>
-                    <EmptyHeader>
-                      <EmptyMedia variant="icon">
-                        <Inbox />
-                      </EmptyMedia>
-                      <EmptyTitle>Aucune demande</EmptyTitle>
-                      <EmptyDescription>Aucune demande n&apos;a encore été enregistrée.</EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
-                ) : (
-                  <ChartContainer config={demandChartConfig} className="aspect-auto h-65 w-full">
-                    <BarChart accessibilityLayer data={demandStatusData}>
-                      <XAxis dataKey="status" tickLine={false} tickMargin={10} axisLine={false} />
-                      <YAxis tickLine={false} tickMargin={10} axisLine={false} allowDecimals={false} />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="count" radius={4}>
-                        {demandStatusData.map((_, index) => (
-                          <Cell key={index} fill={chartColor(index)} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </Card>
           </div>
         </>
       )}

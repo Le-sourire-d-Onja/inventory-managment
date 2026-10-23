@@ -1,12 +1,14 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Eye, Pen, Trash } from "lucide-react";
+import { Download, Eye, Loader2, Pen, Trash } from "lucide-react";
 import { AssociationDto } from "../api/associations/dto/association.dto";
 
 export const columns = (
   onView: (id: string) => void,
   onEdit: (id: string) => void,
   onRemove: (id: string) => void,
+  onExport: (id: string) => void,
+  exportingId: string | null = null,
 ): ColumnDef<AssociationDto>[] => [
   {
     id: "name",
@@ -71,6 +73,19 @@ export const columns = (
       const row = props.row.original;
       return (
         <div className="flex justify-end gap-1">
+          <Button
+            variant="ghost"
+            onClick={() => onExport(row.id)}
+            disabled={exportingId !== null}
+            title="Exporter l'association"
+            aria-label={`Exporter ${row.name}`}
+          >
+            {exportingId === row.id ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <Download />
+            )}
+          </Button>
           <Button variant="ghost" onClick={() => onView(row.id)}>
             <Eye />
           </Button>

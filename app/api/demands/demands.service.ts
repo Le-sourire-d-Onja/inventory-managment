@@ -20,6 +20,58 @@ export class ContainerDetachError extends Error {
   }
 }
 
+/**
+ * Raised when a Demand creation or update would attach a Container that is
+ * already Empoté or Distribué. Moving a dated Container to another Demand
+ * would falsify a physical act; it must be cancelled first. The route maps
+ * this to a 409.
+ */
+export class ContainerAttachmentError extends Error {
+  constructor(public readonly containerId: string) {
+    super("Impossible de rattacher un contenant empoté ou distribué");
+    this.name = "ContainerAttachmentError";
+  }
+}
+
+/** État d'acte minimal d'un Contenant, suffisant pour les garde-fous de rattachement. */
+type ActStateContainer = {
+  id: string;
+  demand_id: string | null;
+  containerized_at: Date | null;
+  distributed_at: Date | null;
+};
+
+/** Charge l'état d'acte des Contenants demandés, en une seule requête. */
+async function loadActState(ids: string[]): Promise<ActStateContainer[]> {
+  if (ids.length === 0) return [];
+  return prisma.container.findMany({
+    where: { id: { in: ids } },
+    select: {
+      id: true,
+      demand_id: true,
+      containerized_at: true,
+      distributed_at: true,
+    },
+  });
+}
+
+/**
+ * Refuses a dated Container that is not already attached to `demandId`.
+ * Pass `undefined` when the target Demand does not exist yet: every dated
+ * Container is then refused, including an orphan one.
+ */
+function assertAttachable(
+  containers: ActStateContainer[],
+  demandId: string | null | undefined,
+): void {
+  for (const container of containers) {
+    const dated = !!container.containerized_at || !!container.distributed_at;
+    if (dated && container.demand_id !== demandId) {
+      throw new ContainerAttachmentError(container.id);
+    }
+  }
+}
+
 export default class DemandsService {
   /**
    * This function is used to retrieve one demand from the database
@@ -58,6 +110,15 @@ export default class DemandsService {
    */
   static async create(data: CreateDemandDto, file?: File | null): Promise<DemandDto> {
     const articleTypes = await ArticleTypesService.findAll();
+
+    // A dated Container already carries a physical act: it cannot be attached
+    // to a brand new Demand through `linkedContainers`.
+    if (data.linkedContainers.length > 0) {
+      const linked = await loadActState(
+        data.linkedContainers.map((container) => container.id),
+      );
+      assertAttachable(linked, undefined);
+    }
 
     let nextContainerNumber = await ContainersService.findNextContainerNumber();
 
@@ -147,6 +208,16 @@ export default class DemandsService {
           })
         : [];
     const existingById = new Map(existingIncoming.map((container) => [container.id, container]));
+
+    // Incoming Containers that already exist may only stay on (or join) this
+    // Demand when they are not dated. Re-sending an already attached dated
+    // Container is a no-op and stays accepted.
+    assertAttachable(existingIncoming, demandId);
+
+    if (linkedIds.length > 0) {
+      const linked = await loadActState(linkedIds);
+      assertAttachable(linked, demandId);
+    }
 
     const toDetach = currentContainers.filter(
       (container) => !incomingIds.includes(container.id) && !linkedIds.includes(container.id),

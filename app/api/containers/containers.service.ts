@@ -20,6 +20,19 @@ export class ContainerTransitionError extends Error {}
  */
 export class ContainerDeletionError extends Error {}
 
+/**
+ * Raised when an edition would break the coherence of a Container's life
+ * cycle: a dated Container (Empoté or Distribué) cannot be re-linked to
+ * another Demand, nor detached, through the generic update. Cancelling the act
+ * is the only way back. The route maps it to a 409.
+ */
+export class ContainerUpdateError extends Error {
+  constructor(message = "Impossible de modifier le rattachement d'un contenant empoté ou distribué") {
+    super(message);
+    this.name = "ContainerUpdateError";
+  }
+}
+
 export default class ContainersService {
   /**
    * This function returns the next container number for the current year
@@ -207,27 +220,51 @@ export default class ContainersService {
    * @returns The updated demand
    */
   static async update(data: UpdateContainerDto): Promise<ContainerDto> {
-    const articleTypes = await ArticleTypesService.findAll();
+    const existing = await prisma.container.findUnique({
+      where: { id: data.id },
+    });
+    if (!existing) throw new Error("Not found");
 
-    const [weight, volume, value] = ContainersService.findContainerWeightVolumeAndValue(articleTypes, data.contents);
+    // The demand link of a dated Container is part of the act: it may only
+    // change after an explicit cancellation, never through a generic edit.
+    const dated = !!existing.containerized_at || !!existing.distributed_at;
+    if (
+      dated &&
+      data.demand_id !== undefined &&
+      data.demand_id !== existing.demand_id
+    ) {
+      throw new ContainerUpdateError();
+    }
+
+    // `contents` absent means "leave the Contents alone"; an explicit array
+    // (even empty) replaces them and recomputes the aggregates.
+    const contentsProvided = data.contents !== undefined;
+    const articleTypes = await ArticleTypesService.findAll();
+    const [weight, volume, value] = contentsProvided
+      ? ContainersService.findContainerWeightVolumeAndValue(articleTypes, data.contents)
+      : [undefined, undefined, undefined];
 
     const container = await prisma.container.update({
       where: { id: data.id },
       data: {
-        weight: weight,
-        volume: volume,
-        value: value,
         packaging: data.packaging,
-        contents: {
-          deleteMany: {},
-          create: data.contents?.map((content) => ({
-            type: {
-              connect: { id: content.type_id },
-            },
-            quantity: content.quantity,
-          })),
-        },
         demand_id: data.demand_id,
+        ...(contentsProvided
+          ? {
+              weight: weight ?? 0,
+              volume: volume ?? 0,
+              value: value ?? 0,
+              contents: {
+                deleteMany: {},
+                create: (data.contents ?? []).map((content) => ({
+                  type: {
+                    connect: { id: content.type_id },
+                  },
+                  quantity: content.quantity,
+                })),
+              },
+            }
+          : {}),
       },
       include: containerInclude,
     });
@@ -235,10 +272,10 @@ export default class ContainersService {
   }
 
   /**
-   * This function is used to advance a container's lifecycle with a server
-   * timestamp: "containerize" is only allowed from Attribué (demand linked,
-   * no dates) and "distribute" only from Empoté (containerized, not yet
-   * distributed). Any other transition, or a backward move, is refused.
+   * This function is used to move a container's lifecycle one step at a time
+   * with server-side dates. Forward moves stamp the date; cancellations erase
+   * only the date of the act being undone and never touch the demand link, the
+   * Contents, the aggregates or the stock.
    *
    * @param data The id of the container and the action to perform
    * @returns The updated container entity
@@ -252,20 +289,50 @@ export default class ContainersService {
     });
     if (!container) throw new Error("Not found");
 
-    if (data.action === "containerize") {
-      const allowed = !!container.demand_id && !container.containerized_at && !container.distributed_at;
-      if (!allowed) throw new ContainerTransitionError("Cannot containerize");
-    } else {
-      const allowed = !!container.containerized_at && !container.distributed_at;
-      if (!allowed) throw new ContainerTransitionError("Cannot distribute");
+    const containerized = !!container.containerized_at;
+    const distributed = !!container.distributed_at;
+    let update: { containerized_at?: Date | null; distributed_at?: Date | null };
+
+    switch (data.action) {
+      case "containerize":
+        if (!container.demand_id || containerized || distributed) {
+          throw new ContainerTransitionError(
+            "Impossible d'empoter ce contenant : il doit être rattaché à une demande et non daté.",
+          );
+        }
+        update = { containerized_at: new Date() };
+        break;
+      case "distribute":
+        if (!containerized || distributed) {
+          throw new ContainerTransitionError(
+            "Impossible de distribuer ce contenant : il doit être empoté et non déjà distribué.",
+          );
+        }
+        update = { distributed_at: new Date() };
+        break;
+      case "uncontainerize":
+        // One step back only: a Distribué Container must be undistributed
+        // first, so this requires an empotage date and no distribution date.
+        if (!containerized || distributed) {
+          throw new ContainerTransitionError(
+            "Impossible d'annuler l'empotage : le contenant doit être empoté et non distribué.",
+          );
+        }
+        update = { containerized_at: null };
+        break;
+      case "undistribute":
+        if (!distributed) {
+          throw new ContainerTransitionError(
+            "Impossible d'annuler la distribution : le contenant doit être distribué.",
+          );
+        }
+        update = { distributed_at: null };
+        break;
     }
 
     const updated = await prisma.container.update({
       where: { id: data.id },
-      data:
-        data.action === "containerize"
-          ? { containerized_at: new Date() }
-          : { distributed_at: new Date() },
+      data: update,
       include: containerInclude,
     });
     return ContainerDto.parse(updated);

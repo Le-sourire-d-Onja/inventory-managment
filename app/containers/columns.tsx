@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Eye, Package, Pen, Trash, Truck } from "lucide-react";
+import { Eye, Package, Pen, Trash, Truck, Undo2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 import { formatEuro, formatVolume, formatWeight } from "@/lib/utils";
@@ -12,6 +12,8 @@ export const columns = (
   onRemove: (id: string) => void,
   onContainerize: (id: string) => void,
   onDistribute: (id: string) => void,
+  onUncontainerize: (id: string) => void,
+  onUndistribute: (id: string) => void,
 ): ColumnDef<ContainerDto>[] => [
   {
     id: "id",
@@ -93,14 +95,40 @@ export const columns = (
       const state = ContainerDto.containerState(row);
       return (
         <div className="flex justify-end gap-1">
-          {state.text === "Attribué" && (
-            <Button variant="ghost" onClick={() => onContainerize(row.id)}>
+          {state.key === "assigned" && (
+            <Button
+              variant="ghost"
+              title="Empoter le contenant"
+              onClick={() => onContainerize(row.id)}
+            >
               <Package />
             </Button>
           )}
-          {state.text === "Empoté" && (
-            <Button variant="ghost" onClick={() => onDistribute(row.id)}>
-              <Truck />
+          {state.key === "containerized" && (
+            <>
+              <Button
+                variant="ghost"
+                title="Distribuer le contenant"
+                onClick={() => onDistribute(row.id)}
+              >
+                <Truck />
+              </Button>
+              <Button
+                variant="ghost"
+                title="Annuler l'empotage"
+                onClick={() => onUncontainerize(row.id)}
+              >
+                <Undo2 />
+              </Button>
+            </>
+          )}
+          {state.key === "distributed" && (
+            <Button
+              variant="ghost"
+              title="Annuler la distribution"
+              onClick={() => onUndistribute(row.id)}
+            >
+              <Undo2 />
             </Button>
           )}
           <Button variant="ghost" onClick={() => onView(row.id)}>
