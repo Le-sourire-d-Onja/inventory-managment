@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import ContainersService, { ContainerDeletionError, ContainerTransitionError } from "./containers.service";
+import ContainersService, {
+  ContainerDeletionError,
+  ContainerTransitionError,
+  ContainerUpdateError,
+} from "./containers.service";
 import { createContainerDtoSchema } from "./dto/create-container.dto";
 import { updateContainerDtoSchema } from "./dto/update-container.dto";
 import { containerActionDtoSchema } from "./dto/container-action.dto";
@@ -57,8 +61,18 @@ export async function PATCH(request: NextRequest) {
   if (!updateContainer.success) {
     return NextResponse.json({ message: "Bad request" }, { status: 400 });
   }
-  const container = await ContainersService.update(updateContainer.data);
-  return NextResponse.json(container);
+  try {
+    const container = await ContainersService.update(updateContainer.data);
+    return NextResponse.json(container);
+  } catch (err) {
+    if (err instanceof ContainerUpdateError) {
+      return NextResponse.json({ message: err.message }, { status: 409 });
+    }
+    if (err instanceof Error && err.message === "Not found") {
+      return NextResponse.json({ message: "Not found" }, { status: 404 });
+    }
+    throw err;
+  }
 }
 
 export async function DELETE(request: NextRequest) {

@@ -8,14 +8,101 @@ import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/confirm-modal";
 import { Download, Plus } from "lucide-react";
 import { StockDto } from "../api/stocks/dto/stock.dto";
-import { useStateParam } from "@/lib/utils";
+import { localeDateOptions, useStateParam } from "@/lib/utils";
 import { ContainerDto } from "../api/containers/dto/container.dto";
 import { articleTypeFilterOptions } from "./filters";
+import { toast } from "sonner";
 
 enum Modals {
   CONTAINER,
   REMOVE,
+  TRANSITION,
   NONE,
+}
+
+type TransitionAction = "containerize" | "distribute" | "uncontainerize" | "undistribute";
+
+const TRANSITION_SUCCESS: Record<TransitionAction, (id: string) => string> = {
+  containerize: (id) => `Contenant N°${id} empoté.`,
+  distribute: (id) => `Contenant N°${id} distribué.`,
+  uncontainerize: (id) => `Empotage du contenant N°${id} annulé.`,
+  undistribute: (id) => `Distribution du contenant N°${id} annulée.`,
+};
+
+function formatActDate(value: Date | string | null): string {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("fr-FR", {
+    ...localeDateOptions,
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+/** Copy of the confirmation window: identifier, current → target, consequence. */
+function transitionExplanation(action: TransitionAction, container: ContainerDto) {
+  const id = `N°${container.id}`;
+  switch (action) {
+    case "containerize":
+      return (
+        <>
+          <p>
+            Contenant <strong>{id}</strong> : <strong>Attribué → Empoté</strong>.
+          </p>
+          <p>
+            La date d'empotage sera posée par le serveur. Les Contenus, les agrégats et le
+            Stock ne changent pas.
+          </p>
+          <p>La Demande passera Empotée dès que tous ses contenants seront empotés.</p>
+        </>
+      );
+    case "distribute":
+      return (
+        <>
+          <p>
+            Contenant <strong>{id}</strong> : <strong>Empoté → Distribué</strong>.
+          </p>
+          <p>
+            La date de distribution sera posée par le serveur. Les Contenus, les agrégats et
+            le Stock ne changent pas.
+          </p>
+          <p>La Demande passera Distribuée dès que tous ses contenants seront distribués.</p>
+        </>
+      );
+    case "uncontainerize":
+      return (
+        <>
+          <p>
+            Contenant <strong>{id}</strong> : <strong>Empoté → Attribué</strong>.
+          </p>
+          <p>
+            La date d'empotage du{" "}
+            <strong>{formatActDate(container.containerized_at)}</strong> sera effacée
+            définitivement : aucun historique n'est conservé.
+          </p>
+          <p>
+            Le rattachement, les Contenus, les agrégats et le Stock sont conservés. La
+            Demande repassera En attente si aucun autre contenant n'est empoté.
+          </p>
+        </>
+      );
+    case "undistribute":
+      return (
+        <>
+          <p>
+            Contenant <strong>{id}</strong> : <strong>Distribué → Empoté</strong>.
+          </p>
+          <p>
+            La date de distribution du{" "}
+            <strong>{formatActDate(container.distributed_at)}</strong> sera effacée
+            définitivement : aucun historique n'est conservé.
+          </p>
+          <p>
+            Le rattachement, les Contenus, les agrégats et le Stock sont conservés. La
+            Demande repassera Empotée si aucun autre contenant n'est distribué.
+          </p>
+        </>
+      );
+  }
 }
 
 export default function Page() {
@@ -23,6 +110,8 @@ export default function Page() {
   const [stocks, setStocks] = useState<StockDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [opennedModal, setOpennedModal] = useState<Modals>(Modals.NONE);
+  const [transitionAction, setTransitionAction] = useState<TransitionAction | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedDataID, setSelectedDataID] = useStateParam("selected-data-id");
   const selectedData = data.find((container) => container.id === selectedDataID) ?? null;
   const [modalPermission, setModalPermission] = useState<Permission>(Permission.READ);
@@ -77,20 +166,47 @@ export default function Page() {
       });
   }
 
-  async function transitionContainer(id: string, action: "containerize" | "distribute") {
-    fetch("/api/containers", {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id, action }),
-    })
-      .then((res) => {
-        if (res.ok) return res.json();
-        throw res;
-      })
-      .then((updated: ContainerDto) => {
-        setData((prev) => prev.map((container) => (container.id === updated.id ? updated : container)));
-      })
-      .catch((err) => console.log(err));
+  async function confirmTransition() {
+    if (!selectedData || !transitionAction) return;
+    const containerId = selectedData.id;
+    setIsTransitioning(true);
+    try {
+      const response = await fetch("/api/containers", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: containerId, action: transitionAction }),
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        toast.error("Action refusée", {
+          description:
+            body?.message ??
+            "L'état du contenant a changé entre l'affichage et votre clic. Rechargez la page.",
+        });
+        return;
+      }
+      const updated = body as ContainerDto;
+      setData((prev) => prev.map((container) => (container.id === updated.id ? updated : container)));
+      toast.success(TRANSITION_SUCCESS[transitionAction](containerId));
+    } catch {
+      toast.error("Une erreur s'est produite.", {
+        description: "L'action n'a pas pu être enregistrée.",
+      });
+    } finally {
+      setIsTransitioning(false);
+      closeTransitionModal();
+    }
+  }
+
+  function openTransitionModal(id: string, action: TransitionAction) {
+    setTransitionAction(action);
+    openModal(Modals.TRANSITION, id);
+  }
+
+  function closeTransitionModal() {
+    setTransitionAction(null);
+    setOpennedModal(Modals.NONE);
+    setSelectedDataID(null);
   }
 
   function openModal(modal: Modals, id?: string) {
@@ -181,14 +297,27 @@ export default function Page() {
         Vous êtes sur le point de supprimer un contenant. Êtes-vous sûr de vouloir continuer ?
       </ConfirmModal>
 
+      <ConfirmModal
+        open={opennedModal === Modals.TRANSITION && !!selectedData && !!transitionAction}
+        onOpenChange={(open) => !open && !isTransitioning && closeTransitionModal()}
+        onConfirm={confirmTransition}
+        onCancel={closeTransitionModal}
+        pending={isTransitioning}
+        closeOnConfirm={false}
+      >
+        {selectedData && transitionAction && transitionExplanation(transitionAction, selectedData)}
+      </ConfirmModal>
+
       <DataTable
         data={data}
         columns={columns(
           onView,
           onEdit,
           onRemove,
-          (id) => transitionContainer(id, "containerize"),
-          (id) => transitionContainer(id, "distribute"),
+          (id) => openTransitionModal(id, "containerize"),
+          (id) => openTransitionModal(id, "distribute"),
+          (id) => openTransitionModal(id, "uncontainerize"),
+          (id) => openTransitionModal(id, "undistribute"),
         )}
         filters={[
           {
