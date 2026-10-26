@@ -43,16 +43,28 @@ function rowValues(sheet: Worksheet, rowNumber: number): unknown[] {
   return Array.isArray(values) ? values.slice(1) : [];
 }
 
-function findRow(sheet: Worksheet, label: string): unknown[] {
+function findRowNumber(sheet: Worksheet, label: string): number {
   for (let row = 1; row <= sheet.rowCount; row += 1) {
-    const values = rowValues(sheet, row);
-    if (values[0] === label) return values;
+    if (rowValues(sheet, row)[0] === label) return row;
   }
   throw new Error(`Ligne "${label}" absente de la feuille ${sheet.name}`);
 }
 
+function findRow(sheet: Worksheet, label: string): unknown[] {
+  return rowValues(sheet, findRowNumber(sheet, label));
+}
+
 function headerRow(sheet: Worksheet): unknown[] {
   return rowValues(sheet, 1);
+}
+
+/** Chaque colonne est ajustée, sans descendre sous le minimum ni dépasser le plafond. */
+function expectFittedWidths(sheet: Worksheet): void {
+  for (let index = 1; index <= sheet.columnCount; index += 1) {
+    const width = sheet.getColumn(index).width ?? 0;
+    expect(width).toBeGreaterThanOrEqual(10);
+    expect(width).toBeLessThanOrEqual(100);
+  }
 }
 
 function todayStamp(): string {
@@ -182,6 +194,7 @@ describe("GET /api/associations/export", () => {
     expect(workbook.worksheets[0].name).toBe("Feuille 1");
     expect(headerRow(workbook.worksheets[0])).toEqual(AssociationDto.exportHeaders());
     expect(workbook.worksheets[0].rowCount).toBe(3);
+    expectFittedWidths(workbook.worksheets[0]);
   });
 
   it("returns 404 for an empty id instead of the global export", async () => {
@@ -218,6 +231,30 @@ describe("GET /api/associations/export", () => {
       "Contenants",
       "Contenus",
     ]);
+    for (const worksheet of workbook.worksheets) {
+      expectFittedWidths(worksheet);
+    }
+    for (const name of ["Demandes", "Contenants", "Contenus"]) {
+      const headers = sheet(workbook, name).getRow(1);
+      for (let column = 1; column <= headers.cellCount; column += 1) {
+        expect(headers.getCell(column).alignment?.wrapText).toBeFalsy();
+      }
+    }
+  });
+
+  it("caps and wraps a long free-text column instead of widening it", async () => {
+    const association = await createAssociation({
+      name: "Association",
+      description: "a".repeat(120),
+    });
+
+    const workbook = await loadWorkbook(await exportRequest(association.id));
+    const first = sheet(workbook, "Association");
+    const description = first.getRow(findRowNumber(first, "Description"));
+
+    expect(first.getColumn(2).width).toBe(100);
+    expect(description.getCell(2).alignment.wrapText).toBe(true);
+    expect(description.height).toBe(2 * 15);
   });
 
   it("names the file after the transliterated association and today's date", async () => {
@@ -264,13 +301,12 @@ describe("GET /api/associations/export", () => {
   });
 
   it("writes one row per demand with its derived status, document and totals", async () => {
-    const { association, empotee, distribuee } = await seedAssociationWithDemands();
+    const { association } = await seedAssociationWithDemands();
 
     const workbook = await loadWorkbook(await exportRequest(association.id));
     const demands = sheet(workbook, "Demandes");
 
     expect(headerRow(demands)).toEqual([
-      "Identifiant",
       "Statut",
       "Créée le",
       "Mise à jour le",
@@ -283,35 +319,32 @@ describe("GET /api/associations/export", () => {
     ]);
     expect(demands.rowCount).toBe(3);
 
-    const empoteeRow = findRow(demands, empotee.id);
-    expect(empoteeRow[1]).toBe("Empotée");
-    expect(empoteeRow[2]).toBe("06/01/2026");
-    expect(empoteeRow[4]).toBe("Oui");
-    expect(empoteeRow[5]).toBe(1);
-    expect(empoteeRow[6]).toBe(10);
-    expect(empoteeRow[7]).toBe(1);
-    expect(empoteeRow[8]).toBe(100);
-    expect(empoteeRow[9]).toBe("N°240001");
+    const empoteeRow = findRow(demands, "Empotée");
+    expect(empoteeRow[1]).toBe("06/01/2026");
+    expect(empoteeRow[3]).toBe("Oui");
+    expect(empoteeRow[4]).toBe(1);
+    expect(empoteeRow[5]).toBe(10);
+    expect(empoteeRow[6]).toBe(1);
+    expect(empoteeRow[7]).toBe(100);
+    expect(empoteeRow[8]).toBe("N°240001");
 
-    const distribueeRow = findRow(demands, distribuee.id);
-    expect(distribueeRow[1]).toBe("Distribuée");
-    expect(distribueeRow[4]).toBe("Non");
-    expect(distribueeRow[5]).toBe(2);
-    expect(distribueeRow[6]).toBe(50);
-    expect(distribueeRow[7]).toBe(5);
-    expect(distribueeRow[8]).toBe(500);
-    expect(distribueeRow[9]).toBe("N°240002, N°240003");
+    const distribueeRow = findRow(demands, "Distribuée");
+    expect(distribueeRow[3]).toBe("Non");
+    expect(distribueeRow[4]).toBe(2);
+    expect(distribueeRow[5]).toBe(50);
+    expect(distribueeRow[6]).toBe(5);
+    expect(distribueeRow[7]).toBe(500);
+    expect(distribueeRow[8]).toBe("N°240002, N°240003");
   });
 
   it("writes one row per attached container with status, dates and numeric aggregates", async () => {
-    const { association, empotee } = await seedAssociationWithDemands();
+    const { association } = await seedAssociationWithDemands();
 
     const workbook = await loadWorkbook(await exportRequest(association.id));
     const containers = sheet(workbook, "Contenants");
 
     expect(headerRow(containers)).toEqual([
       "Identifiant",
-      "Demande",
       "Statut",
       "Empaquetage",
       "Poids (kg)",
@@ -323,20 +356,19 @@ describe("GET /api/associations/export", () => {
     expect(containers.rowCount).toBe(4);
 
     const row = findRow(containers, "N°240001");
-    expect(row[1]).toBe(empotee.id);
-    expect(row[2]).toBe("Empoté");
-    expect(row[3]).toBe("Carton");
-    expect(row[4]).toBe(10);
-    expect(row[5]).toBe(1);
-    expect(row[6]).toBe(100);
-    expect(row[7]).toBe("01/02/2026 14:30");
-    expect(row[8]).toBe("");
+    expect(row[1]).toBe("Empoté");
+    expect(row[2]).toBe("Carton");
+    expect(row[3]).toBe(10);
+    expect(row[4]).toBe(1);
+    expect(row[5]).toBe(100);
+    expect(row[6]).toBe("01/02/2026 14:30");
+    expect(row[7]).toBe("");
 
     const distributed = findRow(containers, "N°240002");
-    expect(distributed[2]).toBe("Distribué");
-    expect(distributed[3]).toBe("Filmé");
-    expect(distributed[7]).toBe("05/02/2026 10:00");
-    expect(distributed[8]).toBe("10/03/2026 09:15");
+    expect(distributed[1]).toBe("Distribué");
+    expect(distributed[2]).toBe("Filmé");
+    expect(distributed[6]).toBe("05/02/2026 10:00");
+    expect(distributed[7]).toBe("10/03/2026 09:15");
   });
 
   it("writes one row per content with unit and line values as raw numbers", async () => {
@@ -347,7 +379,6 @@ describe("GET /api/associations/export", () => {
 
     expect(headerRow(contents)).toEqual([
       "Contenant",
-      "Demande",
       "Type d'article",
       "Quantité",
       "Poids unitaire (kg)",
@@ -360,21 +391,21 @@ describe("GET /api/associations/export", () => {
     expect(contents.rowCount).toBe(4);
 
     const riz = findRow(contents, "N°240001");
-    expect(riz[2]).toBe("Riz");
-    expect(riz[3]).toBe(5);
-    expect(riz[4]).toBe(2);
-    expect(riz[5]).toBe(0.5);
-    expect(riz[6]).toBe(3);
-    expect(riz[7]).toBe(10);
-    expect(riz[8]).toBe(2.5);
-    expect(riz[9]).toBe(15);
+    expect(riz[1]).toBe("Riz");
+    expect(riz[2]).toBe(5);
+    expect(riz[3]).toBe(2);
+    expect(riz[4]).toBe(0.5);
+    expect(riz[5]).toBe(3);
+    expect(riz[6]).toBe(10);
+    expect(riz[7]).toBe(2.5);
+    expect(riz[8]).toBe(15);
 
     const pates = findRow(contents, "N°240003");
-    expect(pates[2]).toBe("Pâtes");
-    expect(pates[3]).toBe(4);
-    expect(pates[7]).toBe(4);
-    expect(pates[8]).toBe(1);
-    expect(pates[9]).toBe(6);
+    expect(pates[1]).toBe("Pâtes");
+    expect(pates[2]).toBe(4);
+    expect(pates[6]).toBe(4);
+    expect(pates[7]).toBe(1);
+    expect(pates[8]).toBe(6);
   });
 
   it("excludes free and detached containers from every sheet and from totals", async () => {

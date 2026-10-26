@@ -118,7 +118,6 @@ export class AssociationExportDto {
   private demandsSheet(): ExportCell[][] {
     return [
       [
-        "Identifiant",
         "Statut",
         "Créée le",
         "Mise à jour le",
@@ -132,7 +131,6 @@ export class AssociationExportDto {
       ...this.demands.map((demand): ExportCell[] => {
         const [weight, volume, value] = sum(demand.containers);
         return [
-          demand.id,
           DemandDto.statusData(DemandDto.deriveStatus(demand.containers)).text,
           formatDate(demand.created_at),
           formatDate(demand.updated_at),
@@ -151,7 +149,6 @@ export class AssociationExportDto {
     return [
       [
         "Identifiant",
-        "Demande",
         "Statut",
         "Empaquetage",
         "Poids (kg)",
@@ -163,7 +160,6 @@ export class AssociationExportDto {
       ...this.demands.flatMap((demand) =>
         demand.containers.map((container): ExportCell[] => [
           `N°${container.id}`,
-          demand.id,
           ContainerDto.containerState({
             association: null,
             demand_id: demand.id,
@@ -185,7 +181,6 @@ export class AssociationExportDto {
     return [
       [
         "Contenant",
-        "Demande",
         "Type d'article",
         "Quantité",
         "Poids unitaire (kg)",
@@ -201,7 +196,6 @@ export class AssociationExportDto {
             .sort((first, second) => first.type.name.localeCompare(second.type.name))
             .map((content): ExportCell[] => [
               `N°${container.id}`,
-              demand.id,
               content.type.name,
               content.quantity,
               content.type.weight,
